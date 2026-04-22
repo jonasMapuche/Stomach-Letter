@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:Letter.Models"
+             xmlns:viewmodels="clr-namespace:Letter.ViewModels"
+             x:Class="Letter.Views.Templates.HomeItemTemplate">
+    <ContentView.Content>
+        <Grid
+            BackgroundColor="{StaticResource WhiteColor}">
+            <SwipeView
+            Padding="2, 5">
+                <SwipeView.LeftItems>
+                    <SwipeItems>
+                        <SwipeItem 
+                        x:Name="siLeft"
+                        x:DataType="models:Message"
+                        IconImageSource="{Binding Move}"
+                        BackgroundColor="{StaticResource LetterColor}"
+                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:HomeViewModel}}, Path=SwipedMoveCommand}"
+                        CommandParameter="{Binding .}"/>
+                    </SwipeItems>
+                </SwipeView.LeftItems>
+                <SwipeView.RightItems>
+                    <SwipeItems>
+                        <SwipeItem 
+                            x:Name="siRight" 
+                            x:DataType="models:Message"
+                            IconImageSource="{Binding Speak}"
+                            BackgroundColor="{StaticResource LetterColor}"
+                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:HomeViewModel}}, Path=SwipedSpeakCommand}"
+                            CommandParameter="{Binding .}"/>
+                    </SwipeItems>
+                </SwipeView.RightItems>
+                <Border StrokeThickness="0"
+                    Stroke="{StaticResource ModalColor}"
+                    StrokeShape="RoundRectangle 20, 20, 20, 10"
+                    BackgroundColor="{StaticResource MessageColor}">
+                    <Grid
+                        ColumnDefinitions="Auto, *"
+                        RowSpacing="0"
+                        Margin="12, 16">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer 
+                                x:DataType="models:Message"
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:HomeViewModel}}, Path=BotCommand}"      
+                                CommandParameter="{Binding Sender}"/>
+                        </Grid.GestureRecognizers>
+                        <Grid
+                            Grid.Column="0"
+                            Style="{StaticResource colViewHomeItemTemplate}">
+                            <Ellipse
+                                x:DataType="models:Message"
+                                BackgroundColor="{Binding Sender.Color}"
+                                Style="{StaticResource elpsHomeItemTemplate}"/>
+                            <Image
+                                x:DataType="models:Message"
+                                Source="{Binding Sender.Image}"
+                                Style="{StaticResource imgHomeItemTemplate}"/>
+                        </Grid>
+                        <Grid
+                            Grid.Column="1"   
+                            ColumnDefinitions="*, Auto">
+                            <StackLayout>
+                                <Label        
+                                    x:Name="lblName"
+                                    x:DataType="models:Message"
+                                    Text="{Binding Sender.Name}"
+                                    Style="{StaticResource lblNameHomeItemTemplate}"/>
+                                <Label         
+                                    x:DataType="models:Message"
+                                    Text="{Binding Text}"
+                                    Style="{StaticResource lblMessageHomeItemTemplate}"/>
+                                <!--
+                                <Grid 
+                                    BackgroundColor="{StaticResource MessageColor}" 
+                                    IsVisible="True">
+                                    <ActivityIndicator IsRunning="True" 
+                                       Color="{StaticResource LetterColor}" 
+                                       Scale="0.3"
+                                       VerticalOptions="Center" 
+                                       HorizontalOptions="Start" />
+                                </Grid
+                                -->
+                            </StackLayout>
+                        </Grid>
+                    </Grid>
+                </Border>
+            </SwipeView>
+        </Grid>
+    </ContentView.Content>
+</ContentView>

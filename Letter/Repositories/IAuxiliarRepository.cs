@@ -1,0 +1,15 @@
+﻿using Letter.Models;
+
+namespace Letter.Repositories
+{
+    public interface IAuxiliarRepository
+    {
+        Task<List<Auxiliares>> GetAll();
+        Task<int> Add(List<Auxiliares> auxiliary);
+        void CreateTable();
+        Task<int> DeleteAll();
+        Task<int> DropTable();
+        Task<int> ExistAsync();
+        int Exist();
+    }
+}

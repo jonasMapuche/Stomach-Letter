@@ -1,0 +1,269 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Letter.Resources.Styles.MyStyles">
+
+    <!--
+        Pattern
+            BoxView => box
+            CollectionView => colView
+            Grid = grid
+            Image => img
+            Ellipse => elps
+            Label => lbl 
+            Button => btn
+            SwipeItem => si
+            Picker => pck
+            Switch => swt
+            Slider => sld
+            ToolbarItem => tbi
+        Home
+            ChatHomeBoxViewStyle => boxHomeView
+            ChatHomeCollectionViewStyle => colViewHomeView
+            NewBotHomeGridStyle => gridHomeView
+            elpsBotView => elpsHomeView 
+            NewBotHomeImageStyle => imgHomeView
+            ContainerHomeItemGridStyle => colViewHomeItemTemplate
+            HomeItemEllipseStyle => elpsHomeItemTemplate
+            HomeItemImageStyle => imgHomeItemTemplate
+            NameHomeItemLabelStyle => lblNameHomeItemTemplate
+            MessageHomeItemLabelStyle => lblMessageHomeItemTemplate
+            UserSettingLabelStyle => lblTitleSettingView
+            AdornerSettingBoxViewStyle => boxSettingView
+            NavigationBotGridStyle => gridBotView
+            lblTitleSettingView = lblTitleBotView
+            boxSettingView = boxBotView
+            UserContainerBotGridStyle => gridUserBotView
+            UserBotLabelStyle => lblUserBotView
+            UserBotEllipseStyle => elpsUserBotView
+            UserBotImageStyle => imgUserBotView
+            ChatEntryBotGridStyle => gridEntryBotView
+            ContainerBotGridStyle => gridButtonBotView
+            elpsUserBotView => elpsButtonBotView
+            ChatEntryBotImageStyle => imgButtonBotView
+            ContainerReceiverBotItemGridStyle => gridReceiverBotItemTemplate
+            ContainerSenderBotItemGridStyle => gridSenderBotItemTemplate
+            ChatBotCollectionViewStyle => colViewMessageBotView
+            ShapeReceiverBotItemBoxViewStyle => boxReceiverBotItemTemplate
+            MessageReceiverBotItemLabelStyle => lblReceiverBotItemTemplate
+            ShapeSenderBotItemGridStyle => gridBotSenderBotItemTemplate
+            SenderBotItemEllipseStyle => elpsBotSenderBotItemTemplate
+            SenderBotItemImageStyle => imgBotSenderBotItemTemplate
+            SenderBotItemBoxViewStyle => boxBotSenderBotItemTemplate
+            SenderBotItemLabelStyle => lblBotSenderBotItemTemplate
+    -->
+
+    <Style x:Key="boxHomeView" TargetType="BoxView">
+        <Setter Property="Color" Value="{StaticResource WhiteColor}" />
+        <Setter Property="CornerRadius" Value="18, 18, 0, 0" />
+    </Style>
+
+    <Style x:Key="colViewHomeView" TargetType="CollectionView">
+        <Setter Property="Margin" Value="12, 14, 12, 0" />
+    </Style>
+
+    <Style x:Key="gridHomeView" TargetType="Grid">
+        <Setter Property="HeightRequest" Value="62" />
+        <Setter Property="WidthRequest" Value="62" />
+        <Setter Property="Margin" Value="0, 0, 0, 0" />
+        <Setter Property="Shadow" Value="#000000 4 4" />
+    </Style>
+
+    <Style x:Key="elpsHomeView" TargetType="Ellipse">
+        <Setter Property="BackgroundColor" Value="{StaticResource LetterColor}" />
+    </Style>
+
+    <Style x:Key="imgHomeView" TargetType="Image">
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="HeightRequest" Value="48" />
+        <Setter Property="Margin" Value="10" />
+    </Style>
+
+    <Style x:Key="colViewHomeItemTemplate" TargetType="CollectionView">
+        <Setter Property="Margin" Value="12, 0, 12, 0" />
+    </Style>
+
+    <Style x:Key="elpsHomeItemTemplate" TargetType="Ellipse">
+        <Setter Property="HeightRequest" Value="72" />
+        <Setter Property="WidthRequest" Value="72" />
+    </Style>
+
+    <Style x:Key="imgHomeItemTemplate" TargetType="Image">
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="HeightRequest" Value="48" />
+        <Setter Property="Margin" Value="10" />
+    </Style>
+
+    <Style x:Key="lblNameHomeItemTemplate" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource BackgroundColor}" />
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="Margin" Value="12, 0" />
+    </Style>
+
+    <Style x:Key="lblMessageHomeItemTemplate" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource BackgroundColor}" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="LineBreakMode" Value="TailTruncation" />
+        <Setter Property="MaxLines" Value="3" />
+        <Setter Property="Margin" Value="12, 2, 12, 0" />
+    </Style>
+
+    <Style x:Key="lblTitleSettingView" TargetType="Label">
+        <Setter Property="FontSize" Value="26" />
+        <Setter Property="TextColor" Value="{StaticResource WhiteColor}" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="WidthRequest" Value="150" />
+        <Setter Property="HorizontalOptions" Value="Start" />
+        <Setter Property="Margin" Value="20, 37" />
+    </Style>
+
+    <Style x:Key="boxSettingView" TargetType="BoxView">
+        <Setter Property="Color" Value="{StaticResource WhiteColor}" />
+        <Setter Property="Margin" Value="0, 40, 0, 0" />
+        <Setter Property="CornerRadius" Value="24, 24, 0, 0" />
+    </Style>
+
+    <Style x:Key="gridBotView" TargetType="Grid">
+        <Setter Property="Margin" Value="0, 0, 0, 0" />
+        <Setter Property="VerticalOptions" Value="Start" />
+        <Setter Property="HorizontalOptions" Value="Start" />
+        <Setter Property="BackgroundColor" Value="{StaticResource PrimaryColor}" />
+        <Setter Property="Padding" Value="20, 18, 0 , 0" />
+    </Style>
+
+    <Style x:Key="lblTitleBotView" TargetType="Label">
+        <Setter Property="FontSize" Value="26" />
+        <Setter Property="TextColor" Value="{StaticResource WhiteColor}" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="WidthRequest" Value="150" />
+        <Setter Property="HorizontalOptions" Value="Start" />
+        <Setter Property="Margin" Value="20, 37" />
+    </Style>
+
+    <Style x:Key="boxBotView" TargetType="BoxView">
+        <Setter Property="Color" Value="{StaticResource WhiteColor}" />
+        <Setter Property="Margin" Value="0, 40, 0, 0" />
+        <Setter Property="CornerRadius" Value="24, 24, 0, 0" />
+    </Style>
+
+    <Style x:Key="gridUserBotView" TargetType="Grid">
+        <Setter Property="HorizontalOptions" Value="Start" />
+        <Setter Property="VerticalOptions" Value="Start" />
+        <Setter Property="HeightRequest" Value="72" />
+        <Setter Property="WidthRequest" Value="72" />
+        <Setter Property="Margin" Value="20, 40" />
+    </Style>
+
+    <Style x:Key="gridCameraBotView" TargetType="Grid">
+        <Setter Property="Padding" Value="52, 15, 52, 10" />
+        <!-- 15 by 22 -->
+    </Style>
+
+    <Style x:Key="lblUserBotView" TargetType="Label">
+        <Setter Property="FontSize" Value="26" />
+        <Setter Property="TextColor" Value="{StaticResource WhiteColor}" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="WidthRequest" Value="150" />
+        <Setter Property="HorizontalOptions" Value="Start" />
+        <Setter Property="Margin" Value="0, 0, 0, 0" />
+    </Style>
+
+    <Style x:Key="elpsUserBotView" TargetType="Ellipse">
+        <Setter Property="HeightRequest" Value="72" />
+        <Setter Property="WidthRequest" Value="72" />
+    </Style>
+
+    <Style x:Key="imgUserBotView" TargetType="Image">
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="HeightRequest" Value="44" />
+        <Setter Property="Margin" Value="10" />
+    </Style>
+
+    <Style x:Key="gridEntryBotView" TargetType="Grid">
+        <Setter Property="BackgroundColor" Value="{StaticResource MessageColor}" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="HeightRequest" Value="72" />
+        <Setter Property="Padding" Value="4" />
+        <Setter Property="Margin" Value="12" />
+    </Style>
+
+    <Style x:Key="gridButtonBotView" TargetType="Grid">
+        <Setter Property="HeightRequest" Value="62" />
+        <Setter Property="WidthRequest" Value="62" />
+        <Setter Property="Margin" Value="0, 0, 0, 0" />
+        <Setter Property="Shadow" Value="#000000 4 4" />
+    </Style>
+
+    <Style x:Key="elpsButtonBotView" TargetType="Ellipse">
+        <Setter Property="BackgroundColor" Value="{StaticResource LetterColor}" />
+    </Style>
+
+    <Style x:Key="imgButtonBotView" TargetType="Image">
+        <Setter Property="HeightRequest" Value="40" />
+        <Setter Property="Aspect" Value="AspectFit" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="VerticalOptions" Value="Center" />
+    </Style>
+
+    <Style x:Key="gridReceiverBotItemTemplate" TargetType="Grid">
+        <Setter Property="Margin" Value="8" />
+    </Style>
+
+    <Style x:Key="gridSenderBotItemTemplate" TargetType="Grid">
+        <Setter Property="Margin" Value="8" />
+    </Style>
+
+    <Style x:Key="colViewMessageBotView" TargetType="CollectionView">
+        <Setter Property="Margin" Value="18, 50, 18, 0" />
+    </Style>
+
+    <Style x:Key="boxReceiverBotItemTemplate" TargetType="BoxView">
+        <Setter Property="Color" Value="{StaticResource MessageColor}" />
+        <Setter Property="CornerRadius" Value="24, 24, 0, 24" />
+    </Style>
+
+    <Style x:Key="lblReceiverBotItemTemplate" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource BackgroundColor}" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="LineBreakMode" Value="TailTruncation" />
+        <Setter Property="MaxLines" Value="3" />
+        <Setter Property="Margin" Value="12, 12, 12, 0" />
+    </Style>
+
+    <Style x:Key="gridBotSenderBotItemTemplate" TargetType="Grid">
+        <Setter Property="HeightRequest" Value="44" />
+        <Setter Property="WidthRequest" Value="44" />
+        <Setter Property="VerticalOptions" Value="End" />
+    </Style>
+
+    <Style x:Key="elpsBotSenderBotItemTemplate" TargetType="Ellipse">
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="HeightRequest" Value="28" />
+        <Setter Property="WidthRequest" Value="28" />
+    </Style>
+
+    <Style x:Key="SenderBotItemImageStyle" TargetType="Image">
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="Margin" Value="12" />
+    </Style>
+
+    <Style x:Key="boxBotSenderBotItemTemplate" TargetType="BoxView">
+        <Setter Property="Color" Value="{StaticResource MessageColor}" />
+        <Setter Property="CornerRadius" Value="24, 24, 0, 24" />
+    </Style>
+
+    <Style x:Key="lblBotSenderBotItemTemplate" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource BackgroundColor}" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontFamily" Value="OpenSansRegular" />
+        <Setter Property="LineBreakMode" Value="TailTruncation" />
+        <Setter Property="MaxLines" Value="3" />
+        <Setter Property="Margin" Value="12, 12, 12, 0" />
+    </Style>
+</ResourceDictionary>

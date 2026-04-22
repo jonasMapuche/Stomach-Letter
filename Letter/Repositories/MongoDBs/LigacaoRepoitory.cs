@@ -1,0 +1,107 @@
+﻿using Letter.Data;
+using Letter.Models;
+using MongoDB.Driver;
+
+namespace Letter.Repositories.MongoDBs
+{
+    public class LigacaoRepoitory : ILigacaoRepository
+    {
+        #region ERROR
+        private bool _error_on = true;
+        private bool _error_off = false;
+        private string? _error_message;
+
+        public string? error_message
+        {
+            get => this._error_message;
+            set
+            {
+                this._error_message = value;
+            }
+        }
+
+        public event EventHandler<string>? OnError;
+        #endregion
+
+        #region VARIABLE
+        private readonly IMongoCollection<Ligacao> _collection;
+        #endregion
+
+        #region CONSTRUCTOR
+        public LigacaoRepoitory()
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation constructor \"Ligacao\" repository failed!");
+                else this._error_message = string.Empty;
+
+                string connection = "mongodb://berthazatz:freedown@ac-caq66mq-shard-00-00.55ugps8.mongodb.net:27017,ac-caq66mq-shard-00-01.55ugps8.mongodb.net:27017,ac-caq66mq-shard-00-02.55ugps8.mongodb.net:27017/?ssl=true&replicaSet=atlas-m1uiq4-shard-0&authSource=admin&appName=conjunction";
+                string database = "stomach";
+                string collection = "conjunction";
+                var mongoClient = new MongoClient(connection);
+                var mongoDatabase = mongoClient.GetDatabase(database);
+                this._collection = mongoDatabase.GetCollection<Ligacao>(collection);
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public LigacaoRepoitory(LigacaoContext ligacaoContext)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation constructor \"Ligacao\" repository failed!");
+                else this._error_message = string.Empty;
+
+                this._collection = ligacaoContext.GetCollection();
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+        #endregion
+
+        #region COMMAND
+        #endregion
+
+        #region EVENT
+        #endregion
+
+        #region FUNCTION
+        public List<Ligacao> GetLanguage(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation get language \"Ligacao\" repository failed!");
+
+                return this._collection.Find(index => index.linguagem == language).ToList<Ligacao>();
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<List<Ligacao>> GetLanguageAsync(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation get language async \"Ligacao\" repository failed!");
+
+                return await this._collection.Find(index => index.linguagem == language).ToListAsync<Ligacao>();
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+        #endregion
+    }
+}
