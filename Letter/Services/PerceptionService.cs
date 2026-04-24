@@ -1,4 +1,5 @@
-﻿using Letter.Helpers;
+﻿using CommunityToolkit.Maui.Storage;
+using Letter.Helpers;
 using Letter.Interfaces;
 using Letter.Models;
 using Letter.Services.Interfaces;
@@ -26,29 +27,29 @@ namespace Letter.Services
         #endregion
 
         #region VARIABLE
-        public List<Audio>? _audios;
+        public List<Audio> _audios;
         private IAudioService _audioService;
         private IRecordService _recordService;
         private ITextSpeakService _textSpeakService;
+        private IHttpService _httpService;
         private IAdapter? _adapterBluetooth;
         #endregion
 
         #region CONSTRUCTOR
-        public PerceptionService(IRecordService recordService, IAudioService audioService, ITextSpeakService textSpeakService)
+        public PerceptionService(IRecordService recordService, IAudioService audioService, ITextSpeakService textSpeakService, HttpService httpService)
         {
             try
             {
                 if (this._error_off) throw new InvalidOperationException("Operation contructor \"Perception\" service failed!");
                 else this.error_message = string.Empty;
 
+                this._audios = new List<Audio>();
+                this._httpService = httpService;
+                FilePath.MountPath();
+
                 this._recordService = recordService;
-                this._recordService.OnError += OnError;
-
                 this._audioService = audioService;
-                this._audioService.OnError += OnError;
-
                 this._textSpeakService = textSpeakService;
-                this._textSpeakService.OnError += OnError;
             }
             catch (Exception ex)
             {
@@ -65,17 +66,16 @@ namespace Letter.Services
         #endregion
 
         #region FUNCTION
-        public async Task SaveImage(byte[] bytes)
+        public async Task<string> SaveImage(byte[] bytes)
         {
             try
             {
                 if (this._error_off) throw new InvalidOperationException("Operation save image \"Perception\" service failed!");
 
                 string file_name = FilePath.SetFileName("jpeg");
-                string file_path = FilePath.SetAudioFilePath(file_name);
-                Audio audio = new Audio() { url = file_path };
-                if (audio != null)
-                    await File.WriteAllBytesAsync(file_path, bytes);
+                string file_path = FilePath.MountFilePath(file_name);
+                await File.WriteAllBytesAsync(file_path, bytes);
+                return file_path;
             }
             catch (Exception ex)
             {
@@ -107,28 +107,7 @@ namespace Letter.Services
                         return output_path;
                     }
                 }
-                return null;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                this.OnError?.Invoke(this, this.error_message);
-                return null;
-            }
-        }
-
-        public void SendRecording(string file_path)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation send recording \"Perception\" service failed!");
-
-                Audio audio = new Audio() { url = file_path };
-                if (audio != null)
-                {
-                    audio.name = Path.GetFileName(file_path);
-                    _audios.Insert(0, audio);
-                }
+                return string.Empty;
             }
             catch (Exception ex)
             {
@@ -137,26 +116,84 @@ namespace Letter.Services
             }
         }
 
-        public async Task DownloadFile()
+        public async Task SendRecording(string file_path)
         {
             try
             {
-                if (this._error_off) throw new InvalidOperationException("Operation download audio \"Perception\" service failed!");
+                if (this._error_off) throw new InvalidOperationException("Operation send recording \"Perception\" service failed!");
 
-                Audio audios = _audios.First();
-                string file_path = audios.url;
+                await ClearRecording();
+                Audio audio = new Audio();
+                audio.name = Path.GetFileName(file_path);
+                audio.url = file_path;
+                this._audios.Add(audio);
+
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task ClearRecording()
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation send recording \"Perception\" service failed!");
+
+                this._audios = new List<Audio>();
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task UploadRaspberry()
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation upload raspberry \"Perception\" service failed!");
+
+                Audio audio = this._audios.First();
+                string file_path = audio.url;
                 FileStream fs = new FileStream(file_path, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, true);
                 MemoryStream ms = new MemoryStream();
                 await fs.CopyToAsync(ms);
                 ms.Position = 0;
                 using StreamContent streamContent = new StreamContent(ms);
-                IHttpService httpService = new HttpService();
-                await httpService.HttpPost(streamContent, file_path);
+                await this._httpService.HttpPost(streamContent, file_path);
             }
             catch (Exception ex)
             {
                 this.error_message = ex.Message;
-                this.OnError?.Invoke(this, this.error_message);
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<string> DownloadRaspberry()
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation download raspberry \"Perception\" service failed!");
+
+                Audio audio = this._audios.First();
+                string file_name = audio.name;
+
+                Download download = new Download();
+                download.name = file_name;
+                Stream stream = await this._httpService.HttpPost(download);
+                stream.Position = 0;
+                FileSaverResult file_save = await FileSaver.Default.SaveAsync(file_name, stream, CancellationToken.None);
+                file_save.EnsureSuccess();
+                return file_save.FilePath;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
             }
         }
 
@@ -348,7 +385,7 @@ namespace Letter.Services
             {
                 if (this._error_off) throw new InvalidOperationException("Operation send bluetooth 3 \"Perception\" service failed!");
 
-                Audio audios = _audios.First();
+                Audio audios = this._audios.First();
                 string file_path = audios.url;
 
                 return string.Empty;
@@ -366,7 +403,7 @@ namespace Letter.Services
             {
                 if (this._error_off) throw new InvalidOperationException("Operation send bluetooth 4 \"Perception\" service failed!");
 
-                Audio audios = _audios.First();
+                Audio audios = this._audios.First();
                 string file_path = audios.url;
 
                 return string.Empty;
@@ -401,7 +438,6 @@ namespace Letter.Services
             {
                 if (this._error_off) throw new InvalidOperationException("Operation file text \"Perception\" service failed!");
 
-                this._textSpeakService.OnError += OnError;
                 return this._textSpeakService.FileText(text);
             }
             catch (Exception ex)
@@ -417,7 +453,6 @@ namespace Letter.Services
             {
                 if (this._error_off) throw new InvalidOperationException("Operation start record mp3 \"Perception\" service failed!");
 
-                this._recordService.OnError += OnError;
                 this._recordService.StartRecordMP3();
             }
             catch (Exception ex)
@@ -448,7 +483,6 @@ namespace Letter.Services
             {
                 if (this._error_off) throw new InvalidOperationException("Operation start record mp3 \"Perception\" service failed!");
 
-                this._recordService.OnError += OnError;
                 return this._recordService.StopRecordMP3();
             }
             catch (Exception ex)
@@ -464,7 +498,6 @@ namespace Letter.Services
             {
                 if (this._error_off) throw new InvalidOperationException("Operation start record wav \"Perception\" service failed!");
 
-                this._recordService.OnError += OnError;
                 return this._recordService.StopRecordWav();
             }
             catch (Exception ex)
@@ -480,7 +513,6 @@ namespace Letter.Services
             {
                 if (this._error_off) throw new InvalidOperationException("Operation stop audio \"Perception\" service failed!");
 
-                this._audioService.OnError += OnError;
                 this._audioService.StopAudio();
             }
             catch (Exception ex)
@@ -496,7 +528,7 @@ namespace Letter.Services
             {
                 if (this._error_off) throw new InvalidOperationException("Operation receive recording \"Perception\" service failed!");
 
-                Audio audio = _audios.First();
+                Audio audio = this._audios.First();
                 string file_path = audio.url;
                 return file_path;
             }
@@ -513,7 +545,6 @@ namespace Letter.Services
             {
                 if (this._error_off) throw new InvalidOperationException("Operation play audio \"Perception\" service failed!");
 
-                this._audioService.OnError += OnError;
                 this._audioService.PlayAudio(file_path);
             }
             catch (Exception ex)

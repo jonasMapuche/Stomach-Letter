@@ -67,6 +67,40 @@
                 throw new InvalidOperationException(error_message);
             }
         }
+
+        public static string MountPath()
+        {
+            try
+            {
+                if (_error_off) throw new InvalidOperationException("Operation audio file path \"File Path\" helper failed!!");
+
+                string path = Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
+                Directory.CreateDirectory(path);
+                return path;
+            }
+            catch (Exception ex)
+            {
+                error_message = ex.Message;
+                throw new InvalidOperationException(error_message);
+            }
+        }
+
+        public static string MountFilePath(string file_name)
+        {
+            try
+            {
+                if (_error_off) throw new InvalidOperationException("Operation audio file path \"File Path\" helper failed!!");
+
+                string path = Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
+                string file_path = path + file_name;
+                return file_path;
+            }
+            catch (Exception ex)
+            {
+                error_message = ex.Message;
+                throw new InvalidOperationException(error_message);
+            }
+        }
         #endregion
     }
 }

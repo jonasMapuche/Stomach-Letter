@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using Letter.Models;
 using Letter.Services;
 using Letter.Services.Interfaces;
+using Letter.Views;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 
@@ -70,6 +71,7 @@ namespace Letter.ViewModels
         private Dictionary<string, string> _disconnect;
         private Dictionary<string, string> _connected;
         private Dictionary<string, string> _juncao;
+        private Dictionary<string, string> _clear;
 
         private Dictionary<string, string> _gps;
         private Dictionary<string, string> _bluetooth;
@@ -90,6 +92,7 @@ namespace Letter.ViewModels
         private Dictionary<string, string> _latitude;
         private Dictionary<string, string> _level;
         private Dictionary<string, string> _charge;
+        private Dictionary<string, string> _raspberry;
 
         private Dictionary<string, string> _with;
         private Dictionary<string, string> _in;
@@ -128,7 +131,7 @@ namespace Letter.ViewModels
 
         private CameraView? _viewCamera;
 
-        public CancellationToken Token => CancellationToken.None;
+        private ImageSource _image_source;
         #endregion
 
         #region CONSTRUCTOR
@@ -187,6 +190,7 @@ namespace Letter.ViewModels
                 this._disconnect = this._settingService.Disconnect;
                 this._connected = this._settingService.Connected;
                 this._juncao = this._settingService.Juncao;
+                this._clear = this._settingService.Clear;
 
                 this._gps = this._settingService.GPS;
                 this._bluetooth = this._settingService.Bluetooth;
@@ -207,6 +211,7 @@ namespace Letter.ViewModels
                 this._latitude = this._settingService.Latitude;
                 this._level = this._settingService.Level;
                 this._charge = this._settingService.Charge;
+                this._raspberry = this._settingService.Raspberry;
 
                 this._with = this._settingService.With;
                 this._in = this._settingService.In;
@@ -237,10 +242,11 @@ namespace Letter.ViewModels
                 this._dont_language = this._settingService.Dont_Language;
 
                 this.BackCommand = new AsyncRelayCommand(OnBackCommand);
-                this.SendCommand = new AsyncRelayCommand<string>(OnSendCommand);
+                this.SendCommand = new AsyncRelayCommand<object>(OnSendCommand);
+                this.MediaCapturedCommand = new AsyncRelayCommand<MediaCapturedEventArgs>(OnMediaCommand);
 
-                ShowCamera = true;
-                ShowPhoto = false;
+                this.ShowCamera = true;
+                this.ShowPhoto = false;
 
                 InitMessage();
             }
@@ -318,11 +324,36 @@ namespace Letter.ViewModels
             }
         }
 
-        private async Task OnSendCommand(string? parameter)
+        private async Task OnMediaCommand(MediaCapturedEventArgs parameter)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation media command \"Bot\" view model failed!");
+
+                //Stream stream = parameter.Media;
+                //this._image_source = ImageSource.FromStream(() => stream);
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                this.OnError?.Invoke(this, this.error_message);
+            }
+        }
+
+        private async Task OnSendCommand(object? parameter)
         {
             try
             {
                 if (this._error_off) throw new InvalidOperationException("Operation send command \"Bot\" view model failed!");
+
+                string report = string.Empty;
+                object? item = null;
+
+                Agent agent = (Agent)parameter;
+                report = agent.Message;
+                item = agent.Token;
+
+                Token = agent.Token;
 
                 HashSet<string> dont_languages = this._dont_language
                     .Where(index => index.Value.Contains(this._language_english.Lowercase))
@@ -331,7 +362,7 @@ namespace Letter.ViewModels
 
                 string language = Username.Name;
                 User user = Username;
-                Messages = ChargeMessage(null, parameter, language);
+                Messages = ChargeMessage(null, report, language);
                 TextInput = string.Empty;
 
                 if (language != this._language_english.Uppercase)
@@ -341,14 +372,14 @@ namespace Letter.ViewModels
                     language = this._language_english.Lowercase;
                     if (SettingService.Instance.ModeBot)
                     {
-                        this._messageService.Bots(null, parameter, language);
+                        this._messageService.Bots(null, report, language);
                         string response = string.Empty;
-                        response = await OnSendBot(parameter, user, language);
+                        response = await OnSendBot(report, user, language);
                     }
                     else
                     {
                         string response = string.Empty;
-                        response = await OnSendButton(parameter, user, language);
+                        response = await OnSendButton(report, user, language);
                         if (response != string.Empty)
                             Messages = ChargeMessage(Username, response, language);
                         if (SettingService.Instance.ModeBot)
@@ -385,6 +416,8 @@ namespace Letter.ViewModels
         #region FUNCTION
         public ICommand BackCommand { get; set; }
         public ICommand SendCommand { get; set; }
+        public ICommand MediaCapturedCommand { get; set; }
+        public IAsyncRelayCommand LoadCommand { get; }
 
         [ObservableProperty]
         public User? username;
@@ -418,6 +451,8 @@ namespace Letter.ViewModels
                 this._viewCamera = value;
             }
         }
+
+        public CancellationToken Token { get; set; }
 
         private ObservableCollection<Message> ChargeMessage(User? user, string text, string language)
         {
@@ -840,6 +875,9 @@ namespace Letter.ViewModels
                 HashSet<string> verbs_disconnect = new HashSet<string>();
                 verbs_disconnect = this._disconnect.Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> verbs_clear = new HashSet<string>();
+                verbs_clear = this._clear.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 HashSet<string> nouns_gps = new HashSet<string>();
                 nouns_gps = this._gps.Where(index => index.Value.Contains(language))
@@ -885,6 +923,9 @@ namespace Letter.ViewModels
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
                 HashSet<string> nouns_bluetooth4 = new HashSet<string>();
                 nouns_bluetooth4 = this._bluetooth4.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> nouns_raspberry = new HashSet<string>();
+                nouns_raspberry = this._raspberry.Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 HashSet<string> adjective_front = new HashSet<string>();
@@ -934,6 +975,15 @@ namespace Letter.ViewModels
                     if (Array.IndexOf(nouns_wav.ToArray(), noun) != -1)
                     {
                         response = await StartRecord(language, nouns_wav.ToArray()[0]);
+                        return response;
+                    }
+                }
+                //-----
+                if (Array.IndexOf(verbs_clear.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_audio.ToArray(), noun) != -1)
+                    {
+                        response = await ClearRecord(language);
                         return response;
                     }
                 }
@@ -1088,17 +1138,17 @@ namespace Letter.ViewModels
                 //-----
                 if (Array.IndexOf(verbs_upload.ToArray(), verb) != -1)
                 {
-                    if (Array.IndexOf(nouns_file.ToArray(), noun) != -1)
+                    if (Array.IndexOf(nouns_raspberry.ToArray(), noun) != -1)
                     {
-                        response = await UploadFile(language);
+                        response = await UploadRaspberry(language);
                         return response;
                     }
                 }
                 if (Array.IndexOf(verbs_download.ToArray(), verb) != -1)
                 {
-                    if (Array.IndexOf(nouns_file.ToArray(), noun) != -1)
+                    if (Array.IndexOf(nouns_raspberry.ToArray(), noun) != -1)
                     {
-                        response = await DownloadFile(language);
+                        response = await DownloadRaspberry(language);
                         return response;
                     }
                 }
@@ -1280,6 +1330,9 @@ namespace Letter.ViewModels
                 HashSet<string> record = this._record
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> dont_work = this._dont_work
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string response = string.Empty;
                 PermissionStatus permission_status = await RequestandCheckPermission();
@@ -1296,6 +1349,32 @@ namespace Letter.ViewModels
                         response = $"{wav.ToArray()[0]} {record.ToArray()[0]}.";
                     }
                 }
+                else response = $"{dont_work.ToArray()[0]} {record.ToArray()[0]}.";
+                return response;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<string> ClearRecord(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation start record \"Bot\" view model failed!");
+
+                HashSet<string> audio = this._audio
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> clear = this._clear
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                string response = string.Empty;
+                await this._perceptionService.ClearRecording();
+                response = $"{clear.ToArray()[0]} {audio.ToArray()[0]}.";
                 return response;
             }
             catch (Exception ex)
@@ -1314,6 +1393,9 @@ namespace Letter.ViewModels
                 PermissionStatus statusStorare = await Permissions.CheckStatusAsync<Permissions.StorageWrite>();
                 if (statusStorare != PermissionStatus.Granted)
                     await Permissions.RequestAsync<Permissions.StorageWrite>();
+                PermissionStatus statusRead = await Permissions.CheckStatusAsync<Permissions.StorageRead>();
+                if (statusRead != PermissionStatus.Granted)
+                    statusRead = await Permissions.RequestAsync<Permissions.StorageRead>();
                 PermissionStatus statusMicrophone = await Permissions.CheckStatusAsync<Permissions.Microphone>();
                 if (statusMicrophone != PermissionStatus.Granted)
                     await Permissions.RequestAsync<Permissions.Microphone>();
@@ -1322,11 +1404,13 @@ namespace Letter.ViewModels
                     await Permissions.RequestAsync<Permissions.Camera>();
 
                 PermissionStatus storagePermission = await Permissions.CheckStatusAsync<Permissions.StorageWrite>();
+                PermissionStatus readPermission = await Permissions.CheckStatusAsync<Permissions.StorageRead>();
                 PermissionStatus microPhonePermission = await Permissions.CheckStatusAsync<Permissions.Microphone>();
                 PermissionStatus cameraPermission = await Permissions.RequestAsync<Permissions.Camera>();
                 if (storagePermission == PermissionStatus.Granted
                     && microPhonePermission == PermissionStatus.Granted
-                    && cameraPermission == PermissionStatus.Granted)
+                    && cameraPermission == PermissionStatus.Granted 
+                    && readPermission == PermissionStatus.Granted)
                 {
                     return PermissionStatus.Granted;
                 }
@@ -1358,14 +1442,14 @@ namespace Letter.ViewModels
                 string response = string.Empty;
                 if (kind == mp3.ToArray()[0])
                 {
-                    string audio_file_path = this._perceptionService.StopRecordMP3();
-                    this._perceptionService.SendRecording(audio_file_path);
+                    string file_path = this._perceptionService.StopRecordMP3();
+                    await this._perceptionService.SendRecording(file_path);
                     response = $"{mp3.ToArray()[0]} {stop.ToArray()[0]}.";
                 }
                 else
                 {
-                    string audio_file_path = this._perceptionService.StopRecordWav();
-                    this._perceptionService.SendRecording(audio_file_path);
+                    string file_path = this._perceptionService.StopRecordWav();
+                    await this._perceptionService.SendRecording(file_path);
                     response = $"{wav.ToArray()[0]} {stop.ToArray()[0]}.";
                 }
                 return response;
@@ -1393,10 +1477,13 @@ namespace Letter.ViewModels
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
-                string response = string.Empty;
+                await RequestandCheckPermission();
+
                 this._perceptionService.StopAudio();
-                string audio_file_path = this._perceptionService.ReceiveRecording();
-                this._perceptionService.PlayAudio(audio_file_path);
+                string file_path = this._perceptionService.ReceiveRecording();
+                this._perceptionService.PlayAudio(file_path);
+
+                string response = string.Empty;
                 if (kind == mp3.ToArray()[0]) response = $"{mp3.ToArray()[0]} {play.ToArray()[0]}.";
                 else
                     response = $"{wav.ToArray()[0]} {play.ToArray()[0]}.";
@@ -1472,6 +1559,8 @@ namespace Letter.ViewModels
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
+                await RequestandCheckPermission();
+
                 string response = string.Empty;
                 if (this._cameraProvider.AvailableCameras is not null)
                 {
@@ -1518,6 +1607,8 @@ namespace Letter.ViewModels
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
+                await RequestandCheckPermission();
+
                 string response = string.Empty;
                 if (this._cameraProvider.AvailableCameras is not null)
                 {
@@ -1562,8 +1653,9 @@ namespace Letter.ViewModels
                 await RequestandCheckPermission();
 
                 string response = string.Empty;
-                ShowCamera = true;
                 this._viewCamera.StopCameraPreview();
+                this.ShowCamera = true;
+                this.ShowPhoto = false;
                 await this._viewCamera.StartCameraPreview(Token);
                 response = $"{camera.ToArray()[0]} {start.ToArray()[0]}.";
                 return response;
@@ -1591,7 +1683,8 @@ namespace Letter.ViewModels
                 await RequestandCheckPermission();
 
                 string response = string.Empty;
-                ShowCamera = false;
+                this.ShowCamera = false;
+                this.ShowPhoto = false;
                 this._viewCamera.StopCameraPreview();
                 response = $"{camera.ToArray()[0]} {stop.ToArray()[0]}.";
                 return response;
@@ -1619,13 +1712,15 @@ namespace Letter.ViewModels
 
                 string response = string.Empty;
                 //await this._viewCamera.CaptureImage(CancellationToken.None);
-                IScreenshotResult? result = await this._viewCamera.CaptureAsync();
-                response = $"{camera.ToArray()[0]} {capture.ToArray()[0]}.";
-                ShowCamera = false;
-                ShowPhoto = true;
+
+                IScreenshotResult result = await this._viewCamera.CaptureAsync();
                 MemoryStream ms = new MemoryStream();
-                result.CopyToAsync(ms);
+                await result.CopyToAsync(ms);
                 Bytes = ms.ToArray();
+
+                response = $"{camera.ToArray()[0]} {capture.ToArray()[0]}.";
+                this.ShowCamera = false;
+                this.ShowPhoto = true;
                 return response;
             }
             catch (Exception ex)
@@ -1649,7 +1744,8 @@ namespace Letter.ViewModels
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string response = string.Empty;
-                await this._perceptionService.SaveImage(Bytes);
+                string file_path = await this._perceptionService.SaveImage(Bytes);
+                await this._perceptionService.SendRecording(file_path);
                 response = $"{camera.ToArray()[0]} {save.ToArray()[0]}.";
                 return response;
             }
@@ -1677,23 +1773,24 @@ namespace Letter.ViewModels
             }
         }
 
-        private async Task<string> UploadFile(string language)
+        private async Task<string> UploadRaspberry(string language)
         {
             try
             {
-                if (this._error_off) throw new InvalidOperationException("Operation upload file \"Bot\" view model failed!");
+                if (this._error_off) throw new InvalidOperationException("Operation upload raspberry \"Bot\" view model failed!");
 
                 HashSet<string> upload = this._upload
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> file = this._file
+                HashSet<string> rapsberry = this._raspberry
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
+                await RequestandCheckPermission();
+
                 string response = string.Empty;
-                string audio_file_path = await this._perceptionService.UploadFile();
-                this._perceptionService.SendRecording(audio_file_path);
-                response = $"{file.ToArray()[0]} {upload.ToArray()[0]}.";
+                await this._perceptionService.UploadRaspberry();
+                response = $"{rapsberry.ToArray()[0]} {upload.ToArray()[0]}.";
                 return response;
             }
             catch (Exception ex)
@@ -1703,22 +1800,30 @@ namespace Letter.ViewModels
             }
         }
 
-        private async Task<string> DownloadFile(string language)
+        private async Task<string> DownloadRaspberry(string language)
         {
             try
             {
-                if (this._error_off) throw new InvalidOperationException("Operation download file \"Bot\" view model failed!");
+                if (this._error_off) throw new InvalidOperationException("Operation download raspberry \"Bot\" view model failed!");
 
                 HashSet<string> download = this._download
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> file = this._file
+                HashSet<string> rapsberry = this._raspberry
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> dont_work = this._dont_work
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
+                await RequestandCheckPermission();
+
                 string response = string.Empty;
-                await this._perceptionService.DownloadFile();
-                response = $"{file.ToArray()[0]} {download.ToArray()[0]}.";
+                string file_name = await this._perceptionService.DownloadRaspberry();
+                if (file_name != string.Empty) 
+                    response = $"{rapsberry.ToArray()[0]} {download.ToArray()[0]}.";
+                else
+                    response = $"{dont_work.ToArray()[0]} {rapsberry.ToArray()[0]} {download.ToArray()[0]}.";
                 return response;
             }
             catch (Exception ex)
@@ -2114,9 +2219,11 @@ namespace Letter.ViewModels
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
+                await RequestandCheckPermission();
+
                 string response = string.Empty;
                 string file_path = this._perceptionService.FileText(locution);
-                _perceptionService.SendRecording(file_path);
+                await this._perceptionService.SendRecording(file_path);
                 response = $"{file.ToArray()[0]} {save.ToArray()[0]}.";
                 return response;
             }

@@ -2,6 +2,7 @@
 using Android.Speech.Tts;
 using Letter.Helpers;
 using Letter.Interfaces;
+using Letter.Models;
 using TextToSpeech = Android.Speech.Tts.TextToSpeech;
 
 namespace Letter.Platforms.Android.Services
@@ -43,6 +44,7 @@ namespace Letter.Platforms.Android.Services
             catch (Exception ex)
             {
                 this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
             }
         }
         #endregion
@@ -68,7 +70,7 @@ namespace Letter.Platforms.Android.Services
             catch (Exception ex)
             {
                 this.error_message = ex.Message;
-                this.OnError?.Invoke(this, this.error_message);
+                throw new InvalidOperationException(this.error_message);
             }
         }
         #endregion
@@ -83,21 +85,91 @@ namespace Letter.Platforms.Android.Services
                 this._text = text;
                 OperationResult result = OperationResult.Error;
                 string file_name = FilePath.SetFileName("mp3");
-                string file_path = FilePath.SetAudioFilePath(file_name);
+                string file_path = FilePath.MountFilePath(file_name);
                 if (this._textToSpeech != null && this._textToSpeech.IsSpeaking == false)
                 {
                     Dictionary<string, string> parameter = new Dictionary<string, string>();
                     parameter.Add(TextToSpeech.Engine.KeyParamUtteranceId, "fileSynthesis");
-                    result = this._textToSpeech.SynthesizeToFile(_text, parameter, file_path);
+                    result = this._textToSpeech.SynthesizeToFile(text, parameter, file_path);
                 }
                 if (result == OperationResult.Success) return file_path;
-                else return null;
+                else return string.Empty;
             }
             catch (Exception ex)
             {
                 this.error_message = ex.Message;
-                this.OnError?.Invoke(this, this.error_message);
-                return string.Empty;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<string> CreateFileUTF8(string text)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation save file \"Text Speak\" service failed!");
+
+                string file_name = FilePath.SetFileName("mp3");
+                string file_path = FilePath.MountFilePath(file_name);
+
+                FileStream fs = new(file_path, FileMode.OpenOrCreate);
+                if (text != string.Empty)
+                {
+                    StreamWriter sw = new StreamWriter(fs, System.Text.Encoding.UTF8);
+                    await sw.WriteAsync(text);
+                    sw.Close();
+                }
+                fs.Close();
+
+                return file_path;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<string> CreateFileMAUI()
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation create file in maui \"Perception\" service failed!");
+
+                string file_name = FilePath.SetFileName("mp3");
+                string file_path = FilePath.MountFilePath(file_name);
+
+                using (FileStream stream = File.OpenWrite(file_path))
+                using (StreamWriter writer = new StreamWriter(stream))
+                {
+                    await writer.WriteLineAsync("Conteúdo do arquivo stream no MAUI");
+                    await writer.WriteLineAsync($"Criado em: {DateTime.Now}");
+                }
+                return file_path;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<FileStream> ReadStream(Audio audio)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation read stream \"Text Speak\" service failed!");
+
+                string file1 = await CreateFileUTF8("Net maui send test file!");
+                string file2 = await CreateFileMAUI();
+
+                string file_path = audio.url;
+                FileStream fs = new FileStream(file1, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 4096, true);
+                return fs;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
             }
         }
 
@@ -113,7 +185,7 @@ namespace Letter.Platforms.Android.Services
             catch (Exception ex)
             {
                 this.error_message = ex.Message;
-                this.OnError?.Invoke(this, this.error_message);
+                throw new InvalidOperationException(this.error_message);
             }
         }
         #endregion

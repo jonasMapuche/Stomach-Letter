@@ -31,6 +31,9 @@
             </Style>
         </ResourceDictionary>
         <toolkit:ByteArrayToImageSourceConverter x:Key="ToImage" />
+        <ResourceDictionary>
+            <controls:BotConverter x:Key="BotConverter" />
+        </ResourceDictionary>
     </ContentPage.Resources>
     <ContentPage.Content>
         <Grid      
@@ -73,7 +76,15 @@
                             CameraFlashMode="{Binding FlashMode}"
                             IsVisible="{Binding ShowCamera}"
                             MediaCaptured="OnMediaCaptured"
-                            SelectedCamera="{Binding SelectedCamera}"/>
+                            SelectedCamera="{Binding SelectedCamera}">
+                            <toolkit:CameraView.Behaviors>
+                                <toolkit:EventToCommandBehavior 
+                                    EventName="MediaCaptured"
+                                    Command="{Binding MediaCapturedCommand}"
+                                    BindingContext="{Binding BindingContext, Source={x:Reference Camera}}"
+                                    CommandParameter="{Binding .}"/>
+                            </toolkit:CameraView.Behaviors>
+                        </toolkit:CameraView>
                         <Image
                             x:Name="imgCamera"
                             x:DataType="viewmodels:BotViewModel"
@@ -114,8 +125,22 @@
                                 <Grid>
                                     <Grid.GestureRecognizers>
                                         <TapGestureRecognizer 
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:BotViewModel}}, Path=SendCommand}">
+                                            <TapGestureRecognizer.CommandParameter>
+                                                <MultiBinding Converter="{StaticResource BotConverter}">
+                                                    <MultiBinding.Bindings>
+                                                        <Binding Path="Text" Source="{x:Reference ctrMessage}" />
+                                                        <Binding Path="Token" />
+                                                        <Binding Source="{x:Reference Camera}"/>
+                                                    </MultiBinding.Bindings>
+                                                </MultiBinding>
+                                            </TapGestureRecognizer.CommandParameter>
+                                        </TapGestureRecognizer>
+                                        <!--
+                                        <TapGestureRecognizer 
                                             Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:BotViewModel}}, Path=SendCommand}"
                                             CommandParameter="{Binding Source={x:Reference ctrMessage}, Path=Text}"/>
+                                        -->
                                     </Grid.GestureRecognizers>
                                     <Grid>
                                         <Ellipse

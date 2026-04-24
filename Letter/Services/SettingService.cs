@@ -109,6 +109,7 @@ namespace Letter.Services
         private static readonly string dont_work_english = "do not work";
         private static readonly string disconnect_english = "disconnect";
         private static readonly string connected_english = "connected";
+        private static readonly string clear_english = "clear";
 
         private static readonly string gps_english = "gps";
         private static readonly string bluetooth_english = "bluetooth";
@@ -381,7 +382,8 @@ namespace Letter.Services
             { share_english, _english },
             { scan_english, _english },
             { connect_english, _english },
-            { send_english, _english }
+            { send_english, _english },
+            { clear_english, _english }
         };
 
         public Dictionary<string, string> Load = new Dictionary<string, string>()
@@ -462,7 +464,8 @@ namespace Letter.Services
             { audio_english, _english },
             { bot_english, _english },
             { flash_english, _english },
-            { text_english, _english }
+            { text_english, _english },
+            { raspberry_english, _english },
         };
 
         public Dictionary<string, string> Feature = new Dictionary<string, string>()
@@ -895,6 +898,11 @@ namespace Letter.Services
         public Dictionary<string, string> Unknow = new Dictionary<string, string>()
         {
             { unknow_english, _english }
+        };
+
+        public Dictionary<string, string> Clear = new Dictionary<string, string>()
+        {
+            { clear_english, _english }
         };
         #endregion
     }

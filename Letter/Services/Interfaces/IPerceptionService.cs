@@ -2,10 +2,11 @@
 {
     public interface IPerceptionService
     {
-        Task SaveImage(byte[] bytes);
+        Task<string> SaveImage(byte[] bytes);
         Task<string> UploadFile();
-        void SendRecording(string file_path);
-        Task DownloadFile();
+        Task<string> DownloadRaspberry();
+        Task SendRecording(string file_path);
+        Task UploadRaspberry();
         Task<Location> GetCurrentLocation();
         double GetCharge();
         string GetMode();
@@ -29,5 +30,6 @@
         public void StopAudio();
         string ReceiveRecording();
         void PlayAudio(string file_path);
+        Task ClearRecording();
     }
 }

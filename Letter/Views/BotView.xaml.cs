@@ -40,7 +40,7 @@ public partial class BotView : ContentPage
 	{
         try
         {
-            if (this._error_off) throw new InvalidOperationException("Operation contructor \"Bot\" view failed!!");
+            if (this._error_off) throw new InvalidOperationException("Operation constructor \"Bot\" view failed!!");
             else this.error_message = string.Empty;
 
             InitializeComponent();
@@ -86,6 +86,21 @@ public partial class BotView : ContentPage
             MemoryStream? memoryStream = new MemoryStream();
             e.Media.CopyTo(memoryStream);
             this._botViewModel.Bytes = memoryStream.ToArray();
+        }
+        catch (Exception ex)
+        {
+            this.error_message = ex.Message;
+            this.OnError(this.error_message);
+        }
+    }
+
+    protected override async void OnAppearing()
+    {
+        try
+        {
+            if (this._error_off) throw new InvalidOperationException("Operation appearing \"Bot\" view failed!!");
+
+            base.OnAppearing();
         }
         catch (Exception ex)
         {

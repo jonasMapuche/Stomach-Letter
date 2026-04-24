@@ -25,8 +25,8 @@ namespace Letter.Services
         #endregion
 
         #region VARIABLE
-        //private string _url = "http://192.168.0.3:8885/";
-        private string _url = "http://api.stomach.com.br:8885/";
+        private string _url = "http://192.168.0.3:8885/";
+        //private string _url = "http://api.stomach.com.br:8885/";
 
         private HttpClient _httpClient;
         #endregion
@@ -66,6 +66,24 @@ namespace Letter.Services
                 var data = new StringContent(json, Encoding.UTF8, "application/json");
                 using HttpResponseMessage response = await this._httpClient.PostAsync(this._url, data);
                 return await response.Content.ReadAsStringAsync();
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<Stream> HttpPost(Download message)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation http post \"Http\" service failed!");
+
+                string json = JsonConvert.SerializeObject(message);
+                var data = new StringContent(json, Encoding.UTF8, "application/json");
+                using HttpResponseMessage response = await this._httpClient.PostAsync(this._url, data);
+                return await response.Content.ReadAsStreamAsync();
             }
             catch (Exception ex)
             {
