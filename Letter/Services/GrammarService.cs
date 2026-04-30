@@ -1,6 +1,7 @@
-﻿using Letter.Services.Interfaces;
+﻿using Letter.Enums;
 using Letter.Models;
 using Letter.Repositories;
+using Letter.Services.Interfaces;
 
 namespace Letter.Services
 {
@@ -120,6 +121,7 @@ namespace Letter.Services
         private string _adverbial_verb;
         private string _adverbial_adjective;
 
+        private HashSet<string> _language_lesson;
         private HashSet<string> _morphology;
         private HashSet<string> _syntax;
         private HashSet<int> _order;
@@ -214,6 +216,7 @@ namespace Letter.Services
                 this._morphology = this._settingService.Morphology;
                 this._syntax = this._settingService.Syntax;
                 this._order = this._settingService.Order;
+                this._language_lesson = this._settingService.Lesson;
             }
             catch (Exception ex)
             {
@@ -1166,6 +1169,63 @@ namespace Letter.Services
             }
         }
 
+        private List<Lesson> MountOrationSample<T, TKey, TValue>(List<T> tutorials, Dictionary<(TKey, TValue), int> dictionaries, HashSet<string> vocabularies) where TKey : notnull
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation mount oration sample \"Grammar\" view model failed!");
+
+                List<Lesson> lessons = new List<Lesson>();
+
+                List<Lesson> sampleSubjectVerb = new List<Lesson>();
+                List<Lesson> compoundSubjectVerb = new List<Lesson>();
+                List<Lesson> subjectVerb = new List<Lesson>();
+                List<Lesson> predicateDirectObject = new List<Lesson>();
+                List<Lesson> predicatePredicative = new List<Lesson>();
+                List<Lesson> predicateIndirectObject = new List<Lesson>();
+                List <Lesson> homewoks = new List<Lesson>();
+
+                int order_sample = this._order_3;
+                int order_predicate = this._order_4;
+
+                sampleSubjectVerb = this._syntaxService.SampleSubjectVerb(tutorials, dictionaries, vocabularies);
+                compoundSubjectVerb = this._syntaxService.CompoundSubjectVerb(tutorials, dictionaries, vocabularies);
+                subjectVerb = Union(sampleSubjectVerb, compoundSubjectVerb);
+
+                predicateDirectObject = this._syntaxService.PredicateDirectObject(tutorials, dictionaries, vocabularies, subjectVerb, order_sample);
+                homewoks = Union(subjectVerb, predicateDirectObject);
+                 
+                predicatePredicative = this._syntaxService.PredicatePredicative(tutorials, dictionaries, vocabularies, subjectVerb, order_sample);
+                homewoks = Union(homewoks, predicatePredicative);
+
+                predicateIndirectObject = this._syntaxService.PredicateIndirectObject(tutorials, dictionaries, vocabularies, subjectVerb, order_sample);
+                homewoks = Union(homewoks, predicateIndirectObject);
+
+                lessons = homewoks;
+
+                /*
+                predicateIndirectObject = this._syntaxService.PredicateIndirectObject(tutorials, word_2_vec, subjectVerb, order_sample);
+                words = Union(words, predicateIndirectObject);
+
+                predicateDirectObjectIndirectObject = this._syntaxService.PredicateDirectObjectIndirectObject(tutorials, word_2_vec, predicateDirectObject, order_sample, order_predicate);
+                words = Union(words, predicateDirectObjectIndirectObject);
+
+                predicateDirectObjectPredicative = this._syntaxService.PredicateDirectObjectPredicative(tutorials, word_2_vec, predicateDirectObject, order_sample, order_predicate);
+                words = Union(words, predicateDirectObjectPredicative);
+
+                predicateIndirectObjectPredicative = this._syntaxService.PredicateIndirectObjectPredicative(tutorials, word_2_vec, predicateIndirectObject, order_sample, order_predicate);
+                words = Union(words, predicateIndirectObjectPredicative);
+                */
+
+                return lessons;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
         private List<Lesson> MountOrationCompound(List<Sentenca> sentences, List<Lesson> terms)
         {
             try
@@ -1984,95 +2044,7 @@ namespace Letter.Services
             }
         }
 
-        public List<Tutorial> EncodeLesson(List<Lesson> lessons, HashSet<string> vocabulary)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation encode lesson \"Word Embedding\" service failed!");
-
-                List<Tutorial> tutorials = new List<Tutorial>();
-                foreach (Lesson lesson in lessons)
-                {
-                    Tutorial tutorial = new Tutorial();
-                    tutorial.team = this._wordEmbeddingService.Encode(lesson.team, this._morphology);
-                    List<Instruction> instructions = new List<Instruction>();
-                    foreach (Word word in lesson.lecture)
-                    {
-                        Instruction instruction = new Instruction();
-                        int term = Array.IndexOf(vocabulary.ToArray(), word.term);
-                        instruction.term = this._wordEmbeddingService.HashSHA256(term);
-                        instruction.kind = this._wordEmbeddingService.Encode(word.kind, this._morphology);
-                        instructions.Add(instruction);
-                    }
-                    ;
-                    tutorial.lecture = instructions;
-                    tutorials.Add(tutorial);
-                }
-                ;
-                return tutorials;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        public List<Lesson> DecodeLesson(List<Tutorial> tutorials, HashSet<string> vocabulary)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation decode lesson \"Word Embedding\" service failed!");
-
-                List<Lesson> lessons = new List<Lesson>();
-
-                List<byte[]> glossaries = this._wordEmbeddingService.VocabularySHA256(vocabulary);
-                List<byte[]> morphologies = this._wordEmbeddingService.VocabularySHA256(this._morphology);
-                List<byte[]> syntaxes = this._wordEmbeddingService.VocabularySHA256(this._syntax);
-                List<byte[]> orders = this._wordEmbeddingService.VocabularySHA256(this._order);
-
-                foreach (Tutorial tutorial in tutorials)
-                {
-                    Lesson lesson = new Lesson();
-                    List<Word> words = new List<Word>();
-                    foreach (Instruction instruction in tutorial.lecture)
-                    {
-                        byte[] term = instruction.term;
-                        int index_term = glossaries.FindIndex(index => index.SequenceEqual(term));
-
-                        byte[] kind = instruction.kind;
-                        int index_kind = morphologies.FindIndex(index => index.SequenceEqual(kind));
-
-                        byte[] sentence = instruction.sentence;
-                        int index_sentence = syntaxes.FindIndex(index => index.SequenceEqual(sentence));
-
-                        byte[] team = instruction.team;
-                        int index_team = morphologies.FindIndex(index => index.SequenceEqual(team));
-
-                        byte[] order = instruction.order;
-                        int index_order = orders.FindIndex(index => index.SequenceEqual(order));
-
-                        Word word = new Word();
-                        word.term = vocabulary.ElementAt(index_term);
-                        word.kind = this._morphology.ElementAt(index_kind);
-                        word.sentence = this._syntax.ElementAt(index_sentence);
-                        word.team = this._morphology.ElementAt(index_team);
-                        word.order = this._order.ElementAt(index_order);
-                        words.Add(word);
-                    }
-                    lesson.lecture = words;
-                    lessons.Add(lesson);
-                }
-                return lessons;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        public List<Word>? NovelSHA256(string language, List<Sentenca> sentences, List<Lesson> lessons)
+        private List<Word>? NovelSHA256(string language, List<Sentenca> sentences, List<Lesson> lessons)
         {
             try
             {
@@ -2083,7 +2055,7 @@ namespace Letter.Services
                 Dictionary<(byte[], byte[]), int> word_2_vec_sha256 = this._wordEmbeddingService.Word2VecSHA256(sentences, vocabulary);
 
                 List<Tutorial> tutorials = new List<Tutorial>();
-                tutorials = EncodeLesson(lessons, vocabulary);
+                tutorials = this._syntaxService.EncodeLesson(lessons, vocabulary);
 
                 List<Tutorial> seminars = new List<Tutorial>();
                 seminars = MountOrationSample(tutorials, word_2_vec_sha256);
@@ -2091,7 +2063,7 @@ namespace Letter.Services
                 this._novel_english = seminars;
 
                 List<Lesson> guides = new List<Lesson>();
-                guides = DecodeLesson(seminars, vocabulary);
+                guides = this._syntaxService.DecodeLesson(seminars, vocabulary);
 
                 SetBook(language, guides);
 
@@ -2163,13 +2135,12 @@ namespace Letter.Services
             }
         }
 
-        public List<Word> Syntax(string language, Materia lesson, List<Materia> book)
+        private List<Lesson> Morphology(string language, List<Sentenca> sentence, Materia lesson, List<Materia> book)
         {
             try
             {
-                if (this._error_off) throw new InvalidOperationException("Operation mount syntax \"Grammar\" service failed!");
+                if (this._error_off) throw new InvalidOperationException("Operation syntax \"Grammar\" service failed!");
 
-                List<Sentenca> sentence = SelectSentence(language).Distinct().ToList();
                 HashSet<string> vocabulary = this._wordEmbeddingService.Vocabulary(sentence);
                 Dictionary<(string, string), int> word_2_vec = this._wordEmbeddingService.Word2Vec(sentence);
 
@@ -2203,11 +2174,128 @@ namespace Letter.Services
                 matters = Union(matters, mount_article);
                 matters = Union(matters, mount_preposition);
 
-                List<Word>? words = new List<Word>();
+                return matters;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
 
-                words = NovelSHA256(language, sentence, matters);
+        public List<Word> Syntax(string language, Materia lesson, List<Materia> book)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation syntax \"Grammar\" service failed!");
 
+                List<Sentenca> sentences = SelectSentence(language).Distinct().ToList();
+                List<Lesson> matters = Morphology(language, sentences, lesson, book);
+                List<Word>? words = NovelSHA256(language, sentences, matters);
                 return words;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<Materia> BookLesson(List<Materia>? books)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation book lesson \"Home\" view model failed!");
+
+                HashSet<string> lecture = new HashSet<string>(this._language_lesson);
+                List<Materia> lessons = new List<Materia>();
+                lessons = books.OrderBy(index => index.ordem).ToList();
+
+                List<Materia> edition = new List<Materia>();
+                lessons.ForEach(index =>
+                {
+                    if (Array.IndexOf(lecture.ToArray(), index.titulo) != -1)
+                        edition.Add(index);
+                });
+                return edition;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public List<string> LoadSyntax(string language, int order)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation syntax \"Grammar\" service failed!");
+
+                List<Sentenca> sentences = SelectSentence(language).Distinct().ToList();
+
+                List<Materia>? book = this._settingService.Book_English;
+                List<Materia> album = BookLesson(book);
+                List<string> lections = new List<string>();
+                int line = 0;
+                foreach (Materia lesson in album)
+                {
+                    if (!(line < order)) break;
+                    List<Lesson> matters = Morphology(language, sentences, lesson, album);
+                    List<string> studies = LoadNovel(language, sentences, matters);
+                    studies.ForEach(item => lections.Add(item));
+                    line++;
+                }
+                return lections;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<String> LoadNovel(string language, List<Sentenca> sentences, List<Lesson> lessons)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation load novel \"Grammar\" service failed!");
+
+                HashSet<string> vocabulary = this._wordEmbeddingService.Vocabulary(sentences);
+                Dictionary<(string, string), int> word_2_vec = this._wordEmbeddingService.Word2Vec(sentences);
+                List<Lesson> seminars = new List<Lesson>();
+
+                Mold value = Mold.Text;
+                if (Mold.Sequence == value)
+                {
+                    List<Tutorial> tutorials = new List<Tutorial>();
+                    tutorials = this._syntaxService.EncodeLesson(lessons, vocabulary);
+                    Dictionary<(byte[], byte[]), int> word_2_vec_sha256 = this._wordEmbeddingService.Word2VecSHA256(sentences, vocabulary);
+                    seminars = MountOrationSample(tutorials, word_2_vec_sha256, vocabulary);
+                }
+                if (Mold.Text == value)
+                    seminars = MountOrationSample(lessons, word_2_vec, vocabulary);
+                if (Mold.Integer == value)
+                {
+                    List<Practice> practices = new List<Practice>();
+                    practices = this._syntaxService.EncodeLessonInt(lessons, vocabulary);
+                    Dictionary<(int, int), int> word_2_vec_int = this._wordEmbeddingService.Word2VecInt(sentences, vocabulary);
+                    seminars = MountOrationSample(practices, word_2_vec_int, vocabulary);
+                }
+
+                List<string> lections = new List<string>();
+                int order = 1;
+                foreach (Lesson guide in seminars)
+                {
+                    List<Word> words = new List<Word>();
+                    words = Oration(word_2_vec, guide.lecture);
+                    string word = Oration(words);
+                    lections.Add(word);
+                    order++;
+                }
+                List<string> regulation = new List<string>();
+                regulation = lections.Distinct().ToList();
+                return regulation;
             }
             catch (Exception ex)
             {

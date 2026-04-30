@@ -1,0 +1,183 @@
+        /*
+        private List<T> FilterLesson<T, U>(List<T> matters, List<U> types)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation filter list \"Syntax\" service failed!");
+
+                if (typeof(T) == typeof(Lesson))
+                {
+                    List<Lesson> lessons = new List<Lesson>();
+                    List<Lesson>? albuns = matters as List<Lesson>;
+                    List<string>? kinds = types as List<string>;
+                    if (kinds == null) return lessons;
+                    for (int quantity = 0; quantity < albuns.Count(); quantity++)
+                    {
+                        kinds.ForEach(item =>
+                        {
+                            if (albuns[quantity].team == item)
+                            lessons.Add(albuns[quantity]);
+                        });
+                    }
+                    return lessons;
+                }
+                else
+                {
+                    List<Tutorial> tutorials = new List<Tutorial>();
+                    List<Tutorial>? albuns = matters as List<Tutorial>;
+                    List<byte[]>? kinds = types as List<byte[]>;
+                    if (kinds == null) return tutorials;
+                    for (int quantity = 0; quantity < albuns.Count(); quantity++)
+                    {
+                        foreach (byte[] item in kinds)
+                        {
+                            if (albuns[quantity].team.AsSpan().SequenceEqual(item))
+                                tutorials.Add(albuns[quantity]);
+                        }
+                    }
+                    return tutorials;
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+        */
+        
+        
+                private List<T> NounVerb<T, I, TKey, TValue>(List<T> adverbial_verbs, List<I> adjunt_adnominals, Dictionary<TKey, TValue> dictionaries) where TKey : notnull
+	        {
+	            try
+	            {
+	                if (this._error_off) throw new InvalidOperationException("Operation mount noun verb \"Syntax\" view model failed!");
+	
+	                List<T> seminars = new List<T>();
+	
+	                /*
+	                byte[] subject = this._wordEmbeddingService.Encode(this._subject, this._syntax);
+	                byte[] predicate = this._wordEmbeddingService.Encode(this._predicate, this._syntax);
+	                byte[] order_noun = this._wordEmbeddingService.Encode(this._order_1, this._order);
+	                byte[] order_verb = this._wordEmbeddingService.Encode(this._order_2, this._order);
+	                */
+	
+	                foreach (T adverbial_verb in adverbial_verbs)
+	                {
+	                    foreach (I adnominal_adjunct in adjunt_adnominals)
+	                    {
+	
+	
+	                    }
+	                }
+	                return null;
+	            }
+	            catch (Exception ex)
+	            {
+	                this.error_message = ex.Message;
+	                throw new InvalidOperationException(this.error_message);
+	            }
+	        }
+	
+	        private List<T> MountNounVerb<T, TKey, TValue>(List<T> homeworks, Dictionary<TKey, TValue> dictionaries) where TKey : notnull
+	        {
+	            try
+	            {
+	                if (this._error_off) throw new InvalidOperationException("Operation mount noun verb \"Syntax\" view model failed!");
+	
+	                List<T> seminars = new List<T>();
+	                if (homeworks == null) return seminars;
+	
+	                List<Lesson>? lessons = new List<Lesson>();
+	                List<Tutorial>? tutorials = new List<Tutorial>();
+	                List<Practice>? practices = new List<Practice>();
+	
+	                List<Tutorial> tutorial_verbs = new List<Tutorial>();
+	                List<Lesson> lesson_verbs = new List<Lesson>();
+	                List<Practice> practice_verbs = new List<Practice>();
+	
+	                if (typeof(T) == typeof(Tutorial)) 
+	                {
+	                    List<byte[]> kind_verb = new List<byte[]>();
+	                    byte[] sha_verb = this._wordEmbeddingService.Encode(this._adverbial_verb, this._morphology);
+	                    kind_verb.Add(sha_verb);
+	                    tutorials = homeworks as List<Tutorial>; 
+	                    tutorial_verbs = FilterLesson(tutorials, kind_verb);
+	                }
+	                if (typeof(T) == typeof(Lesson))
+	                {
+	                    List<string> kind_verb = new List<string>();
+	                    kind_verb.Add(this._adverbial_verb);
+	                    lessons = homeworks as List<Lesson>;
+	                    lesson_verbs = FilterLesson(lessons, kind_verb);
+	                }
+	                if (typeof(T) == typeof(Practice))
+	                {
+	                    List<int> kind_verb = new List<int>();
+	                    int index = this._wordEmbeddingService.EncodeInt(this._adverbial_verb, this._morphology);
+	                    kind_verb.Add(index);
+	                    practices = homeworks as List<Practice>;
+	                    practice_verbs = FilterLesson(practices, kind_verb);
+	                }
+	
+	                List<Tutorial> tutorial_adnominals = new List<Tutorial>();
+	                List<Lesson> lesson_adnominals = new List<Lesson>();
+	                List<Practice> practice_adnominals = new List<Practice>();
+	
+	                if (typeof(T) == typeof(Tutorial))
+	                {
+	                    List<byte[]> kind_adnominal = new List<byte[]>();
+	                    byte[] sha_adnominal = this._wordEmbeddingService.Encode(this._adnominal_adjunct, this._morphology);
+	                    kind_adnominal.Add(sha_adnominal);
+	                    byte[] sha_personal = this._wordEmbeddingService.Encode(this._personal, this._morphology);
+	                    kind_adnominal.Add(sha_personal);
+	                    byte[] sha_demonstrative = this._wordEmbeddingService.Encode(this._demonstrative, this._morphology);
+	                    kind_adnominal.Add(sha_demonstrative);
+	                    tutorials = homeworks as List<Tutorial>;
+	                    tutorial_adnominals = FilterLesson(tutorials, kind_adnominal);
+	                }
+	                if (typeof(T) == typeof(Lesson))
+	                {
+	                    List<string> kind_adnominal = new List<string>();
+	                    kind_adnominal.Add(this._adnominal_adjunct);
+	                    kind_adnominal.Add(this._personal);
+	                    kind_adnominal.Add(this._demonstrative);
+	                    lessons = homeworks as List<Lesson>;
+	                    lesson_adnominals = FilterLesson(lessons, kind_adnominal);
+	                }
+	                if (typeof(T) == typeof(Practice))
+	                {
+	                    List<int> kind_adnominal = new List<int>();
+	                    int index_adnominal = this._wordEmbeddingService.EncodeInt(this._adnominal_adjunct, this._morphology);
+	                    kind_adnominal.Add(index_adnominal);
+	                    int index_personal = this._wordEmbeddingService.EncodeInt(this._personal, this._morphology);
+	                    kind_adnominal.Add(index_personal);
+	                    int index_demostrative = this._wordEmbeddingService.EncodeInt(this._demonstrative, this._morphology);
+	                    kind_adnominal.Add(index_demostrative);
+	                    practices = homeworks as List<Practice>;
+	                    practice_adnominals = FilterLesson(practices, kind_adnominal);
+	
+	                }
+	
+	                if (typeof(T) == typeof(Tutorial))
+	                {
+	                    var value = NounVerb(tutorial_verbs, tutorial_adnominals, dictionaries);
+	                }
+	                if (typeof(T) == typeof(Lesson))
+	                {
+	                    var value = NounVerb(lesson_verbs, lesson_adnominals, dictionaries);
+	                }
+	                if (typeof(T) == typeof(Practice))
+	                {
+	                    var valeu = NounVerb(practice_verbs, practice_adnominals, dictionaries);
+	                }
+	
+	                return seminars;
+	            }
+	            catch (Exception ex)
+	            {
+	                this.error_message = ex.Message;
+	                throw new InvalidOperationException(this.error_message);
+	            }
+        }

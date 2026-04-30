@@ -1,5 +1,6 @@
-﻿using Letter.Services.Interfaces;
+﻿using CommunityToolkit.Maui.Storage;
 using Letter.Models;
+using Letter.Services.Interfaces;
 using Newtonsoft.Json;
 using System.Text;
 
@@ -74,24 +75,6 @@ namespace Letter.Services
             }
         }
 
-        public async Task<Stream> HttpPost(Download message)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation http post \"Http\" service failed!");
-
-                string json = JsonConvert.SerializeObject(message);
-                var data = new StringContent(json, Encoding.UTF8, "application/json");
-                using HttpResponseMessage response = await this._httpClient.PostAsync(this._url, data);
-                return await response.Content.ReadAsStreamAsync();
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
         public async Task<string> HttpPost(StreamContent message, string file_name)
         {
             try
@@ -135,7 +118,26 @@ namespace Letter.Services
             }
         }
 
-        private async Task<string> HttpGet(string path)
+        public async Task<FileSaverResult> HttpDownload(string path, string file_name)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation http get \"Http\" service failed!");
+
+                string uri = this._url + path + "?name=" + file_name;
+                using HttpResponseMessage response = await this._httpClient.GetAsync(uri);
+                Stream stream = await response.Content.ReadAsStreamAsync();
+                FileSaverResult file_save = await FileSaver.Default.SaveAsync(file_name, stream, CancellationToken.None);
+                return file_save;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<string> HttpGet(string path)
         {
             try
             {

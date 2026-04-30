@@ -272,6 +272,27 @@ namespace Letter.Services
             }
         }
 
+        public bool Similarity(Dictionary<(int, int), int> word_2_vec, int? target, int? target2)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation similarity \"Word Embedding\" service failed!");
+
+                foreach (KeyValuePair<(int, int), int> value in word_2_vec)
+                {
+                    if ((value.Key.Item1.Equals(target))
+                        && (value.Key.Item2.Equals(target2)))
+                        return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
         public HashSet<string> Vocabulary(List<Sentenca> sentences)
         {
             try
@@ -334,6 +355,24 @@ namespace Letter.Services
             }
         }
 
+        public List<int> VocabularyInt(HashSet<string> vocabulary)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation vocabulary int \"Word Embedding\" service failed!");
+
+                List<int> signs = new List<int>();
+                for (int quantity = 0; quantity < vocabulary.Count; quantity++)
+                    signs.Add(quantity);
+                return signs;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
         public List<byte[]> VocabularySHA256(HashSet<int> vocabulary)
         {
             try
@@ -347,6 +386,26 @@ namespace Letter.Services
                     sha_256.Add(value);
                 }
                 return sha_256;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public List<int> VocabularyInt(HashSet<int> vocabulary)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation vocabulary sha256 \"Word Embedding\" service failed!");
+
+                List<int> signs = new List<int>();
+                for (int quantity = 0; quantity < vocabulary.Count; quantity++)
+                {
+                    signs.Add(quantity);
+                }
+                return signs;
             }
             catch (Exception ex)
             {
@@ -411,6 +470,31 @@ namespace Letter.Services
             }
         }
 
+        public Dictionary<(int, int), int> Word2VecInt(List<Sentenca> sentences, HashSet<string> vocabulary)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation word 2 vec sha256 \"Word Embedding\" service failed!");
+
+                Dictionary<(string, string), int> dictionary = new Dictionary<(string, string), int>();
+                dictionary = Word2Vec(sentences);
+                Dictionary<(int, int), int> index = new Dictionary<(int, int), int>();
+                foreach (KeyValuePair<(string, string), int> item in dictionary)
+                {
+                    int key1 = Array.IndexOf(vocabulary.ToArray(), item.Key.Item1);
+                    int key2 = Array.IndexOf(vocabulary.ToArray(), item.Key.Item2);
+                    (int, int) pair = (key1, key2);
+                    index[pair] = item.Value;
+                }
+                return index;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
         private HashSet<byte[]> EncodeSeries(HashSet<string> morphologies)
         {
             try
@@ -439,8 +523,8 @@ namespace Letter.Services
                 if (this._error_off) throw new InvalidOperationException("Operation encode morphology \"Word Embedding\" service failed!");
 
                 HashSet<string> vocalularies = new HashSet<string>(briefs);
-                int term = Array.IndexOf(vocalularies.ToArray(), kind);
-                byte[] sha_256 = HashSHA256(term);
+                int index = Array.IndexOf(vocalularies.ToArray(), kind);
+                byte[] sha_256 = HashSHA256(index);
                 return sha_256;
             }
             catch (Exception ex)
@@ -457,9 +541,43 @@ namespace Letter.Services
                 if (this._error_off) throw new InvalidOperationException("Operation encode morphology \"Word Embedding\" service failed!");
 
                 HashSet<int> vocalularies = new HashSet<int>(briefs);
-                int term = Array.IndexOf(vocalularies.ToArray(), kind);
-                byte[] sha_256 = HashSHA256(term);
+                int index = Array.IndexOf(vocalularies.ToArray(), kind);
+                byte[] sha_256 = HashSHA256(index);
                 return sha_256;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public int EncodeInt(string kind, HashSet<string> briefs)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation encode morphology \"Word Embedding\" service failed!");
+
+                HashSet<string> vocalularies = new HashSet<string>(briefs);
+                int index = Array.IndexOf(vocalularies.ToArray(), kind);
+                return index;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public int EncodeInt(int kind, HashSet<int> briefs)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation encode morphology \"Word Embedding\" service failed!");
+
+                HashSet<int> vocalularies = new HashSet<int>(briefs);
+                int index = Array.IndexOf(vocalularies.ToArray(), kind);
+                return index;
             }
             catch (Exception ex)
             {

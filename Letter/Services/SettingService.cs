@@ -135,6 +135,7 @@ namespace Letter.Services
         private static readonly string level_english = "level";
         private static readonly string charge_english = "charge";
         private static readonly string unknow_english = "unknow";
+        private static readonly string letter_english = "letter";
 
         private static readonly string on_english = "on";
         private static readonly string off_english = "off";
@@ -386,7 +387,7 @@ namespace Letter.Services
             { clear_english, _english }
         };
 
-        public Dictionary<string, string> Load = new Dictionary<string, string>()
+        public Dictionary<string, string> Load_Camera = new Dictionary<string, string>()
         {
             { load_english, _english },
             { execute_english, _english },
@@ -466,6 +467,7 @@ namespace Letter.Services
             { flash_english, _english },
             { text_english, _english },
             { raspberry_english, _english },
+            { letter_english, _english  }
         };
 
         public Dictionary<string, string> Feature = new Dictionary<string, string>()
@@ -904,6 +906,22 @@ namespace Letter.Services
         {
             { clear_english, _english }
         };
+
+        public Dictionary<string, string> Load = new Dictionary<string, string>()
+        {
+            { load_english, _english }
+        };
+
+        public Dictionary<string, string> Letter = new Dictionary<string, string>()
+        {
+            { letter_english, _english }
+        };
+
+        public List<Materia>? Book_English { get; set; } = new List<Materia>();
+        public List<Materia>? Book_Deutsch { get; set; } = new List<Materia>();
+        public List<Materia>? Book_Italiano { get; set; } = new List<Materia>();
+        public List<Materia>? Book_Francais { get; set; } = new List<Materia>();
+        public List<Materia>? Book_Espanol { get; set; } = new List<Materia>();
         #endregion
     }
 }

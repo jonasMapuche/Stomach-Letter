@@ -72,7 +72,7 @@ namespace Letter.Services
             {
                 if (this._error_off) throw new InvalidOperationException("Operation save image \"Perception\" service failed!");
 
-                string file_name = FilePath.SetFileName("jpeg");
+                string file_name = FilePath.MountFileName("jpeg");
                 string file_path = FilePath.MountFilePath(file_name);
                 await File.WriteAllBytesAsync(file_path, bytes);
                 return file_path;
@@ -83,6 +83,63 @@ namespace Letter.Services
                 throw new InvalidOperationException(this.error_message);
             }
         }
+
+        public async Task<string> SaveLetter(List<string> grammar)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation save letter \"Perception\" service failed!");
+
+                string file_name = FilePath.MountFileName("txt");
+                string file_path = FilePath.MountFilePath(file_name);
+
+                FileStream file = new(file_path, FileMode.OpenOrCreate);
+                if ((grammar != null) && (grammar.Count > 0)) 
+                {
+                    StreamWriter stream = new StreamWriter(file, System.Text.Encoding.UTF8);
+                    foreach (string item in grammar)
+                    {
+                        await stream.WriteLineAsync(item);
+                    }
+                    stream.Close();
+                }
+                file.Close();
+                return file_path;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<string> CreateFileUTF8(string text)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation save file \"Text Speak\" service failed!");
+
+                string file_name = FilePath.MountFileName("mp3");
+                string file_path = FilePath.MountFilePath(file_name);
+
+                FileStream fs = new(file_path, FileMode.OpenOrCreate);
+                if (text != string.Empty)
+                {
+                    StreamWriter sw = new StreamWriter(fs, System.Text.Encoding.UTF8);
+                    await sw.WriteAsync(text);
+                    sw.Close();
+                }
+                fs.Close();
+
+                return file_path;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
 
         public async Task<string> UploadFile()
         {
@@ -97,15 +154,12 @@ namespace Letter.Services
                     string name_file = result.FileName;
                     string[] file_names = name_file.Split('.');
                     if (!(file_names.Length == 2)) return null;
-                    if ((file_names[1] == "wav") || (file_names[1] == "mp3") || (file_names[1] == "jpeg"))
+                    string output_path = FilePath.MountFileName(name_file);
+                    using (FileStream destinationStream = File.Create(output_path))
                     {
-                        string output_path = FilePath.SetFileName(name_file);
-                        using (FileStream destinationStream = File.Create(output_path))
-                        {
-                            await sourceStream.CopyToAsync(destinationStream);
-                        }
-                        return output_path;
+                        await sourceStream.CopyToAsync(destinationStream);
                     }
+                    return output_path;
                 }
                 return string.Empty;
             }
@@ -181,14 +235,10 @@ namespace Letter.Services
 
                 Audio audio = this._audios.First();
                 string file_name = audio.name;
-
-                Download download = new Download();
-                download.name = file_name;
-                Stream stream = await this._httpService.HttpPost(download);
-                stream.Position = 0;
-                FileSaverResult file_save = await FileSaver.Default.SaveAsync(file_name, stream, CancellationToken.None);
-                file_save.EnsureSuccess();
-                return file_save.FilePath;
+                string path = "Download";
+                FileSaverResult file_result = await this._httpService.HttpDownload(path, file_name);
+                file_result.EnsureSuccess();
+                return file_result.FilePath;
             }
             catch (Exception ex)
             {

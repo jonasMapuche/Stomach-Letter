@@ -5,7 +5,6 @@ using CommunityToolkit.Mvvm.Input;
 using Letter.Models;
 using Letter.Services;
 using Letter.Services.Interfaces;
-using Letter.Views;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 
@@ -44,7 +43,7 @@ namespace Letter.ViewModels
         private Language _language_portugues;
         private Language _language_english;
 
-        private Dictionary<string, string> _load;
+        private Dictionary<string, string> _load_camera;
         private Dictionary<string, string> _execute;
         private Dictionary<string, string> _view;
         private Dictionary<string, string> _play;
@@ -72,6 +71,7 @@ namespace Letter.ViewModels
         private Dictionary<string, string> _connected;
         private Dictionary<string, string> _juncao;
         private Dictionary<string, string> _clear;
+        private Dictionary<string, string> _load;
 
         private Dictionary<string, string> _gps;
         private Dictionary<string, string> _bluetooth;
@@ -93,6 +93,7 @@ namespace Letter.ViewModels
         private Dictionary<string, string> _level;
         private Dictionary<string, string> _charge;
         private Dictionary<string, string> _raspberry;
+        private Dictionary<string, string> _letter;
 
         private Dictionary<string, string> _with;
         private Dictionary<string, string> _in;
@@ -128,6 +129,7 @@ namespace Letter.ViewModels
         private IBotService _botService;
         private SettingService? _settingService;
         private IMessageService _messageService;
+        private IGrammarService _grammarService;
 
         private CameraView? _viewCamera;
 
@@ -135,7 +137,7 @@ namespace Letter.ViewModels
         #endregion
 
         #region CONSTRUCTOR
-        public BotViewModel(ICameraProvider cameraProvider, HttpService httpService, MessageService messageService, PerceptionService perceptionService)
+        public BotViewModel(ICameraProvider cameraProvider, HttpService httpService, MessageService messageService, PerceptionService perceptionService, GrammarService grammarService)
         {
             try
             {
@@ -147,6 +149,7 @@ namespace Letter.ViewModels
                 this._httpService = httpService;
                 this._settingService = SettingService.Instance;
                 this._messageService = messageService;
+                this._grammarService = grammarService;
 
                 this._botService = new BotService();
                 this._botService.OnError += OnError;
@@ -163,7 +166,7 @@ namespace Letter.ViewModels
                 this._language_portugues = this._settingService.Portugues;
                 this._language_english = this._settingService.English;
 
-                this._load = this._settingService.Load;
+                this._load_camera = this._settingService.Load_Camera;
                 this._execute = this._settingService.Execute;
                 this._view = this._settingService.View;
                 this._play = this._settingService.Play;
@@ -191,6 +194,7 @@ namespace Letter.ViewModels
                 this._connected = this._settingService.Connected;
                 this._juncao = this._settingService.Juncao;
                 this._clear = this._settingService.Clear;
+                this._load = this._settingService.Load;
 
                 this._gps = this._settingService.GPS;
                 this._bluetooth = this._settingService.Bluetooth;
@@ -212,6 +216,7 @@ namespace Letter.ViewModels
                 this._level = this._settingService.Level;
                 this._charge = this._settingService.Charge;
                 this._raspberry = this._settingService.Raspberry;
+                this._letter = this._settingService.Letter;
 
                 this._with = this._settingService.With;
                 this._in = this._settingService.In;
@@ -812,8 +817,8 @@ namespace Letter.ViewModels
             {
                 if (this._error_off) throw new InvalidOperationException("Operation command button \"Bot\" view model failed!");
 
-                HashSet<string> verbs_load = new HashSet<string>();
-                verbs_load = this._load.Where(index => index.Value.Contains(language))
+                HashSet<string> verbs_load_camera = new HashSet<string>();
+                verbs_load_camera = this._load_camera.Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
                 HashSet<string> verbs_view = new HashSet<string>();
                 verbs_view = this._view.Where(index => index.Value.Contains(language))
@@ -878,6 +883,9 @@ namespace Letter.ViewModels
                 HashSet<string> verbs_clear = new HashSet<string>();
                 verbs_clear = this._clear.Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> verbs_load = new HashSet<string>();
+                verbs_load = this._load.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 HashSet<string> nouns_gps = new HashSet<string>();
                 nouns_gps = this._gps.Where(index => index.Value.Contains(language))
@@ -926,6 +934,9 @@ namespace Letter.ViewModels
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
                 HashSet<string> nouns_raspberry = new HashSet<string>();
                 nouns_raspberry = this._raspberry.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> nouns_letter = new HashSet<string>();
+                nouns_letter = this._letter.Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 HashSet<string> adjective_front = new HashSet<string>();
@@ -1031,7 +1042,7 @@ namespace Letter.ViewModels
                     }
                 }
                 //-----
-                if (Array.IndexOf(verbs_load.ToArray(), verb) != -1)
+                if (Array.IndexOf(verbs_load_camera.ToArray(), verb) != -1)
                 {
                     if (Array.IndexOf(nouns_camera.ToArray(), noun) != -1)
                     {
@@ -1288,7 +1299,15 @@ namespace Letter.ViewModels
                         }
                     }
                 }
-
+                //-----
+                if (Array.IndexOf(verbs_load.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_letter.ToArray(), noun) != -1)
+                    {
+                        response = await LoadLetter(language);
+                        return response;
+                    }
+                }
                 return response;
             }
             catch (Exception ex)
@@ -2225,6 +2244,35 @@ namespace Letter.ViewModels
                 string file_path = this._perceptionService.FileText(locution);
                 await this._perceptionService.SendRecording(file_path);
                 response = $"{file.ToArray()[0]} {save.ToArray()[0]}.";
+                return response;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<string> LoadLetter(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation load letter \"Bot\" view model failed!");
+
+                HashSet<string> letter = this._letter
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> load = this._load
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                await RequestandCheckPermission();
+
+                string response = string.Empty;
+                List<string> grammars = this._grammarService.LoadSyntax(language, 1); 
+                string file_path = await this._perceptionService.SaveLetter(grammars);
+                await this._perceptionService.SendRecording(file_path);
+                response = $"{letter.ToArray()[0]} {load.ToArray()[0]}.";
                 return response;
             }
             catch (Exception ex)

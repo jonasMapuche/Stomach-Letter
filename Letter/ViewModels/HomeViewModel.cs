@@ -1,6 +1,4 @@
-﻿using CommunityToolkit.Maui.Extensions;
-using CommunityToolkit.Maui.Views;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Letter.Models;
 using Letter.Services;
@@ -635,6 +633,7 @@ namespace Letter.ViewModels
                 if ((this._language_english != null) && (language == this._language_english.Lowercase))
                 {
                     this._book_english = await this._grammarService.GetLetterAsync(this._language_english.Lowercase);
+                    this._settingService.Book_English = this._book_english;
                     await this._grammarService.InitAsync(this._language_english.Lowercase);
                     this._word_english = new List<Word>();
                     MountNext(this._language_english.Lowercase);
@@ -642,6 +641,7 @@ namespace Letter.ViewModels
                 if ((this._language_deutsch != null) && (language == this._language_deutsch.Lowercase))
                 {
                     this._book_deutsch = await this._grammarService.GetLetterAsync(this._language_deutsch.Lowercase);
+                    this._settingService.Book_Deutsch = this._book_deutsch;
                     await this._grammarService.InitAsync(this._language_deutsch.Lowercase);
                     this._word_deutsch = new List<Word>();
                     MountNext(this._language_deutsch.Lowercase);
@@ -649,6 +649,7 @@ namespace Letter.ViewModels
                 if ((this._language_italiano != null) && (language == this._language_italiano.Lowercase))
                 {
                     this._book_italiano = await this._grammarService.GetLetterAsync(this._language_italiano.Lowercase);
+                    this._settingService.Book_Italiano = this._book_italiano;
                     await this._grammarService.InitAsync(this._language_italiano.Lowercase);
                     this._word_italiano = new List<Word>();
                     MountNext(this._language_italiano.Lowercase);
@@ -656,6 +657,7 @@ namespace Letter.ViewModels
                 if ((this._language_francais != null) && (language == this._language_francais.Lowercase))
                 {
                     this._book_francais = await this._grammarService.GetLetterAsync(this._language_francais.Lowercase);
+                    this._settingService.Book_Francais = this._book_francais;
                     await this._grammarService.InitAsync(this._language_francais.Lowercase);
                     this._word_francais = new List<Word>();
                     MountNext(this._language_francais.Lowercase);
@@ -663,6 +665,7 @@ namespace Letter.ViewModels
                 if ((this._language_espanol != null) && (language == this._language_espanol.Lowercase))
                 {
                     this._book_espanol = await this._grammarService.GetLetterAsync(this._language_espanol.Lowercase);
+                    this._settingService.Book_Espanol = this._book_espanol;
                     await this._grammarService.InitAsync(this._language_espanol.Lowercase);
                     this._word_espanol = new List<Word>();
                     MountNext(this._language_espanol.Lowercase);

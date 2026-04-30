@@ -30,7 +30,7 @@
         #endregion
 
         #region FUNCTION
-        public static string SetFileName(string extension)
+        public static string MountFileName(string extension)
         {
             try
             {
@@ -39,8 +39,12 @@
                 string file_name = string.Empty;
                 if (extension == "jpeg")
                     file_name = "/Image_" + DateTime.UtcNow.ToString("ddMMM_hhmmss") + ".jpeg";
-                else
-                    file_name = "/Record_" + DateTime.UtcNow.ToString("ddMMM_hhmmss") + (extension == "mp3" ? ".mp3" : ".wav");
+                if (extension == "mp3")
+                    file_name = "/Record_" + DateTime.UtcNow.ToString("ddMMM_hhmmss") + ".mp3";
+                if (extension == "wav")
+                    file_name = "/Record_" + DateTime.UtcNow.ToString("ddMMM_hhmmss") + ".wav";
+                if (extension == "txt")
+                    file_name = "/Text_" + DateTime.UtcNow.ToString("ddMMM_hhmmss") + ".txt";
                 return file_name;
             }
             catch (Exception ex)

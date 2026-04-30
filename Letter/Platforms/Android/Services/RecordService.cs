@@ -61,7 +61,7 @@ namespace Letter.Platforms.Android.Services
 
                 if (this._mediaRecorder == null)
                 {
-                    string file_name = FilePath.SetFileName("mp3");
+                    string file_name = FilePath.MountFileName("mp3");
                     string file_path = FilePath.MountFilePath(file_name);
                     this._storage_path = file_path;
                     this._mediaRecorder = new MediaRecorder();
@@ -90,7 +90,7 @@ namespace Letter.Platforms.Android.Services
 
                 if (this._mediaRecorder == null)
                 {
-                    string file_name = FilePath.SetFileName("wav");
+                    string file_name = FilePath.MountFileName("wav");
                     string file_path = FilePath.MountFilePath(file_name);
                     this._storage_path = file_path;
                     this._buffer_size = AudioRecord.GetMinBufferSize(this._sample_rate, this._channel_in, this._encoding);

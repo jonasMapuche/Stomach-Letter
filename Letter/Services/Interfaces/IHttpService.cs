@@ -1,11 +1,12 @@
-﻿using Letter.Models;
+﻿using CommunityToolkit.Maui.Storage;
+using Letter.Models;
 
 namespace Letter.Services.Interfaces
 {
     public interface IHttpService
     {
         Task<string> HttpPost(StreamContent message, string file_name);
-        Task<Stream> HttpPost(Download message);
+        Task<FileSaverResult> HttpDownload(string path, string file_name);
         Task<List<Adverbios>> HttpAdverb();
         Task<List<Pronomes>> HttpPronoun();
         Task<List<Artigos>> HttpArticle();

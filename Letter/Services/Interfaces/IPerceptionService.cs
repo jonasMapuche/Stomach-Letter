@@ -3,6 +3,7 @@
     public interface IPerceptionService
     {
         Task<string> SaveImage(byte[] bytes);
+        Task<string> SaveLetter(List<string> grammar);
         Task<string> UploadFile();
         Task<string> DownloadRaspberry();
         Task SendRecording(string file_path);
