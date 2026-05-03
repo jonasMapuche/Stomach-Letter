@@ -126,6 +126,7 @@ namespace Letter.Services
         private HashSet<string> _syntax;
         private HashSet<int> _order;
 
+        private int _order_2 = 2;
         private int _order_3 = 3;
         private int _order_4 = 4;
         private int _order_5 = 5;
@@ -1183,8 +1184,10 @@ namespace Letter.Services
                 List<Lesson> predicateDirectObject = new List<Lesson>();
                 List<Lesson> predicatePredicative = new List<Lesson>();
                 List<Lesson> predicateIndirectObject = new List<Lesson>();
+                List<Lesson> predicateDirectObjectIndirectObject = new List<Lesson>();
                 List <Lesson> homewoks = new List<Lesson>();
 
+                int order_verb = this._order_2;
                 int order_sample = this._order_3;
                 int order_predicate = this._order_4;
 
@@ -1192,21 +1195,21 @@ namespace Letter.Services
                 compoundSubjectVerb = this._syntaxService.CompoundSubjectVerb(tutorials, dictionaries, vocabularies);
                 subjectVerb = Union(sampleSubjectVerb, compoundSubjectVerb);
 
-                predicateDirectObject = this._syntaxService.PredicateDirectObject(tutorials, dictionaries, vocabularies, subjectVerb, order_sample);
+                predicateDirectObject = this._syntaxService.PredicateDirectObject(tutorials, dictionaries, vocabularies, subjectVerb, order_verb, order_sample);
                 homewoks = Union(subjectVerb, predicateDirectObject);
                  
-                predicatePredicative = this._syntaxService.PredicatePredicative(tutorials, dictionaries, vocabularies, subjectVerb, order_sample);
+                predicatePredicative = this._syntaxService.PredicatePredicative(tutorials, dictionaries, vocabularies, subjectVerb, order_verb, order_sample);
                 homewoks = Union(homewoks, predicatePredicative);
 
-                predicateIndirectObject = this._syntaxService.PredicateIndirectObject(tutorials, dictionaries, vocabularies, subjectVerb, order_sample);
+                predicateIndirectObject = this._syntaxService.PredicateIndirectObject(tutorials, dictionaries, vocabularies, subjectVerb, order_verb, order_sample);
                 homewoks = Union(homewoks, predicateIndirectObject);
+
+                predicateDirectObjectIndirectObject = this._syntaxService.PredicateDirectObjectIndirectObject(tutorials, dictionaries, vocabularies, predicateDirectObject, order_sample, order_predicate);
+                homewoks = Union(homewoks, predicateDirectObjectIndirectObject);
 
                 lessons = homewoks;
 
                 /*
-                predicateIndirectObject = this._syntaxService.PredicateIndirectObject(tutorials, word_2_vec, subjectVerb, order_sample);
-                words = Union(words, predicateIndirectObject);
-
                 predicateDirectObjectIndirectObject = this._syntaxService.PredicateDirectObjectIndirectObject(tutorials, word_2_vec, predicateDirectObject, order_sample, order_predicate);
                 words = Union(words, predicateDirectObjectIndirectObject);
 

@@ -1,6 +1,7 @@
 ﻿using Letter.Enums;
 using Letter.Models;
 using Letter.Services.Interfaces;
+using System.Reflection;
 using Level = Letter.Enums.Level;
 
 namespace Letter.Services
@@ -56,6 +57,9 @@ namespace Letter.Services
         private int _order_3 = 3;
         private int _order_4 = 4;
 
+        private byte[] _tutorial_sequence_1;
+        private int _practice_sequence_1;
+
         private SettingService? _settingService;
         private IWordEmbeddingService? _wordEmbeddingService;
         #endregion
@@ -94,6 +98,8 @@ namespace Letter.Services
                 this._adnominal_adjunct = this._settingService.Adnominal_Adjunct;
                 this._adverbial_verb = this._settingService.Adverbial_Verb;
                 this._adverbial_adjective = this._settingService.Adverbial_Adjective;
+                this._tutorial_sequence_1 = this._wordEmbeddingService.Encode(this._order_1, this._order);
+                this._practice_sequence_1 = this._wordEmbeddingService.EncodeInt(this._order_1, this._order);
             }
             catch (Exception ex)
             {
@@ -225,7 +231,7 @@ namespace Letter.Services
             }
         }
 
-        private bool VerifyVerbSampleSubject(List<Instruction> words, Dictionary<(byte[], byte[]), int>? word_2_vec, Level level)
+        private bool VerifyVerbSampleSubject(List<Instruction> words, Dictionary<(byte[], byte[]), int>? word_2_vec, Level level, int order_noun, int order_verb)
         {
             try
             {
@@ -234,8 +240,8 @@ namespace Letter.Services
                 byte[]? adnominal = null;
                 byte[]? adverbial = null;
 
-                adverbial = VerifyVerb(words, level, Rotate.Rear);
-                adnominal = VerifyNoun(words, level, Rotate.Front, Seat.Subject);
+                adverbial = VerifyVerb(words, order_verb, level, Rotate.Rear);
+                adnominal = VerifyNoun(words, order_noun, level, Rotate.Front, Seat.Subject);
 
                 bool similarity = false;
                 similarity = this._wordEmbeddingService.Similarity(word_2_vec, adnominal, adverbial);
@@ -249,7 +255,7 @@ namespace Letter.Services
             }
         }
 
-        private bool VerifyVerbSampleSubject(List<Word> words, Dictionary<(string, string), int>? word_2_vec, Level level)
+        private bool VerifyVerbSampleSubject(List<Word> words, Dictionary<(string, string), int>? word_2_vec, Level level, int order_noun, int order_verb)
         {
             try
             {
@@ -258,8 +264,8 @@ namespace Letter.Services
                 string adnominal = string.Empty;
                 string adverbial = string.Empty;
 
-                adverbial = VerifyVerb(words, level, Rotate.Rear);
-                adnominal = VerifyNoun(words, level, Rotate.Front, Seat.Subject);
+                adverbial = VerifyVerb(words, order_verb, level, Rotate.Rear);
+                adnominal = VerifyNoun(words, order_noun, level, Rotate.Front, Seat.Subject);
 
                 bool similarity = false;
                 similarity = this._wordEmbeddingService.Similarity(word_2_vec, adnominal, adverbial);
@@ -273,7 +279,7 @@ namespace Letter.Services
             }
         }
 
-        private bool VerifyVerbSampleSubject(List<Guidance> words, Dictionary<(int, int), int>? word_2_vec, Level level)
+        private bool VerifyVerbSampleSubject(List<Guidance> words, Dictionary<(int, int), int>? word_2_vec, Level level, int order_noun, int order_verb)
         {
             try
             {
@@ -282,8 +288,8 @@ namespace Letter.Services
                 int adnominal = -1;
                 int adverbial = -1;
 
-                adverbial = VerifyVerb(words, level, Rotate.Rear);
-                adnominal = VerifyNoun(words, level, Rotate.Front, Seat.Subject);
+                adverbial = VerifyVerb(words, order_verb, level, Rotate.Rear);
+                adnominal = VerifyNoun(words, order_noun, level, Rotate.Front, Seat.Subject);
 
                 bool similarity = false;
                 similarity = this._wordEmbeddingService.Similarity(word_2_vec, adnominal, adverbial);
@@ -297,7 +303,7 @@ namespace Letter.Services
             }
         }
 
-        private string VerifyVerb(List<Word> words, Level level, Rotate rotate)
+        private string VerifyVerb(List<Word> words, int order, Level level, Rotate rotate)
         {
             try
             {
@@ -308,6 +314,7 @@ namespace Letter.Services
                 string morphology_verb = this._verb;
                 string morphology_adverb = this._adverb;
                 string morphology_adverb_adverb = this._adverb_adverb;
+                int morphology_order = order;
 
                 string verb = string.Empty;
                 string verb_adverb = string.Empty;
@@ -319,78 +326,96 @@ namespace Letter.Services
                 {
                     foreach (Word item in words)
                     {
-                        if (item.kind == morphology_verb) verb = item.term;
+                        if (item.kind == morphology_verb
+                            && item.order == morphology_order) verb = item.term;
                         if ((item.sentence == syntax_predicate)
                             && (item.team == morphology_adverbial_verb)
-                            && (item.kind == morphology_adverb)) verb_adverb = item.term;
+                            && (item.kind == morphology_adverb)
+                            && (item.order == morphology_order)) verb_adverb = item.term;
                         if ((item.sentence == syntax_predicate)
                             && (item.team == morphology_adverbial_verb)
-                            && (item.kind == morphology_adverb_adverb)) verb_adverb_adverb = item.term;
+                            && (item.kind == morphology_adverb_adverb)
+                            && (item.order == morphology_order)) verb_adverb_adverb = item.term;
                     }
                 }
                 if (level == Level.Equal)
                 {
                     foreach (Word item in words)
                     {
-                        if (item.kind.Equals(morphology_verb)) verb = item.term;
+                        if (item.kind.Equals(morphology_verb)
+                            && item.order.Equals(morphology_order)) verb = item.term;
                         if ((item.sentence.Equals(syntax_predicate))
                             && (item.team.Equals(morphology_adverbial_verb))
-                            && (item.kind.Equals(morphology_adverb))) verb_adverb = item.term;
+                            && (item.kind.Equals(morphology_adverb))
+                            && (item.order.Equals(morphology_order))) verb_adverb = item.term;
                         if ((item.sentence.Equals(syntax_predicate))
                             && (item.team.Equals(morphology_adverbial_verb))
-                            && (item.kind.Equals(morphology_adverb_adverb))) verb_adverb_adverb = item.term;
+                            && (item.kind.Equals(morphology_adverb_adverb))
+                            && (item.order.Equals(morphology_order))) verb_adverb_adverb = item.term;
                     }
                 }
                 if (level == Level.AsSpanSequence)
                 {
                     foreach (Word item in words)
                     {
-                        if (item.kind.AsSpan().SequenceEqual(morphology_verb)) verb = item.term;
+                        if (item.kind.AsSpan().SequenceEqual(morphology_verb)
+                            && item.order == morphology_order) verb = item.term;
                         if ((item.sentence.AsSpan().SequenceEqual(syntax_predicate))
                             && (item.team.AsSpan().SequenceEqual(morphology_adverbial_verb))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_adverb))) verb_adverb = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_adverb))
+                            && (item.order == morphology_order)) verb_adverb = item.term;
                         if ((item.sentence.AsSpan().SequenceEqual(syntax_predicate))
                             && (item.team.AsSpan().SequenceEqual(morphology_adverbial_verb))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_adverb_adverb))) verb_adverb_adverb = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_adverb_adverb))
+                            && (item.order == morphology_order)) verb_adverb_adverb = item.term;
                     }
                 }
                 if (level == Level.Sequence)
                 {
                     foreach (Word item in words)
                     {
-                        if (item.kind.SequenceEqual(morphology_verb)) verb = item.term;
+                        if (item.kind.SequenceEqual(morphology_verb)
+                            && item.order == morphology_order) verb = item.term;
                         if ((item.sentence.SequenceEqual(syntax_predicate))
                             && (item.team.SequenceEqual(morphology_adverbial_verb))
-                            && (item.kind.SequenceEqual(morphology_adverb))) verb_adverb = item.term;
+                            && (item.kind.SequenceEqual(morphology_adverb))
+                            && (item.order == morphology_order)) verb_adverb = item.term;
                         if ((item.sentence.SequenceEqual(syntax_predicate))
                             && (item.team.SequenceEqual(morphology_adverbial_verb))
-                            && (item.kind.SequenceEqual(morphology_adverb_adverb))) verb_adverb_adverb = item.term;
+                            && (item.kind.SequenceEqual(morphology_adverb_adverb))
+                            && (item.order == morphology_order)) verb_adverb_adverb = item.term;
                     }
                 }
                 if (level == Level.Compare)
                 {
                     foreach (Word item in words)
                     {
-                        if (item.kind.CompareTo(morphology_verb) != -1) verb = item.term;
+                        if ((item.kind.CompareTo(morphology_verb) != -1) 
+                            && (item.order.CompareTo(morphology_order) != -1))verb = item.term;
                         if ((item.sentence.CompareTo(syntax_predicate) != -1)
                             && (item.team.CompareTo(morphology_adverbial_verb) != -1)
-                            && (item.kind.CompareTo(morphology_adverb) != -1)) verb_adverb = item.term;
+                            && (item.kind.CompareTo(morphology_adverb) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) verb_adverb = item.term;
                         if ((item.sentence.CompareTo(syntax_predicate) != -1)
                             && (item.team.CompareTo(morphology_adverbial_verb) != -1)
-                            && (item.kind.CompareTo(morphology_adverb_adverb) != -1)) verb_adverb_adverb = item.term;
+                            && (item.kind.CompareTo(morphology_adverb_adverb) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) verb_adverb_adverb = item.term;
                     }
                 }
                 if (level == Level.Index)
                 {
                     foreach (Word item in words)
                     {
-                        if (item.kind.IndexOf(morphology_verb) != -1) verb = item.term;
+                        if ((item.kind.IndexOf(morphology_verb) != -1) 
+                            && (item.order == morphology_order)) verb = item.term;
                         if ((item.sentence.IndexOf(syntax_predicate) != -1)
                             && (item.team.IndexOf(morphology_adverbial_verb) != -1)
-                            && (item.kind.IndexOf(morphology_adverb) != -1)) verb_adverb = item.term;
+                            && (item.kind.IndexOf(morphology_adverb) != -1)
+                            && (item.order == morphology_order)) verb_adverb = item.term;
                         if ((item.sentence.IndexOf(syntax_predicate) != -1)
                             && (item.team.IndexOf(morphology_adverbial_verb) != -1)
-                            && (item.kind.IndexOf(morphology_adverb_adverb) != -1)) verb_adverb_adverb = item.term;
+                            && (item.kind.IndexOf(morphology_adverb_adverb) != -1)
+                            && (item.order == morphology_order)) verb_adverb_adverb = item.term;
                     }
                 }
 
@@ -421,7 +446,7 @@ namespace Letter.Services
             }
         }
 
-        private byte[]? VerifyVerb(List<Instruction> words, Level level, Rotate rotate)
+        private byte[]? VerifyVerb(List<Instruction> words, int order, Level level, Rotate rotate)
         {
             try
             {
@@ -432,6 +457,7 @@ namespace Letter.Services
                 byte[] morphology_verb = this._wordEmbeddingService.Encode(this._verb, this._morphology);
                 byte[] morphology_adverb = this._wordEmbeddingService.Encode(this._adverb, this._morphology);
                 byte[] morphology_adverb_adverb = this._wordEmbeddingService.Encode(this._adverb_adverb, this._morphology);
+                byte[] morphology_order = this._wordEmbeddingService.Encode(order, this._order);
 
                 byte[]? verb = null;
                 byte[]? verb_adverb = null;
@@ -443,78 +469,96 @@ namespace Letter.Services
                 {
                     foreach (Instruction item in words)
                     {
-                        if (item.kind == morphology_verb) verb = item.term;
+                        if ((item.kind == morphology_verb)
+                            && (item.order == morphology_order)) verb = item.term;
                         if ((item.sentence == syntax_predicate)
                             && (item.team == morphology_adverbial_verb)
-                            && (item.kind == morphology_adverb)) verb_adverb = item.term;
+                            && (item.kind == morphology_adverb)
+                            && (item.order == morphology_order)) verb_adverb = item.term;
                         if ((item.sentence == syntax_predicate)
                             && (item.team == morphology_adverbial_verb)
-                            && (item.kind == morphology_adverb_adverb)) verb_adverb_adverb = item.term;
+                            && (item.kind == morphology_adverb_adverb)
+                            && (item.order == morphology_order)) verb_adverb_adverb = item.term;
                     }
                 }
                 if (level == Level.Equal)
                 {
                     foreach (Instruction item in words)
                     {
-                        if (item.kind.Equals(morphology_verb)) verb = item.term;
+                        if ((item.kind.Equals(morphology_verb))
+                            && (item.order.Equals(morphology_order))) verb = item.term;
                         if ((item.sentence.Equals(syntax_predicate))
                             && (item.team.Equals(morphology_adverbial_verb))
-                            && (item.kind.Equals(morphology_adverb))) verb_adverb = item.term;
+                            && (item.kind.Equals(morphology_adverb))
+                            && (item.order.Equals(morphology_order))) verb_adverb = item.term;
                         if ((item.sentence.Equals(syntax_predicate))
                             && (item.team.Equals(morphology_adverbial_verb))
-                            && (item.kind.Equals(morphology_adverb_adverb))) verb_adverb_adverb = item.term;
+                            && (item.kind.Equals(morphology_adverb_adverb))
+                            && (item.order.Equals(morphology_order))) verb_adverb_adverb = item.term;
                     }
                 }
                 if (level == Level.AsSpanSequence)
                 {
                     foreach (Instruction item in words)
                     {
-                        if (item.kind.AsSpan().SequenceEqual(morphology_verb)) verb = item.term;
+                        if ((item.kind.AsSpan().SequenceEqual(morphology_verb))
+                            && (item.order.AsSpan().SequenceEqual(morphology_order))) verb = item.term;
                         if ((item.sentence.AsSpan().SequenceEqual(syntax_predicate))
                             && (item.team.AsSpan().SequenceEqual(morphology_adverbial_verb))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_adverb))) verb_adverb = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_adverb))
+                            && (item.order.AsSpan().SequenceEqual(morphology_order))) verb_adverb = item.term;
                         if ((item.sentence.AsSpan().SequenceEqual(syntax_predicate))
                             && (item.team.AsSpan().SequenceEqual(morphology_adverbial_verb))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_adverb_adverb))) verb_adverb_adverb = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_adverb_adverb))
+                            && (item.order.AsSpan().SequenceEqual(morphology_order))) verb_adverb_adverb = item.term;
                     }
                 }
                 if (level == Level.Sequence)
                 {
                     foreach (Instruction item in words)
                     {
-                        if (item.kind.SequenceEqual(morphology_verb)) verb = item.term;
+                        if ((item.kind.SequenceEqual(morphology_verb))
+                            && (item.order.SequenceEqual(morphology_order))) verb = item.term;
                         if ((item.sentence.SequenceEqual(syntax_predicate))
                             && (item.team.SequenceEqual(morphology_adverbial_verb))
-                            && (item.kind.SequenceEqual(morphology_adverb))) verb_adverb = item.term;
+                            && (item.kind.SequenceEqual(morphology_adverb))
+                            && (item.order.SequenceEqual(morphology_order))) verb_adverb = item.term;
                         if ((item.sentence.SequenceEqual(syntax_predicate))
                             && (item.team.SequenceEqual(morphology_adverbial_verb))
-                            && (item.kind.SequenceEqual(morphology_adverb_adverb))) verb_adverb_adverb = item.term;
+                            && (item.kind.SequenceEqual(morphology_adverb_adverb))
+                            && (item.order.SequenceEqual(morphology_order))) verb_adverb_adverb = item.term;
                     }
                 }
                 if (level == Level.Compare)
                 {
                     foreach (Instruction item in words)
                     {
-                        if (item.kind.SequenceCompareTo(morphology_verb) != -1) verb = item.term;
+                        if ((item.kind.SequenceCompareTo(morphology_verb) != -1) 
+                            && (item.order.SequenceCompareTo(morphology_order) != -1)) verb = item.term;
                         if ((item.sentence.SequenceCompareTo(syntax_predicate) != -1)
                             && (item.team.SequenceCompareTo(morphology_adverbial_verb) != -1)
-                            && (item.kind.SequenceCompareTo(morphology_adverb) != -1)) verb_adverb = item.term;
+                            && (item.kind.SequenceCompareTo(morphology_adverb) != -1)
+                            && (item.order.SequenceCompareTo(morphology_order) != -1)) verb_adverb = item.term;
                         if ((item.sentence.SequenceCompareTo(syntax_predicate) != -1)
                             && (item.team.SequenceCompareTo(morphology_adverbial_verb) != -1)
-                            && (item.kind.SequenceCompareTo(morphology_adverb_adverb) != -1)) verb_adverb_adverb = item.term;
+                            && (item.kind.SequenceCompareTo(morphology_adverb_adverb) != -1)
+                            && (item.order.SequenceCompareTo(morphology_order) != -1)) verb_adverb_adverb = item.term;
                     }
                 }
                 if (level == Level.Index)
                 {
                     foreach (Instruction item in words)
                     {
-                        if (item.kind.IndexOf(morphology_verb) != -1) verb = item.term;
+                        if ((item.kind.IndexOf(morphology_verb) != -1)
+                            && (item.order.IndexOf(morphology_order) != -1)) verb = item.term;
                         if ((item.sentence.IndexOf(syntax_predicate) != -1)
                             && (item.team.IndexOf(morphology_adverbial_verb) != -1)
-                            && (item.kind.IndexOf(morphology_adverb) != -1)) verb_adverb = item.term;
+                            && (item.kind.IndexOf(morphology_adverb) != -1)
+                            && (item.order.IndexOf(morphology_order) != -1)) verb_adverb = item.term;
                         if ((item.sentence.IndexOf(syntax_predicate) != -1)
                             && (item.team.IndexOf(morphology_adverbial_verb) != -1)
-                            && (item.kind.IndexOf(morphology_adverb_adverb) != -1)) verb_adverb_adverb = item.term;
+                            && (item.kind.IndexOf(morphology_adverb_adverb) != -1)
+                            && (item.order.IndexOf(morphology_order) != -1)) verb_adverb_adverb = item.term;
                     }
                 }
 
@@ -545,7 +589,7 @@ namespace Letter.Services
             }
         }
 
-        private int VerifyVerb(List<Guidance> words, Level level, Rotate rotate)
+        private int VerifyVerb(List<Guidance> words, int order, Level level, Rotate rotate)
         {
             try
             {
@@ -629,7 +673,26 @@ namespace Letter.Services
             }
         }
 
-        private string VerifyNoun(List<Word> words, Level level, Rotate rotate, Seat seat)
+        private string VerifyNoun(List<Word> words, int order, Level level, Rotate rotate, Seat seat)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify noun \"Syntax\" service failed!");
+
+                string adnominal = string.Empty;
+                int order_conjunction = this._order_1;
+
+                adnominal = VerifyNoun(words, order, level, rotate, seat, order_conjunction);
+                return adnominal;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private string VerifyNoun(List<Word> words, int order, Level level, Rotate rotate, Seat seat, int order_conjunction)
         {
             try
             {
@@ -647,6 +710,8 @@ namespace Letter.Services
                 string morphology_article = this._article;
                 string morphology_numeral = this._numeral;
                 string morphology_pronoun = this._pronoun;
+                int morphology_order = order;
+                int morphology_sequence = order_conjunction;
 
                 string noun = string.Empty;
                 string adjective = string.Empty;
@@ -662,22 +727,34 @@ namespace Letter.Services
                     {
                         if ((item.sentence == syntax)
                             && (item.team == morphology_adnominal_adjunct)
-                            && (item.kind == morphology_adjective)) adjective = item.term;
+                            && (item.kind == morphology_adjective)
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) adjective = item.term;
                         if ((item.sentence == syntax)
                             && (item.team == morphology_adnominal_adjunct)
-                            && (item.kind == morphology_article)) article = item.term;
+                            && (item.kind == morphology_article)
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) article = item.term;
                         if ((item.sentence == syntax)
                             && (item.team == morphology_adnominal_adjunct)
-                            && (item.kind == morphology_numeral)) numeral = item.term;
+                            && (item.kind == morphology_numeral)
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) numeral = item.term;
                         if ((item.sentence == syntax)
                             && (item.team == morphology_adnominal_adjunct)
-                            && (item.kind == morphology_pronoun)) pronoun = item.term;
+                            && (item.kind == morphology_pronoun)
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) pronoun = item.term;
                         if ((item.sentence == syntax)
                             && (item.team == morphology_adnominal_adjunct)
-                            && (item.kind == morphology_noun)) noun = item.term;
+                            && (item.kind == morphology_noun)
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) noun = item.term;
                         if ((item.sentence == syntax)
                             && (!(item.team == morphology_adnominal_adjunct))
-                            && (item.kind == morphology_pronoun)) noun = item.term;
+                            && (item.kind == morphology_pronoun)
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) noun = item.term;
                     }
                 }
                 if (level == Level.Equal)
@@ -686,22 +763,34 @@ namespace Letter.Services
                     {
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_adnominal_adjunct))
-                            && (item.kind.Equals(morphology_adjective))) adjective = item.term;
+                            && (item.kind.Equals(morphology_adjective))
+                            && (item.order.Equals(morphology_order))
+                            && (item.sequence.Equals(morphology_sequence))) adjective = item.term;
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_adnominal_adjunct))
-                            && (item.kind.Equals(morphology_article))) article = item.term;
+                            && (item.kind.Equals(morphology_article))
+                            && (item.order.Equals(morphology_order))
+                            && (item.sequence.Equals(morphology_sequence))) article = item.term;
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_adnominal_adjunct))
-                            && (item.kind.Equals(morphology_numeral))) numeral = item.term;
+                            && (item.kind.Equals(morphology_numeral))
+                            && (item.order.Equals(morphology_order))
+                            && (item.sequence.Equals(morphology_sequence))) numeral = item.term;
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_adnominal_adjunct))
-                            && (item.kind.Equals(morphology_pronoun))) pronoun = item.term;
+                            && (item.kind.Equals(morphology_pronoun))
+                            && (item.order.Equals(morphology_order))
+                            && (item.sequence.Equals(morphology_sequence))) pronoun = item.term;
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_adnominal_adjunct))
-                            && (item.kind.Equals(morphology_noun))) noun = item.term;
+                            && (item.kind.Equals(morphology_noun))
+                            && (item.order.Equals(morphology_order))
+                            && (item.sequence.Equals(morphology_sequence))) noun = item.term;
                         if ((item.sentence.Equals(syntax))
                             && (!item.team.Equals(morphology_adnominal_adjunct))
-                            && (item.kind.Equals(morphology_pronoun))) noun = item.term;
+                            && (item.kind.Equals(morphology_pronoun))
+                            && (item.order.Equals(morphology_order))
+                            && (item.sequence.Equals(morphology_sequence))) noun = item.term;
                     }
                 }
                 if (level == Level.AsSpanSequence)
@@ -710,22 +799,34 @@ namespace Letter.Services
                     {
                         if ((item.sentence.AsSpan().SequenceEqual(syntax))
                             && (item.team.AsSpan().SequenceEqual(morphology_adnominal_adjunct))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_adjective))) adjective = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_adjective))
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) adjective = item.term;
                         if ((item.sentence.AsSpan().SequenceEqual(syntax))
                             && (item.team.AsSpan().SequenceEqual(morphology_adnominal_adjunct))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_article))) article = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_article))
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) article = item.term;
                         if ((item.sentence.AsSpan().SequenceEqual(syntax))
                             && (item.team.AsSpan().SequenceEqual(morphology_adnominal_adjunct))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_numeral))) numeral = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_numeral))
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) numeral = item.term;
                         if ((item.sentence.AsSpan().SequenceEqual(syntax))
                             && (item.team.AsSpan().SequenceEqual(morphology_adnominal_adjunct))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_pronoun))) pronoun = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_pronoun))
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) pronoun = item.term;
                         if ((item.sentence.AsSpan().SequenceEqual(syntax))
                             && (item.team.AsSpan().SequenceEqual(morphology_adnominal_adjunct))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_noun))) noun = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_noun))
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) noun = item.term;
                         if ((item.sentence.AsSpan().SequenceEqual(syntax))
                             && (!item.team.AsSpan().SequenceEqual(morphology_adnominal_adjunct))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_pronoun))) noun = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_pronoun))
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) noun = item.term;
                     }
                 }
                 if (level == Level.Sequence)
@@ -734,22 +835,34 @@ namespace Letter.Services
                     {
                         if ((item.sentence.SequenceEqual(syntax))
                             && (item.team.SequenceEqual(morphology_adnominal_adjunct))
-                            && (item.kind.SequenceEqual(morphology_adjective))) adjective = item.term;
+                            && (item.kind.SequenceEqual(morphology_adjective))
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) adjective = item.term;
                         if ((item.sentence.SequenceEqual(syntax))
                             && (item.team.SequenceEqual(morphology_adnominal_adjunct))
-                            && (item.kind.SequenceEqual(morphology_article))) article = item.term;
+                            && (item.kind.SequenceEqual(morphology_article))
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) article = item.term;
                         if ((item.sentence.SequenceEqual(syntax))
                             && (item.team.SequenceEqual(morphology_adnominal_adjunct))
-                            && (item.kind.SequenceEqual(morphology_numeral))) numeral = item.term;
+                            && (item.kind.SequenceEqual(morphology_numeral))
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) numeral = item.term;
                         if ((item.sentence.SequenceEqual(syntax))
                             && (item.team.SequenceEqual(morphology_adnominal_adjunct))
-                            && (item.kind.SequenceEqual(morphology_pronoun))) pronoun = item.term;
+                            && (item.kind.SequenceEqual(morphology_pronoun))
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) pronoun = item.term;
                         if ((item.sentence.SequenceEqual(syntax))
                             && (item.team.SequenceEqual(morphology_adnominal_adjunct))
-                            && (item.kind.SequenceEqual(morphology_noun))) noun = item.term;
+                            && (item.kind.SequenceEqual(morphology_noun))
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) noun = item.term;
                         if ((item.sentence.SequenceEqual(syntax))
                             && (!item.team.SequenceEqual(morphology_adnominal_adjunct))
-                            && (item.kind.SequenceEqual(morphology_pronoun))) noun = item.term;
+                            && (item.kind.SequenceEqual(morphology_pronoun))
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) noun = item.term;
                     }
                 }
                 if (level == Level.Compare)
@@ -758,22 +871,34 @@ namespace Letter.Services
                     {
                         if ((item.sentence.CompareTo(syntax) != -1)
                             && (item.team.CompareTo(morphology_adnominal_adjunct) != -1)
-                            && (item.kind.CompareTo(morphology_adjective) != -1)) adjective = item.term;
+                            && (item.kind.CompareTo(morphology_adjective) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)
+                            && (item.sequence.CompareTo(morphology_sequence) != -1)) adjective = item.term;
                         if ((item.sentence.CompareTo(syntax) != -1)
                             && (item.team.CompareTo(morphology_adnominal_adjunct) != -1)
-                            && (item.kind.CompareTo(morphology_article) != -1)) article = item.term;
+                            && (item.kind.CompareTo(morphology_article) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)
+                            && (item.sequence.CompareTo(morphology_sequence) != -1)) article = item.term;
                         if ((item.sentence.CompareTo(syntax) != -1)
                             && (item.team.CompareTo(morphology_adnominal_adjunct) != -1)
-                            && (item.kind.CompareTo(morphology_numeral) != -1)) numeral = item.term;
+                            && (item.kind.CompareTo(morphology_numeral) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)
+                            && (item.sequence.CompareTo(morphology_sequence) != -1)) numeral = item.term;
                         if ((item.sentence.CompareTo(syntax) != -1)
                             && (item.team.CompareTo(morphology_adnominal_adjunct) != -1)
-                            && (item.kind.CompareTo(morphology_pronoun) != -1)) pronoun = item.term;
+                            && (item.kind.CompareTo(morphology_pronoun) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)
+                            && (item.sequence.CompareTo(morphology_sequence) != -1)) pronoun = item.term;
                         if ((item.sentence.CompareTo(syntax) != -1)
                             && (item.team.CompareTo(morphology_adnominal_adjunct) != -1)
-                            && (item.kind.CompareTo(morphology_noun) != -1)) noun = item.term;
+                            && (item.kind.CompareTo(morphology_noun) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)
+                            && (item.sequence.CompareTo(morphology_sequence) != -1)) noun = item.term;
                         if ((item.sentence.CompareTo(syntax) != -1)
                             && (!(item.team.CompareTo(morphology_adnominal_adjunct) != -1))
-                            && (item.kind.CompareTo(morphology_pronoun) != -1)) noun = item.term;
+                            && (item.kind.CompareTo(morphology_pronoun) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)
+                            && (item.sequence.CompareTo(morphology_sequence) != -1)) noun = item.term;
                     }
                 }
                 if (level == Level.Index)
@@ -782,22 +907,34 @@ namespace Letter.Services
                     {
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (item.team.IndexOf(morphology_adnominal_adjunct) != -1)
-                            && (item.kind.IndexOf(morphology_adjective) != -1)) adjective = item.term;
+                            && (item.kind.IndexOf(morphology_adjective) != -1)
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) adjective = item.term;
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (item.team.IndexOf(morphology_adnominal_adjunct) != -1)
-                            && (item.kind.IndexOf(morphology_article) != -1)) article = item.term;
+                            && (item.kind.IndexOf(morphology_article) != -1)
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) article = item.term;
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (item.team.IndexOf(morphology_adnominal_adjunct) != -1)
-                            && (item.kind.IndexOf(morphology_numeral) != -1)) numeral = item.term;
+                            && (item.kind.IndexOf(morphology_numeral) != -1)
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) numeral = item.term;
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (item.team.IndexOf(morphology_adnominal_adjunct) != -1)
-                            && (item.kind.IndexOf(morphology_pronoun) != -1)) pronoun = item.term;
+                            && (item.kind.IndexOf(morphology_pronoun) != -1)
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) pronoun = item.term;
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (item.team.IndexOf(morphology_adnominal_adjunct) != -1)
-                            && (item.kind.IndexOf(morphology_noun) != -1)) noun = item.term;
+                            && (item.kind.IndexOf(morphology_noun) != -1)
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) noun = item.term;
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (!(item.team.IndexOf(morphology_adnominal_adjunct) != -1))
-                            && (item.kind.IndexOf(morphology_pronoun) != -1)) noun = item.term;
+                            && (item.kind.IndexOf(morphology_pronoun) != -1)
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) noun = item.term;
                     }
                 }
 
@@ -837,7 +974,26 @@ namespace Letter.Services
             }
         }
 
-        private byte[]? VerifyNoun(List<Instruction> words, Level level, Rotate rotate, Seat seat)
+        private byte[]? VerifyNoun(List<Instruction> words, int order, Level level, Rotate rotate, Seat seat)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify noun \"Syntax\" service failed!");
+
+                byte[]? adnominal = null;
+                int order_conjunction = this._order_1;
+
+                adnominal = VerifyNoun(words, order, level, rotate, seat, order_conjunction);
+                return adnominal;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private byte[]? VerifyNoun(List<Instruction> words, int order, Level level, Rotate rotate, Seat seat, int order_conjunction)
         {
             try
             {
@@ -855,6 +1011,8 @@ namespace Letter.Services
                 byte[] morphology_article = this._wordEmbeddingService.Encode(this._article, this._morphology);
                 byte[] morphology_numeral = this._wordEmbeddingService.Encode(this._numeral, this._morphology);
                 byte[] morphology_pronoun = this._wordEmbeddingService.Encode(this._pronoun, this._morphology);
+                byte[] morphology_order = this._wordEmbeddingService.Encode(order, this._order);
+                byte[] morphology_sequence = this._wordEmbeddingService.Encode(order_conjunction, this._order);
 
                 byte[]? noun = null;
                 byte[]? adjective = null;
@@ -870,22 +1028,34 @@ namespace Letter.Services
                     {
                         if ((item.sentence == syntax)
                             && (item.team == morphology_adnominal_adjunct)
-                            && (item.kind == morphology_adjective)) adjective = item.term;
+                            && (item.kind == morphology_adjective)
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) adjective = item.term;
                         if ((item.sentence == syntax)
                             && (item.team == morphology_adnominal_adjunct)
-                            && (item.kind == morphology_article)) article = item.term;
+                            && (item.kind == morphology_article)
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) article = item.term;
                         if ((item.sentence == syntax)
                             && (item.team == morphology_adnominal_adjunct)
-                            && (item.kind == morphology_numeral)) numeral = item.term;
+                            && (item.kind == morphology_numeral)
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) numeral = item.term;
                         if ((item.sentence == syntax)
                             && (item.team == morphology_adnominal_adjunct)
-                            && (item.kind == morphology_pronoun)) pronoun = item.term;
+                            && (item.kind == morphology_pronoun)
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) pronoun = item.term;
                         if ((item.sentence == syntax)
                             && (item.team == morphology_adnominal_adjunct)
-                            && (item.kind == morphology_noun)) noun = item.term;
+                            && (item.kind == morphology_noun)
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) noun = item.term;
                         if ((item.sentence == syntax)
                             && (!(item.team == morphology_adnominal_adjunct))
-                            && (item.kind == morphology_pronoun)) noun = item.term;
+                            && (item.kind == morphology_pronoun)
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) noun = item.term;
                     }
                 }
                 if (level == Level.Equal)
@@ -894,22 +1064,34 @@ namespace Letter.Services
                     {
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_adnominal_adjunct))
-                            && (item.kind.Equals(morphology_adjective))) adjective = item.term;
+                            && (item.kind.Equals(morphology_adjective))
+                            && (item.order.Equals(morphology_order))
+                            && (item.order.Equals(morphology_sequence))) adjective = item.term;
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_adnominal_adjunct))
-                            && (item.kind.Equals(morphology_article))) article = item.term;
+                            && (item.kind.Equals(morphology_article))
+                            && (item.order.Equals(morphology_order))
+                            && (item.order.Equals(morphology_sequence))) article = item.term;
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_adnominal_adjunct))
-                            && (item.kind.Equals(morphology_numeral))) numeral = item.term;
+                            && (item.kind.Equals(morphology_numeral))
+                            && (item.order.Equals(morphology_order))
+                            && (item.order.Equals(morphology_sequence))) numeral = item.term;
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_adnominal_adjunct))
-                            && (item.kind.Equals(morphology_pronoun))) pronoun = item.term;
+                            && (item.kind.Equals(morphology_pronoun))
+                            && (item.order.Equals(morphology_order))
+                            && (item.order.Equals(morphology_sequence))) pronoun = item.term;
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_adnominal_adjunct))
-                            && (item.kind.Equals(morphology_noun))) noun = item.term;
+                            && (item.kind.Equals(morphology_noun))
+                            && (item.order.Equals(morphology_order))
+                            && (item.order.Equals(morphology_sequence))) noun = item.term;
                         if ((item.sentence.Equals(syntax))
                             && (!item.team.Equals(morphology_adnominal_adjunct))
-                            && (item.kind.Equals(morphology_pronoun))) noun = item.term;
+                            && (item.kind.Equals(morphology_pronoun))
+                            && (item.order.Equals(morphology_order))
+                            && (item.order.Equals(morphology_sequence))) noun = item.term;
                     }
                 }
                 if (level == Level.AsSpanSequence)
@@ -918,22 +1100,34 @@ namespace Letter.Services
                     {
                         if ((item.sentence.AsSpan().SequenceEqual(syntax))
                             && (item.team.AsSpan().SequenceEqual(morphology_adnominal_adjunct))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_adjective))) adjective = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_adjective))
+                            && (item.order.AsSpan().SequenceEqual(morphology_order))
+                            && (item.sequence.AsSpan().SequenceEqual(morphology_sequence))) adjective = item.term;
                         if ((item.sentence.AsSpan().SequenceEqual(syntax))
                             && (item.team.AsSpan().SequenceEqual(morphology_adnominal_adjunct))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_article))) article = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_article))
+                            && (item.order.AsSpan().SequenceEqual(morphology_order))
+                            && (item.sequence.AsSpan().SequenceEqual(morphology_sequence))) article = item.term;
                         if ((item.sentence.AsSpan().SequenceEqual(syntax))
                             && (item.team.AsSpan().SequenceEqual(morphology_adnominal_adjunct))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_numeral))) numeral = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_numeral))
+                            && (item.order.AsSpan().SequenceEqual(morphology_order))
+                            && (item.sequence.AsSpan().SequenceEqual(morphology_sequence))) numeral = item.term;
                         if ((item.sentence.AsSpan().SequenceEqual(syntax))
                             && (item.team.AsSpan().SequenceEqual(morphology_adnominal_adjunct))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_pronoun))) pronoun = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_pronoun))
+                            && (item.order.AsSpan().SequenceEqual(morphology_order))
+                            && (item.sequence.AsSpan().SequenceEqual(morphology_sequence))) pronoun = item.term;
                         if ((item.sentence.AsSpan().SequenceEqual(syntax))
                             && (item.team.AsSpan().SequenceEqual(morphology_adnominal_adjunct))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_noun))) noun = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_noun))
+                            && (item.order.AsSpan().SequenceEqual(morphology_order))
+                            && (item.sequence.AsSpan().SequenceEqual(morphology_sequence))) noun = item.term;
                         if ((item.sentence.AsSpan().SequenceEqual(syntax))
                             && (!item.team.AsSpan().SequenceEqual(morphology_adnominal_adjunct))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_pronoun))) noun = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_pronoun))
+                            && (item.order.AsSpan().SequenceEqual(morphology_order))
+                            && (item.sequence.AsSpan().SequenceEqual(morphology_sequence))) noun = item.term;
                     }
                 }
                 if (level == Level.Sequence)
@@ -942,22 +1136,34 @@ namespace Letter.Services
                     {
                         if ((item.sentence.SequenceEqual(syntax))
                             && (item.team.SequenceEqual(morphology_adnominal_adjunct))
-                            && (item.kind.SequenceEqual(morphology_adjective))) adjective = item.term;
+                            && (item.kind.SequenceEqual(morphology_adjective))
+                            && (item.order.SequenceEqual(morphology_order))
+                            && (item.sequence.SequenceEqual(morphology_sequence))) adjective = item.term;
                         if ((item.sentence.SequenceEqual(syntax))
                             && (item.team.SequenceEqual(morphology_adnominal_adjunct))
-                            && (item.kind.SequenceEqual(morphology_article))) article = item.term;
+                            && (item.kind.SequenceEqual(morphology_article))
+                            && (item.order.SequenceEqual(morphology_order))
+                            && (item.sequence.SequenceEqual(morphology_sequence))) article = item.term;
                         if ((item.sentence.SequenceEqual(syntax))
                             && (item.team.SequenceEqual(morphology_adnominal_adjunct))
-                            && (item.kind.SequenceEqual(morphology_numeral))) numeral = item.term;
+                            && (item.kind.SequenceEqual(morphology_numeral))
+                            && (item.order.SequenceEqual(morphology_order))
+                            && (item.sequence.SequenceEqual(morphology_sequence))) numeral = item.term;
                         if ((item.sentence.SequenceEqual(syntax))
                             && (item.team.SequenceEqual(morphology_adnominal_adjunct))
-                            && (item.kind.SequenceEqual(morphology_pronoun))) pronoun = item.term;
+                            && (item.kind.SequenceEqual(morphology_pronoun))
+                            && (item.order.SequenceEqual(morphology_order))
+                            && (item.sequence.SequenceEqual(morphology_sequence))) pronoun = item.term;
                         if ((item.sentence.SequenceEqual(syntax))
                             && (item.team.SequenceEqual(morphology_adnominal_adjunct))
-                            && (item.kind.SequenceEqual(morphology_noun))) noun = item.term;
+                            && (item.kind.SequenceEqual(morphology_noun))
+                            && (item.order.SequenceEqual(morphology_order))
+                            && (item.sequence.SequenceEqual(morphology_sequence))) noun = item.term;
                         if ((item.sentence.SequenceEqual(syntax))
                             && (!item.team.SequenceEqual(morphology_adnominal_adjunct))
-                            && (item.kind.SequenceEqual(morphology_pronoun))) noun = item.term;
+                            && (item.kind.SequenceEqual(morphology_pronoun))
+                            && (item.order.SequenceEqual(morphology_order))
+                            && (item.sequence.SequenceEqual(morphology_sequence))) noun = item.term;
                     }
                 }
                 if (level == Level.Compare)
@@ -966,22 +1172,34 @@ namespace Letter.Services
                     {
                         if ((item.sentence.SequenceCompareTo(syntax) != -1)
                             && (item.team.SequenceCompareTo(morphology_adnominal_adjunct) != -1)
-                            && (item.kind.SequenceCompareTo(morphology_adjective) != -1)) adjective = item.term;
+                            && (item.kind.SequenceCompareTo(morphology_adjective) != -1)
+                            && (item.order.SequenceCompareTo(morphology_order) != -1)
+                            && (item.sequence.SequenceCompareTo(morphology_sequence) != -1)) adjective = item.term;
                         if ((item.sentence.SequenceCompareTo(syntax) != -1)
                             && (item.team.SequenceCompareTo(morphology_adnominal_adjunct) != -1)
-                            && (item.kind.SequenceCompareTo(morphology_article) != -1)) article = item.term;
+                            && (item.kind.SequenceCompareTo(morphology_article) != -1)
+                            && (item.order.SequenceCompareTo(morphology_order) != -1)
+                            && (item.sequence.SequenceCompareTo(morphology_sequence) != -1)) article = item.term;
                         if ((item.sentence.SequenceCompareTo(syntax) != -1)
                             && (item.team.SequenceCompareTo(morphology_adnominal_adjunct) != -1)
-                            && (item.kind.SequenceCompareTo(morphology_numeral) != -1)) numeral = item.term;
+                            && (item.kind.SequenceCompareTo(morphology_numeral) != -1)
+                            && (item.order.SequenceCompareTo(morphology_order) != -1)
+                            && (item.sequence.SequenceCompareTo(morphology_sequence) != -1)) numeral = item.term;
                         if ((item.sentence.SequenceCompareTo(syntax) != -1)
                             && (item.team.SequenceCompareTo(morphology_adnominal_adjunct) != -1)
-                            && (item.kind.SequenceCompareTo(morphology_pronoun) != -1)) pronoun = item.term;
+                            && (item.kind.SequenceCompareTo(morphology_pronoun) != -1)
+                            && (item.order.SequenceCompareTo(morphology_order) != -1)
+                            && (item.sequence.SequenceCompareTo(morphology_sequence) != -1)) pronoun = item.term;
                         if ((item.sentence.SequenceCompareTo(syntax) != -1)
                             && (item.team.SequenceCompareTo(morphology_adnominal_adjunct) != -1)
-                            && (item.kind.SequenceCompareTo(morphology_noun) != -1)) noun = item.term;
+                            && (item.kind.SequenceCompareTo(morphology_noun) != -1)
+                            && (item.order.SequenceCompareTo(morphology_order) != -1)
+                            && (item.sequence.SequenceCompareTo(morphology_sequence) != -1)) noun = item.term;
                         if ((item.sentence.SequenceCompareTo(syntax) != -1)
                             && (!(item.team.SequenceCompareTo(morphology_adnominal_adjunct) != -1))
-                            && (item.kind.SequenceCompareTo(morphology_pronoun) != -1)) noun = item.term;
+                            && (item.kind.SequenceCompareTo(morphology_pronoun) != -1)
+                            && (item.order.SequenceCompareTo(morphology_order) != -1)
+                            && (item.sequence.SequenceCompareTo(morphology_sequence) != -1)) noun = item.term;
                     }
                 }
                 if (level == Level.Index)
@@ -990,22 +1208,34 @@ namespace Letter.Services
                     {
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (item.team.IndexOf(morphology_adnominal_adjunct) != -1)
-                            && (item.kind.IndexOf(morphology_adjective) != -1)) adjective = item.term;
+                            && (item.kind.IndexOf(morphology_adjective) != -1)
+                            && (item.order.IndexOf(morphology_order) != -1)
+                            && (item.sequence.IndexOf(morphology_sequence) != -1)) adjective = item.term;
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (item.team.IndexOf(morphology_adnominal_adjunct) != -1)
-                            && (item.kind.IndexOf(morphology_article) != -1)) article = item.term;
+                            && (item.kind.IndexOf(morphology_article) != -1)
+                            && (item.order.IndexOf(morphology_order) != -1)
+                            && (item.sequence.IndexOf(morphology_sequence) != -1)) article = item.term;
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (item.team.IndexOf(morphology_adnominal_adjunct) != -1)
-                            && (item.kind.IndexOf(morphology_numeral) != -1)) numeral = item.term;
+                            && (item.kind.IndexOf(morphology_numeral) != -1)
+                            && (item.order.IndexOf(morphology_order) != -1)
+                            && (item.sequence.IndexOf(morphology_sequence) != -1)) numeral = item.term;
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (item.team.IndexOf(morphology_adnominal_adjunct) != -1)
-                            && (item.kind.IndexOf(morphology_pronoun) != -1)) pronoun = item.term;
+                            && (item.kind.IndexOf(morphology_pronoun) != -1)
+                            && (item.order.IndexOf(morphology_order) != -1)
+                            && (item.sequence.IndexOf(morphology_sequence) != -1)) pronoun = item.term;
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (item.team.IndexOf(morphology_adnominal_adjunct) != -1)
-                            && (item.kind.IndexOf(morphology_noun) != -1)) noun = item.term;
+                            && (item.kind.IndexOf(morphology_noun) != -1)
+                            && (item.order.IndexOf(morphology_order) != -1)
+                            && (item.sequence.IndexOf(morphology_sequence) != -1)) noun = item.term;
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (!(item.team.IndexOf(morphology_adnominal_adjunct) != -1))
-                            && (item.kind.IndexOf(morphology_pronoun) != -1)) noun = item.term;
+                            && (item.kind.IndexOf(morphology_pronoun) != -1)
+                            && (item.order.IndexOf(morphology_order) != -1)
+                            && (item.sequence.IndexOf(morphology_sequence) != -1)) noun = item.term;
                     }
                 }
 
@@ -1045,7 +1275,26 @@ namespace Letter.Services
             }
         }
 
-        private int VerifyNoun(List<Guidance> words, Level level, Rotate rotate, Seat seat)
+        private int VerifyNoun(List<Guidance> words, int order, Level level, Rotate rotate, Seat seat)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify noun \"Syntax\" service failed!");
+
+                int adnominal = -1;
+                int order_conjunction = this._order_1;
+
+                adnominal = VerifyNoun(words, order, level, rotate, seat, order_conjunction);
+                return adnominal;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private int VerifyNoun(List<Guidance> words, int order, Level level, Rotate rotate, Seat seat, int order_conjunction)
         {
             try
             {
@@ -1063,6 +1312,8 @@ namespace Letter.Services
                 int morphology_article = this._wordEmbeddingService.EncodeInt(this._article, this._morphology);
                 int morphology_numeral = this._wordEmbeddingService.EncodeInt(this._numeral, this._morphology);
                 int morphology_pronoun = this._wordEmbeddingService.EncodeInt(this._pronoun, this._morphology);
+                int morphology_order = this._wordEmbeddingService.EncodeInt(order, this._order);
+                int morphology_sequence = this._wordEmbeddingService.EncodeInt(order_conjunction, this._order);
 
                 int noun = -1;
                 int adjective = -1;
@@ -1078,22 +1329,34 @@ namespace Letter.Services
                     {
                         if ((item.sentence == syntax)
                             && (item.team == morphology_adnominal_adjunct)
-                            && (item.kind == morphology_adjective)) adjective = item.term;
+                            && (item.kind == morphology_adjective)
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) adjective = item.term;
                         if ((item.sentence == syntax)
                             && (item.team == morphology_adnominal_adjunct)
-                            && (item.kind == morphology_article)) article = item.term;
+                            && (item.kind == morphology_article)
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) article = item.term;
                         if ((item.sentence == syntax)
                             && (item.team == morphology_adnominal_adjunct)
-                            && (item.kind == morphology_numeral)) numeral = item.term;
+                            && (item.kind == morphology_numeral)
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) numeral = item.term;
                         if ((item.sentence == syntax)
                             && (item.team == morphology_adnominal_adjunct)
-                            && (item.kind == morphology_pronoun)) pronoun = item.term;
+                            && (item.kind == morphology_pronoun)
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) pronoun = item.term;
                         if ((item.sentence == syntax)
                             && (item.team == morphology_adnominal_adjunct)
-                            && (item.kind == morphology_noun)) noun = item.term;
+                            && (item.kind == morphology_noun)
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) noun = item.term;
                         if ((item.sentence == syntax)
                             && (!(item.team == morphology_adnominal_adjunct))
-                            && (item.kind == morphology_pronoun)) noun = item.term;
+                            && (item.kind == morphology_pronoun)
+                            && (item.order == morphology_order)
+                            && (item.sequence == morphology_sequence)) noun = item.term;
                     }
                 }
                 if (level == Level.Equal)
@@ -1102,22 +1365,34 @@ namespace Letter.Services
                     {
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_adnominal_adjunct))
-                            && (item.kind.Equals(morphology_adjective))) adjective = item.term;
+                            && (item.kind.Equals(morphology_adjective))
+                            && (item.order.Equals(morphology_order))
+                            && (item.sequence.Equals(morphology_sequence))) adjective = item.term;
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_adnominal_adjunct))
-                            && (item.kind.Equals(morphology_article))) article = item.term;
+                            && (item.kind.Equals(morphology_article))
+                            && (item.order.Equals(morphology_order))
+                            && (item.sequence.Equals(morphology_sequence))) article = item.term;
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_adnominal_adjunct))
-                            && (item.kind.Equals(morphology_numeral))) numeral = item.term;
+                            && (item.kind.Equals(morphology_numeral))
+                            && (item.order.Equals(morphology_order))
+                            && (item.sequence.Equals(morphology_sequence))) numeral = item.term;
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_adnominal_adjunct))
-                            && (item.kind.Equals(morphology_pronoun))) pronoun = item.term;
+                            && (item.kind.Equals(morphology_pronoun))
+                            && (item.order.Equals(morphology_order))
+                            && (item.sequence.Equals(morphology_sequence))) pronoun = item.term;
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_adnominal_adjunct))
-                            && (item.kind.Equals(morphology_noun))) noun = item.term;
+                            && (item.kind.Equals(morphology_noun))
+                            && (item.order.Equals(morphology_order))
+                            && (item.sequence.Equals(morphology_sequence))) noun = item.term;
                         if ((item.sentence.Equals(syntax))
                             && (!item.team.Equals(morphology_adnominal_adjunct))
-                            && (item.kind.Equals(morphology_pronoun))) noun = item.term;
+                            && (item.kind.Equals(morphology_pronoun))
+                            && (item.order.Equals(morphology_order))
+                            && (item.sequence.Equals(morphology_sequence))) noun = item.term;
                     }
                 }
                 if (level == Level.Compare)
@@ -1126,22 +1401,34 @@ namespace Letter.Services
                     {
                         if ((item.sentence.CompareTo(syntax) != -1)
                             && (item.team.CompareTo(morphology_adnominal_adjunct) != -1)
-                            && (item.kind.CompareTo(morphology_adjective) != -1)) adjective = item.term;
+                            && (item.kind.CompareTo(morphology_adjective) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)
+                            && (item.order.CompareTo(morphology_sequence) != -1)) adjective = item.term;
                         if ((item.sentence.CompareTo(syntax) != -1)
                             && (item.team.CompareTo(morphology_adnominal_adjunct) != -1)
-                            && (item.kind.CompareTo(morphology_article) != -1)) article = item.term;
+                            && (item.kind.CompareTo(morphology_article) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)
+                            && (item.order.CompareTo(morphology_sequence) != -1)) article = item.term;
                         if ((item.sentence.CompareTo(syntax) != -1)
                             && (item.team.CompareTo(morphology_adnominal_adjunct) != -1)
-                            && (item.kind.CompareTo(morphology_numeral) != -1)) numeral = item.term;
+                            && (item.kind.CompareTo(morphology_numeral) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)
+                            && (item.order.CompareTo(morphology_sequence) != -1)) numeral = item.term;
                         if ((item.sentence.CompareTo(syntax) != -1)
                             && (item.team.CompareTo(morphology_adnominal_adjunct) != -1)
-                            && (item.kind.CompareTo(morphology_pronoun) != -1)) pronoun = item.term;
+                            && (item.kind.CompareTo(morphology_pronoun) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)
+                            && (item.order.CompareTo(morphology_sequence) != -1)) pronoun = item.term;
                         if ((item.sentence.CompareTo(syntax) != -1)
                             && (item.team.CompareTo(morphology_adnominal_adjunct) != -1)
-                            && (item.kind.CompareTo(morphology_noun) != -1)) noun = item.term;
+                            && (item.kind.CompareTo(morphology_noun) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)
+                            && (item.order.CompareTo(morphology_sequence) != -1)) noun = item.term;
                         if ((item.sentence.CompareTo(syntax) != -1)
                             && (!(item.team.CompareTo(morphology_adnominal_adjunct) != -1))
-                            && (item.kind.CompareTo(morphology_pronoun) != -1)) noun = item.term;
+                            && (item.kind.CompareTo(morphology_pronoun) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)
+                            && (item.order.CompareTo(morphology_sequence) != -1)) noun = item.term;
                     }
                 }
 
@@ -1181,7 +1468,7 @@ namespace Letter.Services
             }
         }
 
-        private string VerifyConjunction(List<Word> words, Level level, Seat seat)
+        private string VerifyConjunction(List<Word> words, int order, Level level, Seat seat)
         {
             try
             {
@@ -1194,6 +1481,7 @@ namespace Letter.Services
                     syntax = this._predicate;
 
                 string morphology_conjunction = this._conjunction;
+                int morphology_order = order;
 
                 string conjunction = string.Empty;
 
@@ -1203,7 +1491,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence == syntax)
                             && (item.team == morphology_conjunction)
-                            && (item.kind == morphology_conjunction)) conjunction = item.term;
+                            && (item.kind == morphology_conjunction)
+                            && (item.order == morphology_order)) conjunction = item.term;
                     }
                 }
                 if (level == Level.Equal)
@@ -1212,7 +1501,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_conjunction))
-                            && (item.kind.Equals(morphology_conjunction))) conjunction = item.term;
+                            && (item.kind.Equals(morphology_conjunction))
+                            && (item.order.Equals(morphology_order))) conjunction = item.term;
                     }
 
                 }
@@ -1222,7 +1512,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence.AsSpan().SequenceEqual(syntax))
                             && (item.team.AsSpan().SequenceEqual(morphology_conjunction))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_conjunction))) conjunction = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_conjunction))
+                            && (item.order == morphology_order)) conjunction = item.term;
                     }
                 }
                 if (level == Level.Sequence)
@@ -1231,7 +1522,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence.SequenceEqual(syntax))
                             && (item.team.SequenceEqual(morphology_conjunction))
-                            && (item.kind.SequenceEqual(morphology_conjunction))) conjunction = item.term;
+                            && (item.kind.SequenceEqual(morphology_conjunction))
+                            && (item.order == morphology_order)) conjunction = item.term;
                     }
                 }
                 if (level == Level.Compare)
@@ -1240,7 +1532,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence.CompareTo(syntax) != -1)
                             && (item.team.CompareTo(morphology_conjunction) != -1)
-                            && (item.kind.CompareTo(morphology_conjunction) != -1)) conjunction = item.term;
+                            && (item.kind.CompareTo(morphology_conjunction) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) conjunction = item.term;
                     }
                 }
                 if (level == Level.Index)
@@ -1249,7 +1542,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (item.team.IndexOf(morphology_conjunction) != -1)
-                            && (item.kind.IndexOf(morphology_conjunction) != -1)) conjunction = item.term;
+                            && (item.kind.IndexOf(morphology_conjunction) != -1)
+                            && (item.order == morphology_order)) conjunction = item.term;
                     }
                 }
 
@@ -1262,7 +1556,7 @@ namespace Letter.Services
             }
         }
 
-        private byte[]? VerifyConjunction(List<Instruction> words, Level level, Seat seat)
+        private byte[]? VerifyConjunction(List<Instruction> words, int order, Level level, Seat seat)
         {
             try
             {
@@ -1275,6 +1569,7 @@ namespace Letter.Services
                     syntax = this._wordEmbeddingService.Encode(this._predicate, this._syntax);
 
                 byte[] morphology_conjunction = this._wordEmbeddingService.Encode(this._conjunction, this._morphology);
+                byte[] morphology_order = this._wordEmbeddingService.Encode(order, this._order);
 
                 byte[]? conjunction = null;
 
@@ -1284,7 +1579,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence == syntax)
                             && (item.team == morphology_conjunction)
-                            && (item.kind == morphology_conjunction)) conjunction = item.term;
+                            && (item.kind == morphology_conjunction)
+                            && (item.kind == morphology_order)) conjunction = item.term;
                     }
                 }
                 if (level == Level.Equal)
@@ -1293,7 +1589,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_conjunction))
-                            && (item.kind.Equals(morphology_conjunction))) conjunction = item.term;
+                            && (item.kind.Equals(morphology_conjunction))
+                            && (item.order.Equals(morphology_order))) conjunction = item.term;
                     }
 
                 }
@@ -1303,7 +1600,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence.AsSpan().SequenceEqual(syntax))
                             && (item.team.AsSpan().SequenceEqual(morphology_conjunction))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_conjunction))) conjunction = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_conjunction))
+                            && (item.order.AsSpan().SequenceEqual(morphology_order))) conjunction = item.term;
                     }
                 }
                 if (level == Level.Sequence)
@@ -1312,7 +1610,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence.SequenceEqual(syntax))
                             && (item.team.SequenceEqual(morphology_conjunction))
-                            && (item.kind.SequenceEqual(morphology_conjunction))) conjunction = item.term;
+                            && (item.kind.SequenceEqual(morphology_conjunction))
+                            && (item.order.SequenceEqual(morphology_order))) conjunction = item.term;
                     }
                 }
                 if (level == Level.Compare)
@@ -1321,7 +1620,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence.SequenceCompareTo(syntax) != -1)
                             && (item.team.SequenceCompareTo(morphology_conjunction) != -1)
-                            && (item.kind.SequenceCompareTo(morphology_conjunction) != -1)) conjunction = item.term;
+                            && (item.kind.SequenceCompareTo(morphology_conjunction) != -1)
+                            && (item.order.SequenceCompareTo(morphology_order) != -1)) conjunction = item.term;
                     }
                 }
                 if (level == Level.Index)
@@ -1330,7 +1630,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (item.team.IndexOf(morphology_conjunction) != -1)
-                            && (item.kind.IndexOf(morphology_conjunction) != -1)) conjunction = item.term;
+                            && (item.kind.IndexOf(morphology_conjunction) != -1)
+                            && (item.order.IndexOf(morphology_order) != -1)) conjunction = item.term;
                     }
                 }
 
@@ -1343,7 +1644,7 @@ namespace Letter.Services
             }
         }
 
-        private int VerifyConjunction(List<Guidance> words, Level level, Seat seat)
+        private int VerifyConjunction(List<Guidance> words, int order, Level level, Seat seat)
         {
             try
             {
@@ -1356,6 +1657,7 @@ namespace Letter.Services
                     syntax = this._wordEmbeddingService.EncodeInt(this._predicate, this._syntax);
 
                 int morphology_conjunction = this._wordEmbeddingService.EncodeInt(this._conjunction, this._morphology);
+                int morphology_order = this._wordEmbeddingService.EncodeInt(order, this._order);
 
                 int conjunction = -1;
 
@@ -1365,7 +1667,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence == syntax)
                             && (item.team == morphology_conjunction)
-                            && (item.kind == morphology_conjunction)) conjunction = item.term;
+                            && (item.kind == morphology_conjunction)
+                            && (item.order == morphology_order)) conjunction = item.term;
                     }
                 }
                 if (level == Level.Equal)
@@ -1374,9 +1677,9 @@ namespace Letter.Services
                     {
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_conjunction))
-                            && (item.kind.Equals(morphology_conjunction))) conjunction = item.term;
+                            && (item.kind.Equals(morphology_conjunction))
+                            && (item.order.Equals(morphology_order))) conjunction = item.term;
                     }
-
                 }
                 if (level == Level.Compare)
                 {
@@ -1384,7 +1687,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence.CompareTo(syntax) != -1)
                             && (item.team.CompareTo(morphology_conjunction) != -1)
-                            && (item.kind.CompareTo(morphology_conjunction) != -1)) conjunction = item.term;
+                            && (item.kind.CompareTo(morphology_conjunction) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) conjunction = item.term;
                     }
                 }
                 return conjunction;
@@ -1396,7 +1700,7 @@ namespace Letter.Services
             }
         }
 
-        private bool VerifyVerbCompoundSubject(List<Word> words, List<Word> firsts, List<Word> lasts, Dictionary<(string, string), int> word_2_vec, Level level)
+        private bool VerifyVerbCompoundSubject(List<Word> words, List<Word> firsts, List<Word> lasts, Dictionary<(string, string), int> word_2_vec, Level level, int order_noun, int order_verb)
         {
             try
             {
@@ -1408,11 +1712,13 @@ namespace Letter.Services
                 string adnominal2_last = string.Empty;
                 string adverbial = string.Empty;
 
-                conjunction = VerifyConjunction(words, level, Seat.Subject);
-                adverbial = VerifyVerb(words, level, Rotate.Rear);
-                adnominal = VerifyNoun(firsts, level, Rotate.Front, Seat.Subject);
-                adnominal2 = VerifyNoun(lasts, level, Rotate.Rear, Seat.Subject);
-                adnominal2_last = VerifyNoun(lasts, level, Rotate.Front, Seat.Subject);
+                int order_last = this._order_3; 
+
+                conjunction = VerifyConjunction(words, order_noun, level, Seat.Subject);
+                adverbial = VerifyVerb(words, order_verb, level, Rotate.Rear);
+                adnominal = VerifyNoun(firsts, order_noun, level, Rotate.Front, Seat.Subject);
+                adnominal2 = VerifyNoun(lasts, order_noun, level, Rotate.Rear, Seat.Subject, order_last);
+                adnominal2_last = VerifyNoun(lasts, order_noun, level, Rotate.Front, Seat.Subject, order_last);
 
                 bool similarity = false;
                 similarity = this._wordEmbeddingService.Similarity(word_2_vec, adnominal, conjunction);
@@ -1428,7 +1734,7 @@ namespace Letter.Services
             }
         }
 
-        private bool VerifyVerbCompoundSubject(List<Instruction> words, List<Instruction> firsts, List<Instruction> lasts, Dictionary<(byte[], byte[]), int> word_2_vec, Level level)
+        private bool VerifyVerbCompoundSubject(List<Instruction> words, List<Instruction> firsts, List<Instruction> lasts, Dictionary<(byte[], byte[]), int> word_2_vec, Level level, int order_noun, int order_verb)
         {
             try
             {
@@ -1440,11 +1746,13 @@ namespace Letter.Services
                 byte[]? adnominal2_last = null;
                 byte[]? adverbial = null;
 
-                conjunction = VerifyConjunction(words, level, Seat.Subject);
-                adverbial = VerifyVerb(words, level, Rotate.Rear);
-                adnominal = VerifyNoun(firsts, level, Rotate.Front, Seat.Subject);
-                adnominal2 = VerifyNoun(lasts, level, Rotate.Rear, Seat.Subject);
-                adnominal2_last = VerifyNoun(lasts, level, Rotate.Front, Seat.Subject);
+                int order_last = this._order_3;
+
+                conjunction = VerifyConjunction(words, order_noun, level, Seat.Subject);
+                adverbial = VerifyVerb(words, order_verb, level, Rotate.Rear);
+                adnominal = VerifyNoun(firsts, order_noun, level, Rotate.Front, Seat.Subject);
+                adnominal2 = VerifyNoun(lasts, order_noun, level, Rotate.Rear, Seat.Subject, order_last);
+                adnominal2_last = VerifyNoun(lasts, order_noun, level, Rotate.Front, Seat.Subject, order_last);
 
                 bool similarity = false;
                 similarity = this._wordEmbeddingService.Similarity(word_2_vec, adnominal, conjunction);
@@ -1460,7 +1768,7 @@ namespace Letter.Services
             }
         }
 
-        private bool VerifyVerbCompoundSubject(List<Guidance> words, List<Guidance> firsts, List<Guidance> lasts, Dictionary<(int, int), int> word_2_vec, Level level)
+        private bool VerifyVerbCompoundSubject(List<Guidance> words, List<Guidance> firsts, List<Guidance> lasts, Dictionary<(int, int), int> word_2_vec, Level level, int order_noun, int order_verb)
         {
             try
             {
@@ -1472,11 +1780,11 @@ namespace Letter.Services
                 int adnominal2_last = -1;
                 int adverbial = -1;
 
-                conjunction = VerifyConjunction(words, level, Seat.Subject);
-                adverbial = VerifyVerb(words, level, Rotate.Rear);
-                adnominal = VerifyNoun(firsts, level, Rotate.Front, Seat.Subject);
-                adnominal2 = VerifyNoun(lasts, level, Rotate.Rear, Seat.Subject);
-                adnominal2_last = VerifyNoun(lasts, level, Rotate.Front, Seat.Subject);
+                conjunction = VerifyConjunction(words, order_noun, level, Seat.Subject);
+                adverbial = VerifyVerb(words, order_verb, level, Rotate.Rear);
+                adnominal = VerifyNoun(firsts, order_noun, level, Rotate.Front, Seat.Subject);
+                adnominal2 = VerifyNoun(lasts, order_noun, level, Rotate.Rear, Seat.Subject);
+                adnominal2_last = VerifyNoun(lasts, order_noun, level, Rotate.Front, Seat.Subject);
 
                 bool similarity = false;
                 similarity = this._wordEmbeddingService.Similarity(word_2_vec, adnominal, conjunction);
@@ -1492,7 +1800,7 @@ namespace Letter.Services
             }
         }
 
-        private byte[]? VerifyPreposition(List<Instruction> words, Level level)
+        private byte[]? VerifyPreposition(List<Instruction> words, int order, Level level)
         {
             try
             {
@@ -1500,6 +1808,7 @@ namespace Letter.Services
 
                 byte[] syntax_predicate = this._wordEmbeddingService.Encode(this._predicate, this._syntax);
                 byte[] morphology_preposition = this._wordEmbeddingService.Encode(this._preposition, this._morphology);
+                byte[] morphology_order = this._wordEmbeddingService.Encode(order, this._order);
 
                 byte[]? preposition = null;
 
@@ -1508,7 +1817,8 @@ namespace Letter.Services
                     foreach (Instruction item in words)
                     {
                         if ((item.sentence == syntax_predicate)
-                            && (item.kind == morphology_preposition)) preposition = item.term;
+                            && (item.kind == morphology_preposition)
+                            && (item.order == morphology_order)) preposition = item.term;
                     }
                 }
                 if (level == Level.Equal)
@@ -1516,16 +1826,17 @@ namespace Letter.Services
                     foreach (Instruction item in words)
                     {
                         if ((item.sentence.Equals(syntax_predicate))
-                            && (item.kind.Equals(morphology_preposition))) preposition = item.term;
+                            && (item.kind.Equals(morphology_preposition))
+                            && (item.order.Equals(morphology_order))) preposition = item.term;
                     }
-
                 }
                 if (level == Level.AsSpanSequence)
                 {
                     foreach (Instruction item in words)
                     {
                         if ((item.sentence.AsSpan().SequenceEqual(syntax_predicate))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_preposition))) preposition = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_preposition))
+                            && (item.order.AsSpan().SequenceEqual(morphology_order))) preposition = item.term;
                     }
                 }
                 if (level == Level.Sequence)
@@ -1533,7 +1844,8 @@ namespace Letter.Services
                     foreach (Instruction item in words)
                     {
                         if ((item.sentence.SequenceEqual(syntax_predicate))
-                            && (item.kind.SequenceEqual(morphology_preposition))) preposition = item.term;
+                            && (item.kind.SequenceEqual(morphology_preposition))
+                            && (item.order.SequenceEqual(morphology_order))) preposition = item.term;
                     }
                 }
                 if (level == Level.Compare)
@@ -1541,7 +1853,8 @@ namespace Letter.Services
                     foreach (Instruction item in words)
                     {
                         if ((item.sentence.SequenceCompareTo(syntax_predicate) != -1)
-                            && (item.kind.SequenceCompareTo(morphology_preposition) != -1)) preposition = item.term;
+                            && (item.kind.SequenceCompareTo(morphology_preposition) != -1)
+                            && (item.order.SequenceCompareTo(morphology_order) != -1)) preposition = item.term;
                     }
                 }
                 if (level == Level.Index)
@@ -1549,7 +1862,8 @@ namespace Letter.Services
                     foreach (Instruction item in words)
                     {
                         if ((item.sentence.IndexOf(syntax_predicate) != -1)
-                            && (item.kind.IndexOf(morphology_preposition) != -1)) preposition = item.term;
+                            && (item.kind.IndexOf(morphology_preposition) != -1)
+                            && (item.order.IndexOf(morphology_order) != -1)) preposition = item.term;
                     }
                 }
 
@@ -1562,7 +1876,7 @@ namespace Letter.Services
             }
         }
 
-        private string VerifyPreposition(List<Word> words, Level level)
+        private string VerifyPreposition(List<Word> words, int order, Level level)
         {
             try
             {
@@ -1570,6 +1884,7 @@ namespace Letter.Services
 
                 string syntax_predicate = this._predicate;
                 string morphology_preposition = this._preposition;
+                int morphology_order = order;
 
                 string preposition = string.Empty;
 
@@ -1578,7 +1893,8 @@ namespace Letter.Services
                     foreach (Word item in words)
                     {
                         if ((item.sentence == syntax_predicate)
-                            && (item.kind == morphology_preposition)) preposition = item.term;
+                            && (item.kind == morphology_preposition)
+                            && (item.order == morphology_order)) preposition = item.term;
                     }
                 }
                 if (level == Level.Equal)
@@ -1586,7 +1902,8 @@ namespace Letter.Services
                     foreach (Word item in words)
                     {
                         if ((item.sentence.Equals(syntax_predicate))
-                            && (item.kind.Equals(morphology_preposition))) preposition = item.term;
+                            && (item.kind.Equals(morphology_preposition))
+                            && (item.order.Equals(morphology_order))) preposition = item.term;
                     }
                 }
                 if (level == Level.AsSpanSequence)
@@ -1594,7 +1911,8 @@ namespace Letter.Services
                     foreach (Word item in words)
                     {
                         if ((item.sentence.AsSpan().SequenceEqual(syntax_predicate))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_preposition))) preposition = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_preposition))
+                            && (item.order == morphology_order)) preposition = item.term;
                     }
                 }
                 if (level == Level.Sequence)
@@ -1602,7 +1920,8 @@ namespace Letter.Services
                     foreach (Word item in words)
                     {
                         if ((item.sentence.SequenceEqual(syntax_predicate))
-                            && (item.kind.SequenceEqual(morphology_preposition))) preposition = item.term;
+                            && (item.kind.SequenceEqual(morphology_preposition))
+                            && (item.order == morphology_order)) preposition = item.term;
                     }
                 }
                 if (level == Level.Compare)
@@ -1610,7 +1929,8 @@ namespace Letter.Services
                     foreach (Word item in words)
                     {
                         if ((item.sentence.CompareTo(syntax_predicate) != -1)
-                            && (item.kind.CompareTo(morphology_preposition) != -1)) preposition = item.term;
+                            && (item.kind.CompareTo(morphology_preposition) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) preposition = item.term;
                     }
                 }
                 if (level == Level.Index)
@@ -1618,7 +1938,8 @@ namespace Letter.Services
                     foreach (Word item in words)
                     {
                         if ((item.sentence.IndexOf(syntax_predicate) != -1)
-                            && (item.kind.IndexOf(morphology_preposition) != -1)) preposition = item.term;
+                            && (item.kind.IndexOf(morphology_preposition) != -1)
+                            && (item.order == morphology_order)) preposition = item.term;
                     }
                 }
 
@@ -1631,7 +1952,7 @@ namespace Letter.Services
             }
         }
 
-        private int VerifyPreposition(List<Guidance> words, Level level)
+        private int VerifyPreposition(List<Guidance> words, int order, Level level)
         {
             try
             {
@@ -1639,6 +1960,7 @@ namespace Letter.Services
 
                 int syntax_predicate = this._wordEmbeddingService.EncodeInt(this._predicate, this._syntax);
                 int morphology_preposition = this._wordEmbeddingService.EncodeInt(this._preposition, this._morphology);
+                int morphology_order = this._wordEmbeddingService.EncodeInt(order, this._order);
 
                 int preposition = -1;
 
@@ -1647,7 +1969,8 @@ namespace Letter.Services
                     foreach (Guidance item in words)
                     {
                         if ((item.sentence == syntax_predicate)
-                            && (item.kind == morphology_preposition)) preposition = item.term;
+                            && (item.kind == morphology_preposition)
+                            && (item.order == morphology_order)) preposition = item.term;
                     }
                 }
                 if (level == Level.Equal)
@@ -1655,16 +1978,17 @@ namespace Letter.Services
                     foreach (Guidance item in words)
                     {
                         if ((item.sentence.Equals(syntax_predicate))
-                            && (item.kind.Equals(morphology_preposition))) preposition = item.term;
+                            && (item.kind.Equals(morphology_preposition))
+                            && (item.kind.Equals(morphology_order))) preposition = item.term;
                     }
-
                 }
                 if (level == Level.Compare)
                 {
                     foreach (Guidance item in words)
                     {
                         if ((item.sentence.CompareTo(syntax_predicate) != -1)
-                            && (item.kind.CompareTo(morphology_preposition) != -1)) preposition = item.term;
+                            && (item.kind.CompareTo(morphology_preposition) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) preposition = item.term;
                     }
                 }
 
@@ -1677,7 +2001,7 @@ namespace Letter.Services
             }
         }
 
-        private bool VerifyVerbDirectObject(List<Instruction> words, Dictionary<(byte[], byte[]), int> word_2_vec, Level level)
+        private bool VerifyVerbDirectObject(List<Instruction> words, Dictionary<(byte[], byte[]), int> word_2_vec, Level level, int order_verb, int order_noun)
         {
             try
             {
@@ -1687,9 +2011,9 @@ namespace Letter.Services
                 byte[]? adverbial = null;
                 byte[]? preposition = null;
 
-                adverbial = VerifyVerb(words, level, Rotate.Front);
-                adnominal = VerifyNoun(words, level, Rotate.Rear, Seat.Predicate);
-                preposition = VerifyPreposition(words, level);
+                adverbial = VerifyVerb(words, order_verb, level, Rotate.Front);
+                adnominal = VerifyNoun(words, order_noun, level, Rotate.Rear, Seat.Predicate);
+                preposition = VerifyPreposition(words, order_noun, level);
 
                 bool similarity = false;
                 if (preposition == null) similarity = this._wordEmbeddingService.Similarity(word_2_vec, adverbial, adnominal);
@@ -1704,7 +2028,7 @@ namespace Letter.Services
             }
         }
 
-        private bool VerifyVerbDirectObject(List<Word> words, Dictionary<(string, string), int> word_2_vec, Level level)
+        private bool VerifyVerbDirectObject(List<Word> words, Dictionary<(string, string), int> word_2_vec, Level level, int order_verb, int order_noun)
         {
             try
             {
@@ -1714,9 +2038,9 @@ namespace Letter.Services
                 string adverbial = string.Empty;
                 string preposition = string.Empty;
 
-                adverbial = VerifyVerb(words, level, Rotate.Front);
-                adnominal = VerifyNoun(words, level, Rotate.Rear, Seat.Subject);
-                preposition = VerifyPreposition(words, level);
+                adverbial = VerifyVerb(words, order_verb, level, Rotate.Front);
+                adnominal = VerifyNoun(words, order_noun, level, Rotate.Rear, Seat.Subject);
+                preposition = VerifyPreposition(words, order_noun, level);
 
                 bool similarity = false;
                 if (preposition == string.Empty) similarity = this._wordEmbeddingService.Similarity(word_2_vec, adverbial, adnominal);
@@ -1731,7 +2055,7 @@ namespace Letter.Services
             }
         }
 
-        private bool VerifyVerbDirectObject(List<Guidance> words, Dictionary<(int, int), int> word_2_vec, Level level)
+        private bool VerifyVerbDirectObject(List<Guidance> words, Dictionary<(int, int), int> word_2_vec, Level level, int order_verb, int order_noun)
         {
             try
             {
@@ -1741,9 +2065,9 @@ namespace Letter.Services
                 int adverbial = -1;
                 int preposition = -1;
 
-                adverbial = VerifyVerb(words, level, Rotate.Front);
-                adnominal = VerifyNoun(words, level, Rotate.Rear, Seat.Predicate);
-                preposition = VerifyPreposition(words, level);
+                adverbial = VerifyVerb(words, order_verb, level, Rotate.Front);
+                adnominal = VerifyNoun(words, order_noun, level, Rotate.Rear, Seat.Predicate);
+                preposition = VerifyPreposition(words, order_noun, level);
 
                 bool similarity = false;
                 if (preposition == -1) similarity = this._wordEmbeddingService.Similarity(word_2_vec, adverbial, adnominal);
@@ -1758,7 +2082,7 @@ namespace Letter.Services
             }
         }
 
-        private byte[]? VerifyNumeral(List<Instruction> words, Level level, Seat seat)
+        private byte[]? VerifyNumeral(List<Instruction> words, int order, Level level, Seat seat)
         {
             try
             {
@@ -1771,6 +2095,7 @@ namespace Letter.Services
                     syntax = this._wordEmbeddingService.Encode(this._predicate, this._syntax);
 
                 byte[] morphology_numeral = this._wordEmbeddingService.Encode(this._numeral, this._morphology);
+                byte[] morphology_order = this._wordEmbeddingService.Encode(order, this._order);
 
                 byte[]? numeral = null;
 
@@ -1780,7 +2105,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence == syntax)
                             && (item.team == morphology_numeral)
-                            && (item.kind == morphology_numeral)) numeral = item.term;
+                            && (item.kind == morphology_numeral)
+                            && (item.order == morphology_order)) numeral = item.term;
                     }
                 }
                 if (level == Level.Equal)
@@ -1789,7 +2115,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_numeral))
-                            && (item.kind.Equals(morphology_numeral))) numeral = item.term;
+                            && (item.kind.Equals(morphology_numeral))
+                            && (item.order.Equals(morphology_order))) numeral = item.term;
                     }
 
                 }
@@ -1799,7 +2126,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence.AsSpan().SequenceEqual(syntax))
                             && (item.team.AsSpan().SequenceEqual(morphology_numeral))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_numeral))) numeral = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_numeral))
+                            && (item.order.AsSpan().SequenceEqual(morphology_order))) numeral = item.term;
                     }
                 }
                 if (level == Level.Sequence)
@@ -1808,7 +2136,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence.SequenceEqual(syntax))
                             && (item.team.SequenceEqual(morphology_numeral))
-                            && (item.kind.SequenceEqual(morphology_numeral))) numeral = item.term;
+                            && (item.kind.SequenceEqual(morphology_numeral))
+                            && (item.order.SequenceEqual(morphology_order))) numeral = item.term;
                     }
                 }
                 if (level == Level.Compare)
@@ -1817,7 +2146,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence.SequenceCompareTo(syntax) != -1)
                             && (item.team.SequenceCompareTo(morphology_numeral) != -1)
-                            && (item.kind.SequenceCompareTo(morphology_numeral) != -1)) numeral = item.term;
+                            && (item.kind.SequenceCompareTo(morphology_numeral) != -1)
+                            && (item.order.SequenceCompareTo(morphology_order) != -1)) numeral = item.term;
                     }
                 }
                 if (level == Level.Index)
@@ -1826,7 +2156,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (item.team.IndexOf(morphology_numeral) != -1)
-                            && (item.kind.IndexOf(morphology_numeral) != -1)) numeral = item.term;
+                            && (item.kind.IndexOf(morphology_numeral) != -1)
+                            && (item.order.IndexOf(morphology_order) != -1)) numeral = item.term;
                     }
                 }
 
@@ -1839,7 +2170,7 @@ namespace Letter.Services
             }
         }
 
-        private string VerifyNumeral(List<Word> words, Level level, Seat seat)
+        private string VerifyNumeral(List<Word> words, int order, Level level, Seat seat)
         {
             try
             {
@@ -1852,6 +2183,7 @@ namespace Letter.Services
                     syntax = this._predicate;
 
                 string morphology_numeral = this._numeral;
+                int morphology_order = order;
 
                 string numeral = string.Empty;
 
@@ -1861,7 +2193,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence == syntax)
                             && (item.team == morphology_numeral)
-                            && (item.kind == morphology_numeral)) numeral = item.term;
+                            && (item.kind == morphology_numeral)
+                            && (item.order == morphology_order)) numeral = item.term;
                     }
                 }
                 if (level == Level.Equal)
@@ -1870,9 +2203,9 @@ namespace Letter.Services
                     {
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_numeral))
-                            && (item.kind.Equals(morphology_numeral))) numeral = item.term;
+                            && (item.kind.Equals(morphology_numeral))
+                            && (item.order.Equals(morphology_order))) numeral = item.term;
                     }
-
                 }
                 if (level == Level.AsSpanSequence)
                 {
@@ -1880,7 +2213,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence.AsSpan().SequenceEqual(syntax))
                             && (item.team.AsSpan().SequenceEqual(morphology_numeral))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_numeral))) numeral = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_numeral))
+                            && (item.order == morphology_order)) numeral = item.term;
                     }
                 }
                 if (level == Level.Sequence)
@@ -1889,7 +2223,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence.SequenceEqual(syntax))
                             && (item.team.SequenceEqual(morphology_numeral))
-                            && (item.kind.SequenceEqual(morphology_numeral))) numeral = item.term;
+                            && (item.kind.SequenceEqual(morphology_numeral))
+                            && (item.order == morphology_order)) numeral = item.term;
                     }
                 }
                 if (level == Level.Compare)
@@ -1898,7 +2233,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence.CompareTo(syntax) != -1)
                             && (item.team.CompareTo(morphology_numeral) != -1)
-                            && (item.kind.CompareTo(morphology_numeral) != -1)) numeral = item.term;
+                            && (item.kind.CompareTo(morphology_numeral) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) numeral = item.term;
                     }
                 }
                 if (level == Level.Index)
@@ -1907,7 +2243,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (item.team.IndexOf(morphology_numeral) != -1)
-                            && (item.kind.IndexOf(morphology_numeral) != -1)) numeral = item.term;
+                            && (item.kind.IndexOf(morphology_numeral) != -1)
+                            && (item.order == morphology_order)) numeral = item.term;
                     }
                 }
 
@@ -1920,7 +2257,7 @@ namespace Letter.Services
             }
         }
 
-        private int VerifyNumeral(List<Guidance> words, Level level, Seat seat)
+        private int VerifyNumeral(List<Guidance> words, int order, Level level, Seat seat)
         {
             try
             {
@@ -1933,6 +2270,7 @@ namespace Letter.Services
                     syntax = this._wordEmbeddingService.EncodeInt(this._predicate, this._syntax);
 
                 int morphology_numeral = this._wordEmbeddingService.EncodeInt(this._numeral, this._morphology);
+                int morphology_order = this._wordEmbeddingService.EncodeInt(order, this._order);
 
                 int numeral = -1;
 
@@ -1942,7 +2280,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence == syntax)
                             && (item.team == morphology_numeral)
-                            && (item.kind == morphology_numeral)) numeral = item.term;
+                            && (item.kind == morphology_numeral)
+                            && (item.order == morphology_order)) numeral = item.term;
                     }
                 }
                 if (level == Level.Equal)
@@ -1951,7 +2290,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_numeral))
-                            && (item.kind.Equals(morphology_numeral))) numeral = item.term;
+                            && (item.kind.Equals(morphology_numeral))
+                            && (item.order.Equals(morphology_order))) numeral = item.term;
                     }
 
                 }
@@ -1961,7 +2301,8 @@ namespace Letter.Services
                     {
                         if ((item.sentence.CompareTo(syntax) != -1)
                             && (item.team.CompareTo(morphology_numeral) != -1)
-                            && (item.kind.CompareTo(morphology_numeral) != -1)) numeral = item.term;
+                            && (item.kind.CompareTo(morphology_numeral) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) numeral = item.term;
                     }
                 }
 
@@ -1974,7 +2315,7 @@ namespace Letter.Services
             }
         }
 
-        private byte[]? VerifyAdjective(List<Instruction> words, Level level, Rotate rotate, Seat seat)
+        private byte[]? VerifyAdjective(List<Instruction> words, int order, Level level, Rotate rotate, Seat seat)
         {
             try
             {
@@ -1990,6 +2331,7 @@ namespace Letter.Services
                 byte[] morphology_adjective = this._wordEmbeddingService.Encode(this._adjective, this._morphology);
                 byte[] morphology_adverb = this._wordEmbeddingService.Encode(this._adverb, this._morphology);
                 byte[] morphology_adverb_adverb = this._wordEmbeddingService.Encode(this._adverb_adverb, this._morphology);
+                byte[] morphology_order = this._wordEmbeddingService.Encode(order, this._order);
 
                 byte[]? adjective = null;
                 byte[]? adverb = null;
@@ -2003,13 +2345,16 @@ namespace Letter.Services
                     {
                         if ((item.sentence == syntax)
                             && (item.team == morphology_adjective)
-                            && (item.kind == morphology_adjective)) adjective = item.term;
+                            && (item.kind == morphology_adjective)
+                            && (item.order == morphology_order)) adjective = item.term;
                         if ((item.sentence == syntax)
                             && (item.team == morphology_adjective)
-                            && (item.kind == morphology_adverb)) adverb = item.term;
+                            && (item.kind == morphology_adverb)
+                            && (item.order == morphology_order)) adverb = item.term;
                         if ((item.sentence == syntax)
                             && (item.team == morphology_adjective)
-                            && (item.kind == morphology_adverb_adverb)) adverb_adverb = item.term;
+                            && (item.kind == morphology_adverb_adverb)
+                            && (item.order == morphology_order)) adverb_adverb = item.term;
                     }
                 }
                 if (level == Level.Equal)
@@ -2018,15 +2363,17 @@ namespace Letter.Services
                     {
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_adjective))
-                            && (item.kind.Equals(morphology_adjective))) adjective = item.term;
+                            && (item.kind.Equals(morphology_adjective))
+                            && (item.order.Equals(morphology_order))) adjective = item.term;
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_adjective))
-                            && (item.kind.Equals(morphology_adverb))) adverb = item.term;
+                            && (item.kind.Equals(morphology_adverb))
+                            && (item.order.Equals(morphology_order))) adverb = item.term;
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_adjective))
-                            && (item.kind.Equals(morphology_adverb_adverb))) adverb_adverb = item.term;
+                            && (item.kind.Equals(morphology_adverb_adverb))
+                            && (item.order.Equals(morphology_order))) adverb_adverb = item.term;
                     }
-
                 }
                 if (level == Level.AsSpanSequence)
                 {
@@ -2034,13 +2381,16 @@ namespace Letter.Services
                     {
                         if ((item.sentence.AsSpan().SequenceEqual(syntax))
                             && (item.team.AsSpan().SequenceEqual(morphology_adjective))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_adjective))) adjective = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_adjective))
+                            && (item.order.AsSpan().SequenceEqual(morphology_order))) adjective = item.term;
                         if ((item.sentence.AsSpan().SequenceEqual(syntax))
                             && (item.team.AsSpan().SequenceEqual(morphology_adjective))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_adverb))) adverb = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_adverb))
+                            && (item.order.AsSpan().SequenceEqual(morphology_order))) adverb = item.term;
                         if ((item.sentence.AsSpan().SequenceEqual(syntax))
                             && (item.team.AsSpan().SequenceEqual(morphology_adjective))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_adverb_adverb))) adverb_adverb = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_adverb_adverb))
+                            && (item.order.AsSpan().SequenceEqual(morphology_order))) adverb_adverb = item.term;
                     }
                 }
                 if (level == Level.Sequence)
@@ -2049,13 +2399,16 @@ namespace Letter.Services
                     {
                         if ((item.sentence.SequenceEqual(syntax))
                             && (item.team.SequenceEqual(morphology_adjective))
-                            && (item.kind.SequenceEqual(morphology_adjective))) adjective = item.term;
+                            && (item.kind.SequenceEqual(morphology_adjective))
+                            && (item.order.SequenceEqual(morphology_order))) adjective = item.term;
                         if ((item.sentence.SequenceEqual(syntax))
                             && (item.team.SequenceEqual(morphology_adjective))
-                            && (item.kind.SequenceEqual(morphology_adverb))) adverb = item.term;
+                            && (item.kind.SequenceEqual(morphology_adverb))
+                            && (item.order.SequenceEqual(morphology_order))) adverb = item.term;
                         if ((item.sentence.SequenceEqual(syntax))
                             && (item.team.SequenceEqual(morphology_adjective))
-                            && (item.kind.SequenceEqual(morphology_adverb_adverb))) adverb_adverb = item.term;
+                            && (item.kind.SequenceEqual(morphology_adverb_adverb))
+                            && (item.order.SequenceEqual(morphology_order))) adverb_adverb = item.term;
                     }
                 }
                 if (level == Level.Compare)
@@ -2064,13 +2417,16 @@ namespace Letter.Services
                     {
                         if ((item.sentence.SequenceCompareTo(syntax) != -1)
                             && (item.team.SequenceCompareTo(morphology_adjective) != -1)
-                            && (item.kind.SequenceCompareTo(morphology_adjective) != -1)) adjective = item.term;
+                            && (item.kind.SequenceCompareTo(morphology_adjective) != -1)
+                            && (item.order.SequenceCompareTo(morphology_order) != -1)) adjective = item.term;
                         if ((item.sentence.SequenceCompareTo(syntax) != -1)
                             && (item.team.SequenceCompareTo(morphology_adjective) != -1)
-                            && (item.kind.SequenceCompareTo(morphology_adverb) != -1)) adverb = item.term;
+                            && (item.kind.SequenceCompareTo(morphology_adverb) != -1)
+                            && (item.order.SequenceCompareTo(morphology_order) != -1)) adverb = item.term;
                         if ((item.sentence.SequenceCompareTo(syntax) != -1)
                             && (item.team.SequenceCompareTo(morphology_adjective) != -1)
-                            && (item.kind.SequenceCompareTo(morphology_adverb_adverb) != -1)) adverb_adverb = item.term;
+                            && (item.kind.SequenceCompareTo(morphology_adverb_adverb) != -1)
+                            && (item.order.SequenceCompareTo(morphology_order) != -1)) adverb_adverb = item.term;
                     }
                 }
                 if (level == Level.Index)
@@ -2079,13 +2435,16 @@ namespace Letter.Services
                     {
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (item.team.IndexOf(morphology_adjective) != -1)
-                            && (item.kind.IndexOf(morphology_adjective) != -1)) adjective = item.term;
+                            && (item.kind.IndexOf(morphology_adjective) != -1)
+                            && (item.order.IndexOf(morphology_order) != -1)) adjective = item.term;
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (item.team.IndexOf(morphology_adjective) != -1)
-                            && (item.kind.IndexOf(morphology_adverb) != -1)) adverb = item.term;
+                            && (item.kind.IndexOf(morphology_adverb) != -1)
+                            && (item.order.IndexOf(morphology_order) != -1)) adverb = item.term;
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (item.team.IndexOf(morphology_adjective) != -1)
-                            && (item.kind.IndexOf(morphology_adverb_adverb) != -1)) adverb_adverb = item.term;
+                            && (item.kind.IndexOf(morphology_adverb_adverb) != -1)
+                            && (item.order.IndexOf(morphology_order) != -1)) adverb_adverb = item.term;
                     }
                 }
 
@@ -2117,7 +2476,7 @@ namespace Letter.Services
             }
         }
 
-        private string VerifyAdjective(List<Word> words, Level level, Rotate rotate, Seat seat)
+        private string VerifyAdjective(List<Word> words, int order, Level level, Rotate rotate, Seat seat)
         {
             try
             {
@@ -2133,6 +2492,7 @@ namespace Letter.Services
                 string morphology_adjective = this._adjective;
                 string morphology_adverb = this._adverb;
                 string morphology_adverb_adverb = this._adverb_adverb;
+                int morphology_order = order;
 
                 string adjective = string.Empty;
                 string adverb = string.Empty;
@@ -2146,13 +2506,16 @@ namespace Letter.Services
                     {
                         if ((item.sentence == syntax)
                             && (item.team == morphology_adjective)
-                            && (item.kind == morphology_adjective)) adjective = item.term;
+                            && (item.kind == morphology_adjective)
+                            && (item.order == morphology_order)) adjective = item.term;
                         if ((item.sentence == syntax)
                             && (item.team == morphology_adjective)
-                            && (item.kind == morphology_adverb)) adverb = item.term;
+                            && (item.kind == morphology_adverb)
+                            && (item.order == morphology_order)) adverb = item.term;
                         if ((item.sentence == syntax)
                             && (item.team == morphology_adjective)
-                            && (item.kind == morphology_adverb_adverb)) adverb_adverb = item.term;
+                            && (item.kind == morphology_adverb_adverb)
+                            && (item.order == morphology_order)) adverb_adverb = item.term;
                     }
                 }
                 if (level == Level.Equal)
@@ -2161,13 +2524,16 @@ namespace Letter.Services
                     {
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_adjective))
-                            && (item.kind.Equals(morphology_adjective))) adjective = item.term;
+                            && (item.kind.Equals(morphology_adjective))
+                            && (item.order.Equals(morphology_order))) adjective = item.term;
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_adjective))
-                            && (item.kind.Equals(morphology_adverb))) adverb = item.term;
+                            && (item.kind.Equals(morphology_adverb))
+                            && (item.order.Equals(morphology_order))) adverb = item.term;
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_adjective))
-                            && (item.kind.Equals(morphology_adverb_adverb))) adverb_adverb = item.term;
+                            && (item.kind.Equals(morphology_adverb_adverb))
+                            && (item.order.Equals(morphology_order))) adverb_adverb = item.term;
                     }
 
                 }
@@ -2177,13 +2543,16 @@ namespace Letter.Services
                     {
                         if ((item.sentence.AsSpan().SequenceEqual(syntax))
                             && (item.team.AsSpan().SequenceEqual(morphology_adjective))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_adjective))) adjective = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_adjective))
+                            && (item.order == morphology_order)) adjective = item.term;
                         if ((item.sentence.AsSpan().SequenceEqual(syntax))
                             && (item.team.AsSpan().SequenceEqual(morphology_adjective))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_adverb))) adverb = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_adverb))
+                            && (item.order == morphology_order)) adverb = item.term;
                         if ((item.sentence.AsSpan().SequenceEqual(syntax))
                             && (item.team.AsSpan().SequenceEqual(morphology_adjective))
-                            && (item.kind.AsSpan().SequenceEqual(morphology_adverb_adverb))) adverb_adverb = item.term;
+                            && (item.kind.AsSpan().SequenceEqual(morphology_adverb_adverb))
+                            && (item.order == morphology_order)) adverb_adverb = item.term;
                     }
                 }
                 if (level == Level.Sequence)
@@ -2192,13 +2561,16 @@ namespace Letter.Services
                     {
                         if ((item.sentence.SequenceEqual(syntax))
                             && (item.team.SequenceEqual(morphology_adjective))
-                            && (item.kind.SequenceEqual(morphology_adjective))) adjective = item.term;
+                            && (item.kind.SequenceEqual(morphology_adjective))
+                            && (item.order == morphology_order)) adjective = item.term;
                         if ((item.sentence.SequenceEqual(syntax))
                             && (item.team.SequenceEqual(morphology_adjective))
-                            && (item.kind.SequenceEqual(morphology_adverb))) adverb = item.term;
+                            && (item.kind.SequenceEqual(morphology_adverb))
+                            && (item.order == morphology_order)) adverb = item.term;
                         if ((item.sentence.SequenceEqual(syntax))
                             && (item.team.SequenceEqual(morphology_adjective))
-                            && (item.kind.SequenceEqual(morphology_adverb_adverb))) adverb_adverb = item.term;
+                            && (item.kind.SequenceEqual(morphology_adverb_adverb))
+                            && (item.order == morphology_order)) adverb_adverb = item.term;
                     }
                 }
                 if (level == Level.Compare)
@@ -2207,13 +2579,16 @@ namespace Letter.Services
                     {
                         if ((item.sentence.CompareTo(syntax) != -1)
                             && (item.team.CompareTo(morphology_adjective) != -1)
-                            && (item.kind.CompareTo(morphology_adjective) != -1)) adjective = item.term;
+                            && (item.kind.CompareTo(morphology_adjective) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) adjective = item.term;
                         if ((item.sentence.CompareTo(syntax) != -1)
                             && (item.team.CompareTo(morphology_adjective) != -1)
-                            && (item.kind.CompareTo(morphology_adverb) != -1)) adverb = item.term;
+                            && (item.kind.CompareTo(morphology_adverb) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) adverb = item.term;
                         if ((item.sentence.CompareTo(syntax) != -1)
                             && (item.team.CompareTo(morphology_adjective) != -1)
-                            && (item.kind.CompareTo(morphology_adverb_adverb) != -1)) adverb_adverb = item.term;
+                            && (item.kind.CompareTo(morphology_adverb_adverb) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) adverb_adverb = item.term;
                     }
                 }
                 if (level == Level.Index)
@@ -2222,13 +2597,16 @@ namespace Letter.Services
                     {
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (item.team.IndexOf(morphology_adjective) != -1)
-                            && (item.kind.IndexOf(morphology_adjective) != -1)) adjective = item.term;
+                            && (item.kind.IndexOf(morphology_adjective) != -1)
+                            && (item.order == morphology_order)) adjective = item.term;
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (item.team.IndexOf(morphology_adjective) != -1)
-                            && (item.kind.IndexOf(morphology_adverb) != -1)) adverb = item.term;
+                            && (item.kind.IndexOf(morphology_adverb) != -1)
+                            && (item.order == morphology_order)) adverb = item.term;
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (item.team.IndexOf(morphology_adjective) != -1)
-                            && (item.kind.IndexOf(morphology_adverb_adverb) != -1)) adverb_adverb = item.term;
+                            && (item.kind.IndexOf(morphology_adverb_adverb) != -1)
+                            && (item.order == morphology_order)) adverb_adverb = item.term;
                     }
                 }
 
@@ -2260,7 +2638,7 @@ namespace Letter.Services
             }
         }
 
-        private int VerifyAdjective(List<Guidance> words, Level level, Rotate rotate, Seat seat)
+        private int VerifyAdjective(List<Guidance> words, int order, Level level, Rotate rotate, Seat seat)
         {
             try
             {
@@ -2276,6 +2654,7 @@ namespace Letter.Services
                 int morphology_adjective = this._wordEmbeddingService.EncodeInt(this._adjective, this._morphology);
                 int morphology_adverb = this._wordEmbeddingService.EncodeInt(this._adverb, this._morphology);
                 int morphology_adverb_adverb = this._wordEmbeddingService.EncodeInt(this._adverb_adverb, this._morphology);
+                int morphology_order = this._wordEmbeddingService.EncodeInt(order, this._order);
 
                 int adjective = -1;
                 int adverb = -1;
@@ -2289,13 +2668,16 @@ namespace Letter.Services
                     {
                         if ((item.sentence == syntax)
                             && (item.team == morphology_adjective)
-                            && (item.kind == morphology_adjective)) adjective = item.term;
+                            && (item.kind == morphology_adjective)
+                            && (item.order == morphology_order)) adjective = item.term;
                         if ((item.sentence == syntax)
                             && (item.team == morphology_adjective)
-                            && (item.kind == morphology_adverb)) adverb = item.term;
+                            && (item.kind == morphology_adverb)
+                            && (item.order == morphology_order)) adverb = item.term;
                         if ((item.sentence == syntax)
                             && (item.team == morphology_adjective)
-                            && (item.kind == morphology_adverb_adverb)) adverb_adverb = item.term;
+                            && (item.kind == morphology_adverb_adverb)
+                            && (item.order == morphology_order)) adverb_adverb = item.term;
                     }
                 }
                 if (level == Level.Equal)
@@ -2304,13 +2686,16 @@ namespace Letter.Services
                     {
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_adjective))
-                            && (item.kind.Equals(morphology_adjective))) adjective = item.term;
+                            && (item.kind.Equals(morphology_adjective))
+                            && (item.order.Equals(morphology_order))) adjective = item.term;
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_adjective))
-                            && (item.kind.Equals(morphology_adverb))) adverb = item.term;
+                            && (item.kind.Equals(morphology_adverb))
+                            && (item.order.Equals(morphology_order))) adverb = item.term;
                         if ((item.sentence.Equals(syntax))
                             && (item.team.Equals(morphology_adjective))
-                            && (item.kind.Equals(morphology_adverb_adverb))) adverb_adverb = item.term;
+                            && (item.kind.Equals(morphology_adverb_adverb))
+                            && (item.order.Equals(morphology_order))) adverb_adverb = item.term;
                     }
 
                 }
@@ -2320,13 +2705,16 @@ namespace Letter.Services
                     {
                         if ((item.sentence.CompareTo(syntax) != -1)
                             && (item.team.CompareTo(morphology_adjective) != -1)
-                            && (item.kind.CompareTo(morphology_adjective) != -1)) adjective = item.term;
+                            && (item.kind.CompareTo(morphology_adjective) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) adjective = item.term;
                         if ((item.sentence.CompareTo(syntax) != -1)
                             && (item.team.CompareTo(morphology_adjective) != -1)
-                            && (item.kind.CompareTo(morphology_adverb) != -1)) adverb = item.term;
+                            && (item.kind.CompareTo(morphology_adverb) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) adverb = item.term;
                         if ((item.sentence.CompareTo(syntax) != -1)
                             && (item.team.CompareTo(morphology_adjective) != -1)
-                            && (item.kind.CompareTo(morphology_adverb_adverb) != -1)) adverb_adverb = item.term;
+                            && (item.kind.CompareTo(morphology_adverb_adverb) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) adverb_adverb = item.term;
                     }
                 }
 
@@ -2358,7 +2746,7 @@ namespace Letter.Services
             }
         }
 
-        private bool VerifyVerbNounConjunctionNoun(List<Instruction> words, List<Instruction> firsts, List<Instruction> lasts, Dictionary<(byte[], byte[]), int> word_2_vec, Level level)
+        private bool VerifyVerbNounConjunctionNoun(List<Instruction> words, List<Instruction> firsts, List<Instruction> lasts, Dictionary<(byte[], byte[]), int> word_2_vec, Level level, int order_verb, int order_noun)
         {
             try
             {
@@ -2374,12 +2762,14 @@ namespace Letter.Services
                 byte[]? adverbial_adjective_rear = null;
                 byte[]? preposition = null;
 
-                preposition = VerifyPreposition(words, level);
-                conjunction = VerifyConjunction(words, level, Seat.Predicate);
-                adverbial_verb = VerifyVerb(words, level, Rotate.Front);
-                adnominal = VerifyNoun(firsts, level, Rotate.Front, Seat.Predicate);
-                adnominal_rear = VerifyNoun(firsts, level, Rotate.Rear, Seat.Predicate);
-                adnominal_second = VerifyNoun(lasts, level, Rotate.Rear, Seat.Predicate);
+                int order_last = this._order_3;
+
+                preposition = VerifyPreposition(words, order_noun, level);
+                conjunction = VerifyConjunction(words, order_noun, level, Seat.Predicate);
+                adverbial_verb = VerifyVerb(words, order_verb, level, Rotate.Front);
+                adnominal = VerifyNoun(firsts, order_noun, level, Rotate.Front, Seat.Predicate);
+                adnominal_rear = VerifyNoun(firsts, order_noun, level, Rotate.Rear, Seat.Predicate);
+                adnominal_second = VerifyNoun(lasts, order_noun, level, Rotate.Rear, Seat.Predicate, order_last);
 
                 bool similarity = false;
                 similarity = this._wordEmbeddingService.Similarity(word_2_vec, adnominal, conjunction);
@@ -2388,10 +2778,10 @@ namespace Letter.Services
                 if ((similarity) && (preposition != null)) similarity = this._wordEmbeddingService.Similarity(word_2_vec, preposition, adnominal_rear);
                 if (similarity) return true;
 
-                adverbial_adjective = VerifyAdjective(firsts, level, Rotate.Front, Seat.Predicate);
+                adverbial_adjective = VerifyAdjective(firsts, order_noun, level, Rotate.Front, Seat.Predicate);
                 if (adverbial_adjective != null)
                 {
-                    adverbial_adjective_rear = VerifyAdjective(firsts, level, Rotate.Rear, Seat.Predicate);
+                    adverbial_adjective_rear = VerifyAdjective(firsts, order_noun, level, Rotate.Rear, Seat.Predicate);
                     similarity = this._wordEmbeddingService.Similarity(word_2_vec, adverbial_adjective, conjunction);
                     if (similarity) similarity = this._wordEmbeddingService.Similarity(word_2_vec, conjunction, adnominal);
                     if ((similarity) && (preposition == null)) similarity = this._wordEmbeddingService.Similarity(word_2_vec, adverbial_verb, adverbial_adjective_rear);
@@ -2399,7 +2789,7 @@ namespace Letter.Services
                     if (similarity) return true;
                 }
 
-                numeral = VerifyNumeral(firsts, level, Seat.Predicate);
+                numeral = VerifyNumeral(firsts, order_noun, level, Seat.Predicate);
                 if (numeral != null)
                 {
                     similarity = this._wordEmbeddingService.Similarity(word_2_vec, preposition, numeral);
@@ -2418,7 +2808,7 @@ namespace Letter.Services
             }
         }
 
-        private bool VerifyVerbNounConjunctionNoun(List<Word> words, List<Word> firsts, List<Word> lasts, Dictionary<(string, string), int> word_2_vec, Level level)
+        private bool VerifyVerbNounConjunctionNoun(List<Word> words, List<Word> firsts, List<Word> lasts, Dictionary<(string, string), int> word_2_vec, Level level, int order_verb, int order_noun)
         {
             try
             {
@@ -2434,12 +2824,14 @@ namespace Letter.Services
                 string adverbial_adjective_rear = string.Empty;
                 string preposition = string.Empty;
 
-                preposition = VerifyPreposition(words, level);
-                conjunction = VerifyConjunction(words, level, Seat.Predicate);
-                adverbial_verb = VerifyVerb(words, level, Rotate.Front);
-                adnominal = VerifyNoun(firsts, level, Rotate.Front, Seat.Predicate);
-                adnominal_rear = VerifyNoun(firsts, level, Rotate.Rear, Seat.Predicate);
-                adnominal_second = VerifyNoun(lasts, level, Rotate.Rear, Seat.Predicate);
+                int order_last = this._order_3;
+
+                preposition = VerifyPreposition(words, order_noun, level);
+                conjunction = VerifyConjunction(words, order_noun, level, Seat.Predicate);
+                adverbial_verb = VerifyVerb(words, order_verb, level, Rotate.Front);
+                adnominal = VerifyNoun(firsts, order_noun, level, Rotate.Front, Seat.Predicate);
+                adnominal_rear = VerifyNoun(firsts, order_noun, level, Rotate.Rear, Seat.Predicate);
+                adnominal_second = VerifyNoun(lasts, order_noun, level, Rotate.Rear, Seat.Predicate, order_last);
 
                 bool similarity = false;
                 similarity = this._wordEmbeddingService.Similarity(word_2_vec, adnominal, conjunction);
@@ -2448,10 +2840,10 @@ namespace Letter.Services
                 if ((similarity) && (preposition != string.Empty)) similarity = this._wordEmbeddingService.Similarity(word_2_vec, preposition, adnominal_rear);
                 if (similarity) return true;
 
-                adverbial_adjective = VerifyAdjective(firsts, level, Rotate.Front, Seat.Predicate);
+                adverbial_adjective = VerifyAdjective(firsts, order_noun, level, Rotate.Front, Seat.Predicate);
                 if (adverbial_adjective != string.Empty)
                 {
-                    adverbial_adjective_rear = VerifyAdjective(firsts, level, Rotate.Rear, Seat.Predicate);
+                    adverbial_adjective_rear = VerifyAdjective(firsts, order_noun, level, Rotate.Rear, Seat.Predicate);
                     similarity = this._wordEmbeddingService.Similarity(word_2_vec, adverbial_adjective, conjunction);
                     if (similarity) similarity = this._wordEmbeddingService.Similarity(word_2_vec, conjunction, adnominal);
                     if ((similarity) && (preposition == string.Empty)) similarity = this._wordEmbeddingService.Similarity(word_2_vec, adverbial_verb, adverbial_adjective_rear);
@@ -2459,7 +2851,7 @@ namespace Letter.Services
                     if (similarity) return true;
                 }
 
-                numeral = VerifyNumeral(firsts, level, Seat.Predicate);
+                numeral = VerifyNumeral(firsts, order_noun, level, Seat.Predicate);
                 if (numeral != string.Empty)
                 {
                     similarity = this._wordEmbeddingService.Similarity(word_2_vec, preposition, numeral);
@@ -2478,7 +2870,7 @@ namespace Letter.Services
             }
         }
 
-        private bool VerifyVerbNounConjunctionNoun(List<Guidance> words, List<Guidance> firsts, List<Guidance> lasts, Dictionary<(int, int), int> word_2_vec, Level level)
+        private bool VerifyVerbNounConjunctionNoun(List<Guidance> words, List<Guidance> firsts, List<Guidance> lasts, Dictionary<(int, int), int> word_2_vec, Level level, int order_verb, int order_noun)
         {
             try
             {
@@ -2494,12 +2886,14 @@ namespace Letter.Services
                 int adverbial_adjective_rear = -1;
                 int preposition = -1;
 
-                preposition = VerifyPreposition(words, level);
-                conjunction = VerifyConjunction(words, level, Seat.Predicate);
-                adverbial_verb = VerifyVerb(words, level, Rotate.Front);
-                adnominal = VerifyNoun(firsts, level, Rotate.Front, Seat.Predicate);
-                adnominal_rear = VerifyNoun(firsts, level, Rotate.Rear, Seat.Predicate);
-                adnominal_second = VerifyNoun(lasts, level, Rotate.Rear, Seat.Predicate);
+                int order_last = this._order_3;
+
+                preposition = VerifyPreposition(words, order_noun, level);
+                conjunction = VerifyConjunction(words, order_noun, level, Seat.Predicate);
+                adverbial_verb = VerifyVerb(words, order_verb, level, Rotate.Front);
+                adnominal = VerifyNoun(firsts, order_noun, level, Rotate.Front, Seat.Predicate);
+                adnominal_rear = VerifyNoun(firsts, order_noun, level, Rotate.Rear, Seat.Predicate);
+                adnominal_second = VerifyNoun(lasts, order_noun, level, Rotate.Rear, Seat.Predicate, order_last);
 
                 bool similarity = false;
                 similarity = this._wordEmbeddingService.Similarity(word_2_vec, adnominal, conjunction);
@@ -2508,10 +2902,10 @@ namespace Letter.Services
                 if ((similarity) && (preposition != -1)) similarity = this._wordEmbeddingService.Similarity(word_2_vec, preposition, adnominal_rear);
                 if (similarity) return true;
 
-                adverbial_adjective = VerifyAdjective(firsts, level, Rotate.Front, Seat.Predicate);
+                adverbial_adjective = VerifyAdjective(firsts, order_noun, level, Rotate.Front, Seat.Predicate);
                 if (adverbial_adjective != -1)
                 {
-                    adverbial_adjective_rear = VerifyAdjective(firsts, level, Rotate.Rear, Seat.Predicate);
+                    adverbial_adjective_rear = VerifyAdjective(firsts, order_noun, level, Rotate.Rear, Seat.Predicate);
                     similarity = this._wordEmbeddingService.Similarity(word_2_vec, adverbial_adjective, conjunction);
                     if (similarity) similarity = this._wordEmbeddingService.Similarity(word_2_vec, conjunction, adnominal);
                     if ((similarity) && (preposition == -1)) similarity = this._wordEmbeddingService.Similarity(word_2_vec, adverbial_verb, adverbial_adjective_rear);
@@ -2519,7 +2913,7 @@ namespace Letter.Services
                     if (similarity) return true;
                 }
 
-                numeral = VerifyNumeral(firsts, level, Seat.Predicate);
+                numeral = VerifyNumeral(firsts, order_noun, level, Seat.Predicate);
                 if (numeral != -1)
                 {
                     similarity = this._wordEmbeddingService.Similarity(word_2_vec, preposition, numeral);
@@ -2550,6 +2944,29 @@ namespace Letter.Services
                 word.sentence = sentence;
                 word.team = team;
                 word.order = order;
+                word.sequence = this._order_1;
+                return word;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private Word Lecture(string term, string kind, string sentence, string team, int order, int sequence)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation lecture \"Syntax\" service failed!");
+
+                Word word = new Word();
+                word.term = term;
+                word.kind = kind;
+                word.sentence = sentence;
+                word.team = team;
+                word.order = order;
+                word.sequence = sequence;
                 return word;
             }
             catch (Exception ex)
@@ -2571,6 +2988,29 @@ namespace Letter.Services
                 word.sentence = sentence;
                 word.team = team;
                 word.order = order;
+                word.sequence = this._tutorial_sequence_1;
+                return word;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private Instruction Lecture(byte[] term, byte[] kind, byte[] sentence, byte[] team, byte[] order, byte[] sequence)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation lecture \"Syntax\" view model failed!");
+
+                Instruction word = new Instruction();
+                word.term = term;
+                word.kind = kind;
+                word.sentence = sentence;
+                word.team = team;
+                word.order = order;
+                word.sequence = sequence;
                 return word;
             }
             catch (Exception ex)
@@ -2592,6 +3032,29 @@ namespace Letter.Services
                 word.sentence = sentence;
                 word.team = team;
                 word.order = order;
+                word.sequence = this._practice_sequence_1;
+                return word;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private Guidance Lecture(int term, int kind, int sentence, int team, int order, int sequence)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation lecture \"Syntax\" view model failed!");
+
+                Guidance word = new Guidance();
+                word.term = term;
+                word.kind = kind;
+                word.sentence = sentence;
+                word.team = team;
+                word.order = order;
+                word.sequence = sequence;
                 return word;
             }
             catch (Exception ex)
@@ -2635,12 +3098,16 @@ namespace Letter.Services
                         byte[] order = instruction.order;
                         int index_order = orders.FindIndex(index => index.SequenceEqual(order));
 
+                        byte[] sequence = instruction.sequence;
+                        int index_sequence = orders.FindIndex(index => index.SequenceEqual(sequence));
+
                         Word word = new Word();
                         word.term = vocabulary.ElementAt(index_term);
                         word.kind = this._morphology.ElementAt(index_kind);
                         word.sentence = this._syntax.ElementAt(index_sentence);
                         word.team = this._morphology.ElementAt(index_team);
                         word.order = this._order.ElementAt(index_order);
+                        word.sequence = this._order.ElementAt(index_sequence);                                                
                         words.Add(word);
                     }
                     lesson.lecture = words;
@@ -2689,12 +3156,16 @@ namespace Letter.Services
                         int order = guidance.order;
                         int index_order = orders.FindIndex(index => index.Equals(order));
 
+                        int sequence = guidance.sequence;
+                        int index_sequence = orders.FindIndex(index => index.Equals(sequence));
+
                         Word word = new Word();
                         word.term = vocabulary.ElementAt(index_term);
                         word.kind = this._morphology.ElementAt(index_kind);
                         word.sentence = this._syntax.ElementAt(index_sentence);
                         word.team = this._morphology.ElementAt(index_team);
                         word.order = this._order.ElementAt(index_order);
+                        word.sequence = this._order.ElementAt(index_sequence);
                         words.Add(word);
                     }
                     lesson.lecture = words;
@@ -2810,7 +3281,7 @@ namespace Letter.Services
                             words.Add(word);
                         }
                         ;
-                        if (!VerifyVerbSampleSubject(words, word_2_vec, Level.AsSpanSequence)) continue;
+                        if (!VerifyVerbSampleSubject(words, word_2_vec, Level.AsSpanSequence, this._order_1, this._order_2)) continue;
                         Tutorial seminar = new Tutorial();
                         seminar.lecture = words;
                         seminars.Add(seminar);
@@ -2857,8 +3328,7 @@ namespace Letter.Services
                             word = Lecture(item.term, item.kind, subject, adnominal_adjunct.team, order_noun);
                             words.Add(word);
                         }
-                        ;
-                        if (!VerifyVerbSampleSubject(words, word_2_vec, Level.Default)) continue;
+                        if (!VerifyVerbSampleSubject(words, word_2_vec, Level.Default, this._order_1, this._order_2)) continue;
                         Practice seminar = new Practice();
                         seminar.lecture = words;
                         seminars.Add(seminar);
@@ -2904,7 +3374,7 @@ namespace Letter.Services
                             word = Lecture(item.term, item.kind, subject, adnominal_adjunct.team, order_noun);
                             words.Add(word);
                         }
-                        if (!VerifyVerbSampleSubject(words, word_2_vec, Level.Index)) continue;
+                        if (!VerifyVerbSampleSubject(words, word_2_vec, Level.Index, this._order_1, this._order_2)) continue;
                         Lesson seminar = new Lesson();
                         seminar.lecture = words;
                         seminars.Add(seminar);
@@ -3034,6 +3504,10 @@ namespace Letter.Services
                 byte[] order_noun = this._wordEmbeddingService.Encode(this._order_1, this._order);
                 byte[] order_verb = this._wordEmbeddingService.Encode(this._order_2, this._order);
 
+                byte[] order_first = this._wordEmbeddingService.Encode(this._order_1, this._order);
+                byte[] order_middle = this._wordEmbeddingService.Encode(this._order_2, this._order);
+                byte[] order_second = this._wordEmbeddingService.Encode(this._order_3, this._order);
+
                 Dictionary<(byte[], byte[]), int> word_2_vec = dictionaries as Dictionary<(byte[], byte[]), int>;
 
                 foreach (Tutorial conjunction in conjunctions)
@@ -3057,24 +3531,24 @@ namespace Letter.Services
                                 foreach (Instruction item in adnominal_second.lecture)
                                 {
                                     Instruction word = new Instruction();
-                                    word = Lecture(item.term, item.kind, subject, adnominal_second.team, order_noun);
+                                    word = Lecture(item.term, item.kind, subject, adnominal_second.team, order_noun, order_second);
                                     words.Add(word);
                                     second.Add(word);
                                 }
                                 foreach (Instruction item in adnominal_adjunct.lecture)
                                 {
                                     Instruction word = new Instruction();
-                                    word = Lecture(item.term, item.kind, subject, adnominal_adjunct.team, order_noun);
+                                    word = Lecture(item.term, item.kind, subject, adnominal_adjunct.team, order_noun, order_first);
                                     words.Add(word);
                                     firsts.Add(word);
                                 }
                                 foreach (Instruction item in conjunction.lecture)
                                 {
                                     Instruction word = new Instruction();
-                                    word = Lecture(item.term, item.kind, subject, conjunction.team, order_noun);
+                                    word = Lecture(item.term, item.kind, subject, conjunction.team, order_noun, order_middle);
                                     words.Add(word);
                                 }
-                                if (!VerifyVerbCompoundSubject(words, firsts, second, word_2_vec, Level.AsSpanSequence)) continue;
+                                if (!VerifyVerbCompoundSubject(words, firsts, second, word_2_vec, Level.AsSpanSequence, this._order_1, this._order_2)) continue;
                                 Tutorial seminar = new Tutorial();
                                 seminar.lecture = words;
                                 seminars.Add(seminar);
@@ -3103,6 +3577,10 @@ namespace Letter.Services
                 int order_noun = this._order_1;
                 int order_verb = this._order_2;
 
+                int order_first = this._order_1;
+                int order_middle = this._order_2;
+                int order_second = this._order_3;
+
                 Dictionary<(string, string), int> word_2_vec = dictionaries as Dictionary<(string, string), int>;
 
                 foreach (Lesson conjunction in conjunctions)
@@ -3126,24 +3604,24 @@ namespace Letter.Services
                                 foreach (Word item in adnominal_second.lecture)
                                 {
                                     Word word = new Word();
-                                    word = Lecture(item.term, item.kind, subject, adnominal_second.team, order_noun);
+                                    word = Lecture(item.term, item.kind, subject, adnominal_second.team, order_noun, order_second);
                                     words.Add(word);
                                     second.Add(word);
                                 }
                                 foreach (Word item in adnominal_adjunct.lecture)
                                 {
                                     Word word = new Word();
-                                    word = Lecture(item.term, item.kind, subject, adnominal_adjunct.team, order_noun);
+                                    word = Lecture(item.term, item.kind, subject, adnominal_adjunct.team, order_noun, order_first);
                                     words.Add(word);
                                     firsts.Add(word);
                                 }
                                 foreach (Word item in conjunction.lecture)
                                 {
                                     Word word = new Word();
-                                    word = Lecture(item.term, item.kind, subject, conjunction.team, order_noun);
+                                    word = Lecture(item.term, item.kind, subject, conjunction.team, order_noun, order_middle);
                                     words.Add(word);
                                 }
-                                if (!VerifyVerbCompoundSubject(words, firsts, second, word_2_vec, Level.Index)) continue;
+                                if (!VerifyVerbCompoundSubject(words, firsts, second, word_2_vec, Level.Index, this._order_1, this._order_2)) continue;
                                 Lesson seminar = new Lesson();
                                 seminar.lecture = words;
                                 seminars.Add(seminar);
@@ -3172,6 +3650,10 @@ namespace Letter.Services
                 int order_noun = this._wordEmbeddingService.EncodeInt(this._order_1, this._order);
                 int order_verb = this._wordEmbeddingService.EncodeInt(this._order_2, this._order);
 
+                int order_first = this._wordEmbeddingService.EncodeInt(this._order_1, this._order);
+                int order_middle = this._wordEmbeddingService.EncodeInt(this._order_2, this._order);
+                int order_second = this._wordEmbeddingService.EncodeInt(this._order_3, this._order);
+
                 Dictionary<(int, int), int> word_2_vec = dictionaries as Dictionary<(int, int), int>;
 
                 foreach (Practice conjunction in conjunctions)
@@ -3195,24 +3677,24 @@ namespace Letter.Services
                                 foreach (Guidance item in adnominal_second.lecture)
                                 {
                                     Guidance word = new Guidance();
-                                    word = Lecture(item.term, item.kind, subject, adnominal_second.team, order_noun);
+                                    word = Lecture(item.term, item.kind, subject, adnominal_second.team, order_noun, order_second);
                                     words.Add(word);
                                     second.Add(word);
                                 }
                                 foreach (Guidance item in adnominal_adjunct.lecture)
                                 {
                                     Guidance word = new Guidance();
-                                    word = Lecture(item.term, item.kind, subject, adnominal_adjunct.team, order_noun);
+                                    word = Lecture(item.term, item.kind, subject, adnominal_adjunct.team, order_noun, order_first);
                                     words.Add(word);
                                     firsts.Add(word);
                                 }
                                 foreach (Guidance item in conjunction.lecture)
                                 {
                                     Guidance word = new Guidance();
-                                    word = Lecture(item.term, item.kind, subject, conjunction.team, order_noun);
+                                    word = Lecture(item.term, item.kind, subject, conjunction.team, order_noun, order_middle);
                                     words.Add(word);
                                 }
-                                if (!VerifyVerbCompoundSubject(words, firsts, second, word_2_vec, Level.Default)) continue;
+                                if (!VerifyVerbCompoundSubject(words, firsts, second, word_2_vec, Level.Default, this._order_1, this._order_2)) continue;
                                 Practice seminar = new Practice();
                                 seminar.lecture = words;
                                 seminars.Add(seminar);
@@ -3361,7 +3843,7 @@ namespace Letter.Services
             }
         }
 
-        private List<Tutorial> MountVerbNoun<TKey, TValue>(List<Tutorial> adnominals_adjunts, List<Tutorial>? sources, Dictionary<TKey, TValue> dictionaries, int order) where TKey : notnull
+        private List<Tutorial> MountVerbNoun<TKey, TValue>(List<Tutorial> adnominals_adjunts, List<Tutorial>? sources, Dictionary<TKey, TValue> dictionaries, int order_verb, int order_noun) where TKey : notnull
         {
             try
             {
@@ -3369,7 +3851,7 @@ namespace Letter.Services
 
                 List<Tutorial> seminars = new List<Tutorial>();
                 byte[] predicate = this._wordEmbeddingService.Encode(this._predicate, this._syntax);
-                byte[] order_predicate = this._wordEmbeddingService.Encode(order, this._order);
+                byte[] order_predicate = this._wordEmbeddingService.Encode(order_noun, this._order);
 
                 Dictionary<(byte[], byte[]), int> word_2_vec = dictionaries as Dictionary<(byte[], byte[]), int>;
 
@@ -3386,7 +3868,7 @@ namespace Letter.Services
                             word = Lecture(item.term, item.kind, predicate, adnominal_adjunt.team, order_predicate);
                             words1.Add(word);
                         }
-                        if (!VerifyVerbDirectObject(words1, word_2_vec, Level.AsSpanSequence)) continue;
+                        if (!VerifyVerbDirectObject(words1, word_2_vec, Level.AsSpanSequence, order_verb, order_noun)) continue;
                         Tutorial seminar = new Tutorial();
                         seminar.lecture = words1;
                         seminars.Add(seminar);
@@ -3401,7 +3883,7 @@ namespace Letter.Services
             }
         }
 
-        private List<Lesson> MountVerbNoun<TKey, TValue>(List<Lesson> adnominals_adjunts, List<Lesson>? sources, Dictionary<TKey, TValue> dictionaries, int order) where TKey : notnull
+        private List<Lesson> MountVerbNoun<TKey, TValue>(List<Lesson> adnominals_adjunts, List<Lesson>? sources, Dictionary<TKey, TValue> dictionaries, int order_verb, int order_noun) where TKey : notnull
         {
             try
             {
@@ -3409,7 +3891,7 @@ namespace Letter.Services
 
                 List<Lesson> seminars = new List<Lesson>();
                 string predicate = this._predicate;
-                int order_predicate = order;
+                int order_predicate = order_noun;
 
                 Dictionary<(string, string), int> word_2_vec = dictionaries as Dictionary<(string, string), int>;
 
@@ -3426,7 +3908,7 @@ namespace Letter.Services
                             word = Lecture(item.term, item.kind, predicate, adnominal_adjunt.team, order_predicate);
                             words1.Add(word);
                         }
-                        if (!VerifyVerbDirectObject(words1, word_2_vec, Level.Index)) continue;
+                        if (!VerifyVerbDirectObject(words1, word_2_vec, Level.Index, order_verb, order_noun)) continue;
                         Lesson seminar = new Lesson();
                         seminar.lecture = words1;
                         seminars.Add(seminar);
@@ -3441,7 +3923,7 @@ namespace Letter.Services
             }
         }
 
-        private List<Practice> MountVerbNoun<TKey, TValue>(List<Practice> adnominals_adjunts, List<Practice>? sources, Dictionary<TKey, TValue> dictionaries, int order) where TKey : notnull
+        private List<Practice> MountVerbNoun<TKey, TValue>(List<Practice> adnominals_adjunts, List<Practice>? sources, Dictionary<TKey, TValue> dictionaries, int order_verb, int order_noun) where TKey : notnull
         {
             try
             {
@@ -3449,7 +3931,7 @@ namespace Letter.Services
 
                 List<Practice> seminars = new List<Practice>();
                 int predicate = this._wordEmbeddingService.EncodeInt(this._predicate, this._syntax);
-                int order_predicate = this._wordEmbeddingService.EncodeInt(order, this._order);
+                int order_predicate = this._wordEmbeddingService.EncodeInt(order_noun, this._order);
 
                 Dictionary<(int, int), int> word_2_vec = dictionaries as Dictionary<(int, int), int>;
 
@@ -3466,7 +3948,7 @@ namespace Letter.Services
                             word = Lecture(item.term, item.kind, predicate, adnominal_adjunt.team, order_predicate);
                             words1.Add(word);
                         }
-                        if (!VerifyVerbDirectObject(words1, word_2_vec, Level.Default)) continue;
+                        if (!VerifyVerbDirectObject(words1, word_2_vec, Level.Default, order_verb, order_noun)) continue;
                         Practice seminar = new Practice();
                         seminar.lecture = words1;
                         seminars.Add(seminar);
@@ -3481,7 +3963,7 @@ namespace Letter.Services
             }
         }
 
-        public List<Lesson> MountVerbNoun<T, TKey, TValue>(List<T>? homeworks, Dictionary<TKey, TValue> dictionaries, HashSet<string> vocabulary, List<T>? sources, int order) where TKey : notnull
+        public List<Lesson> MountVerbNoun<T, TKey, TValue>(List<T>? homeworks, Dictionary<TKey, TValue> dictionaries, HashSet<string> vocabulary, List<T>? sources, int order_verb, int order_noun) where TKey : notnull
         {
             try
             {
@@ -3541,14 +4023,14 @@ namespace Letter.Services
 
                 if (typeof(T) == typeof(Tutorial))
                 {
-                    List<Tutorial> result = MountVerbNoun(tutorial_adnominals, tutorial_sources, dictionaries, order);
+                    List<Tutorial> result = MountVerbNoun(tutorial_adnominals, tutorial_sources, dictionaries, order_verb, order_noun);
                     seminars = DecodeLesson(result, vocabulary);
                 }
-                if (typeof(T) == typeof(Lesson)) { }
-                    seminars = MountVerbNoun(lesson_adnominals, lesson_sources, dictionaries, order);
+                if (typeof(T) == typeof(Lesson))
+                    seminars = MountVerbNoun(lesson_adnominals, lesson_sources, dictionaries, order_verb, order_noun);
                 if (typeof(T) == typeof(Practice))
                 {
-                    List<Practice> result = MountVerbNoun(practice_adnominals, practice_sources, dictionaries, order);
+                    List<Practice> result = MountVerbNoun(practice_adnominals, practice_sources, dictionaries, order_verb, order_noun);
                     seminars = DecodeLesson(result, vocabulary);
                 }
 
@@ -3561,7 +4043,7 @@ namespace Letter.Services
             }
         }
 
-        private List<Tutorial> MountVerbNounConjunctionNoun<TKey, TValue>(List<Tutorial> adnominals_adjuncts, List<Tutorial> adnominals_second, List<Tutorial> conjunctions, Dictionary<TKey, TValue> dictionaries, List<Tutorial>? sources, int order) where TKey : notnull
+        private List<Tutorial> MountVerbNounConjunctionNoun<TKey, TValue>(List<Tutorial> adnominals_adjuncts, List<Tutorial> adnominals_second, List<Tutorial> conjunctions, Dictionary<TKey, TValue> dictionaries, List<Tutorial>? sources, int order_verb, int order_predicate) where TKey : notnull
         {
             try
             {
@@ -3569,7 +4051,11 @@ namespace Letter.Services
 
                 List<Tutorial> seminars = new List<Tutorial>();
                 byte[] predicate = this._wordEmbeddingService.Encode(this._predicate, this._syntax);
-                byte[] order_compound = this._wordEmbeddingService.Encode(order, this._order);
+                byte[] order_compound = this._wordEmbeddingService.Encode(order_predicate, this._order);
+
+                byte[] order_first = this._wordEmbeddingService.Encode(this._order_1, this._order);
+                byte[] order_middle = this._wordEmbeddingService.Encode(this._order_2, this._order);
+                byte[] order_second = this._wordEmbeddingService.Encode(this._order_3, this._order);
 
                 Dictionary<(byte[], byte[]), int> word_2_vec = dictionaries as Dictionary<(byte[], byte[]), int>;
 
@@ -3589,24 +4075,24 @@ namespace Letter.Services
                                 foreach (Instruction item in adnominal_first.lecture)
                                 {
                                     Instruction word = new Instruction();
-                                    word = Lecture(item.term, item.kind, predicate, adnominal_first.team, order_compound);
+                                    word = Lecture(item.term, item.kind, predicate, adnominal_first.team, order_compound, order_first);
                                     words1.Add(word);
                                     firsts.Add(word);
                                 }
                                 foreach (Instruction item in adnominal_last.lecture)
                                 {
                                     Instruction word = new Instruction();
-                                    word = Lecture(item.term, item.kind, predicate, adnominal_last.team, order_compound);
+                                    word = Lecture(item.term, item.kind, predicate, adnominal_last.team, order_compound, order_second);
                                     words1.Add(word);
                                     lasts.Add(word);
                                 }
                                 foreach (Instruction item in conjunction.lecture)
                                 {
                                     Instruction word = new Instruction();
-                                    word = Lecture(item.term, item.kind, predicate, conjunction.team, order_compound);
+                                    word = Lecture(item.term, item.kind, predicate, conjunction.team, order_compound, order_middle);
                                     words1.Add(word);
                                 }
-                                if (!VerifyVerbNounConjunctionNoun(words1, firsts, lasts, word_2_vec, Level.AsSpanSequence)) continue;
+                                if (!VerifyVerbNounConjunctionNoun(words1, firsts, lasts, word_2_vec, Level.AsSpanSequence, order_verb, order_predicate)) continue;
                                 Tutorial seminar = new Tutorial();
                                 seminar.lecture = words1;
                                 seminars.Add(seminar);
@@ -3623,7 +4109,7 @@ namespace Letter.Services
             }
         }
 
-        private List<Lesson> MountVerbNounConjunctionNoun<TKey, TValue>(List<Lesson> adnominals_adjuncts, List<Lesson> adnominals_second, List<Lesson> conjunctions, Dictionary<TKey, TValue> dictionaries, List<Lesson>? sources, int order) where TKey : notnull
+        private List<Lesson> MountVerbNounConjunctionNoun<TKey, TValue>(List<Lesson> adnominals_adjuncts, List<Lesson> adnominals_second, List<Lesson> conjunctions, Dictionary<TKey, TValue> dictionaries, List<Lesson>? sources, int order_verb, int order_predicate) where TKey : notnull
         {
             try
             {
@@ -3631,7 +4117,11 @@ namespace Letter.Services
 
                 List<Lesson> seminars = new List<Lesson>();
                 string predicate = this._predicate;
-                int order_compound = order;
+                int order_compound = order_predicate;
+
+                int order_first = this._order_1;
+                int order_middle = this._order_2;
+                int order_second = this._order_3;
 
                 Dictionary<(string, string), int> word_2_vec = dictionaries as Dictionary<(string, string), int>;
 
@@ -3651,24 +4141,24 @@ namespace Letter.Services
                                 foreach (Word item in adnominal_first.lecture)
                                 {
                                     Word word = new Word();
-                                    word = Lecture(item.term, item.kind, predicate, adnominal_first.team, order_compound);
+                                    word = Lecture(item.term, item.kind, predicate, adnominal_first.team, order_compound, order_first);
                                     words1.Add(word);
                                     firsts.Add(word);
                                 }
                                 foreach (Word item in adnominal_last.lecture)
                                 {
                                     Word word = new Word();
-                                    word = Lecture(item.term, item.kind, predicate, adnominal_last.team, order_compound);
+                                    word = Lecture(item.term, item.kind, predicate, adnominal_last.team, order_compound, order_second);
                                     words1.Add(word);
                                     lasts.Add(word);
                                 }
                                 foreach (Word item in conjunction.lecture)
                                 {
                                     Word word = new Word();
-                                    word = Lecture(item.term, item.kind, predicate, conjunction.team, order_compound);
+                                    word = Lecture(item.term, item.kind, predicate, conjunction.team, order_compound, order_middle);
                                     words1.Add(word);
                                 }
-                                if (!VerifyVerbNounConjunctionNoun(words1, firsts, lasts, word_2_vec, Level.Index)) continue;
+                                if (!VerifyVerbNounConjunctionNoun(words1, firsts, lasts, word_2_vec, Level.Index, order_verb, order_predicate)) continue;
                                 Lesson seminar = new Lesson();
                                 seminar.lecture = words1;
                                 seminars.Add(seminar);
@@ -3685,7 +4175,7 @@ namespace Letter.Services
             }
         }
 
-        private List<Practice> MountVerbNounConjunctionNoun<TKey, TValue>(List<Practice> adnominals_adjuncts, List<Practice> adnominals_second, List<Practice> conjunctions, Dictionary<TKey, TValue> dictionaries, List<Practice>? sources, int order) where TKey : notnull
+        private List<Practice> MountVerbNounConjunctionNoun<TKey, TValue>(List<Practice> adnominals_adjuncts, List<Practice> adnominals_second, List<Practice> conjunctions, Dictionary<TKey, TValue> dictionaries, List<Practice>? sources, int order_verb, int order_predicate) where TKey : notnull
         {
             try
             {
@@ -3693,7 +4183,11 @@ namespace Letter.Services
 
                 List<Practice> seminars = new List<Practice>();
                 int predicate = this._wordEmbeddingService.EncodeInt(this._predicate, this._syntax);
-                int order_compound = this._wordEmbeddingService.EncodeInt(order, this._order);
+                int order_compound = this._wordEmbeddingService.EncodeInt(order_predicate, this._order);
+
+                int order_first = this._wordEmbeddingService.EncodeInt(this._order_1, this._order);
+                int order_middle = this._wordEmbeddingService.EncodeInt(this._order_2, this._order);
+                int order_second = this._wordEmbeddingService.EncodeInt(this._order_3, this._order);
 
                 Dictionary<(int, int), int> word_2_vec = dictionaries as Dictionary<(int, int), int>;
 
@@ -3713,24 +4207,24 @@ namespace Letter.Services
                                 foreach (Guidance item in adnominal_first.lecture)
                                 {
                                     Guidance word = new Guidance();
-                                    word = Lecture(item.term, item.kind, predicate, adnominal_first.team, order_compound);
+                                    word = Lecture(item.term, item.kind, predicate, adnominal_first.team, order_compound, order_first);
                                     words1.Add(word);
                                     firsts.Add(word);
                                 }
                                 foreach (Guidance item in adnominal_last.lecture)
                                 {
                                     Guidance word = new Guidance();
-                                    word = Lecture(item.term, item.kind, predicate, adnominal_last.team, order_compound);
+                                    word = Lecture(item.term, item.kind, predicate, adnominal_last.team, order_compound, order_second);
                                     words1.Add(word);
                                     lasts.Add(word);
                                 }
                                 foreach (Guidance item in conjunction.lecture)
                                 {
                                     Guidance word = new Guidance();
-                                    word = Lecture(item.term, item.kind, predicate, conjunction.team, order_compound);
+                                    word = Lecture(item.term, item.kind, predicate, conjunction.team, order_compound, order_middle);
                                     words1.Add(word);
                                 }
-                                if (!VerifyVerbNounConjunctionNoun(words1, firsts, lasts, word_2_vec, Level.Default)) continue;
+                                if (!VerifyVerbNounConjunctionNoun(words1, firsts, lasts, word_2_vec, Level.Default, order_verb, order_predicate)) continue;
                                 Practice seminar = new Practice();
                                 seminar.lecture = words1;
                                 seminars.Add(seminar);
@@ -3747,7 +4241,7 @@ namespace Letter.Services
             }
         }
 
-        private List<Lesson> MountVerbNounConjunctionNoun<T, TKey, TValue>(List<T>? homeworks, Dictionary<TKey, TValue> dictionaries, HashSet<string> vocabulary, List<T>? sources, int order) where TKey : notnull
+        private List<Lesson> MountVerbNounConjunctionNoun<T, TKey, TValue>(List<T>? homeworks, Dictionary<TKey, TValue> dictionaries, HashSet<string> vocabulary, List<T>? sources, int order_verb, int order_predicate) where TKey : notnull
         {
             try
             {
@@ -3848,14 +4342,14 @@ namespace Letter.Services
 
                 if (typeof(T) == typeof(Tutorial))
                 {
-                    List<Tutorial> result = MountVerbNounConjunctionNoun(tutorial_adnominals, tutorial_adnominals_second, tutorial_conjunctions, dictionaries, tutorial_sources, order);
+                    List<Tutorial> result = MountVerbNounConjunctionNoun(tutorial_adnominals, tutorial_adnominals_second, tutorial_conjunctions, dictionaries, tutorial_sources, order_verb, order_predicate);
                     seminars = DecodeLesson(result, vocabulary);
                 }
-                if (typeof(T) == typeof(Lesson)) { }
-                    seminars = MountVerbNounConjunctionNoun(lesson_adnominals, lesson_adnominals_second, lesson_conjunctions, dictionaries, lesson_sources, order);
+                if (typeof(T) == typeof(Lesson))
+                    seminars = MountVerbNounConjunctionNoun(lesson_adnominals, lesson_adnominals_second, lesson_conjunctions, dictionaries, lesson_sources, order_verb, order_predicate);
                 if (typeof(T) == typeof(Practice))
                 {
-                    List<Practice> result = MountVerbNounConjunctionNoun(practice_adnominals, practice_adnominals_second, practice_conjunctions, dictionaries, practice_sources, order);
+                    List<Practice> result = MountVerbNounConjunctionNoun(practice_adnominals, practice_adnominals_second, practice_conjunctions, dictionaries, practice_sources, order_verb, order_predicate);
                     seminars = DecodeLesson(result, vocabulary);
                 }
 
@@ -3868,7 +4362,7 @@ namespace Letter.Services
             }
         }
 
-        private bool VerifyVerbPredicative(List<Instruction> words, Dictionary<(byte[], byte[]), int> word_2_vec, Level level)
+        private bool VerifyVerbPredicative(List<Instruction> words, Dictionary<(byte[], byte[]), int> word_2_vec, Level level, int order_verb, int order_adjective)
         {
             try
             {
@@ -3877,8 +4371,8 @@ namespace Letter.Services
                 byte[]? adverbial = null;
                 byte[]? predicative = null;
 
-                adverbial = VerifyVerb(words, level, Rotate.Front);
-                predicative = VerifyAdjective(words, level, Rotate.Rear, Seat.Predicate);
+                adverbial = VerifyVerb(words, order_verb, level, Rotate.Front);
+                predicative = VerifyAdjective(words, order_adjective, level, Rotate.Rear, Seat.Predicate);
 
                 bool similarity = false;
                 similarity = this._wordEmbeddingService.Similarity(word_2_vec, adverbial, predicative);
@@ -3892,7 +4386,7 @@ namespace Letter.Services
             }
         }
 
-        private bool VerifyVerbPredicative(List<Word> words, Dictionary<(string, string), int> word_2_vec, Level level)
+        private bool VerifyVerbPredicative(List<Word> words, Dictionary<(string, string), int> word_2_vec, Level level, int order_verb, int order_adjective)
         {
             try
             {
@@ -3901,8 +4395,8 @@ namespace Letter.Services
                 string adverbial = string.Empty;
                 string predicative = string.Empty;
 
-                adverbial = VerifyVerb(words, level, Rotate.Front);
-                predicative = VerifyAdjective(words, level, Rotate.Rear, Seat.Predicate);
+                adverbial = VerifyVerb(words, order_verb, level, Rotate.Front);
+                predicative = VerifyAdjective(words, order_adjective, level, Rotate.Rear, Seat.Predicate);
 
                 bool similarity = false;
                 similarity = this._wordEmbeddingService.Similarity(word_2_vec, adverbial, predicative);
@@ -3916,7 +4410,7 @@ namespace Letter.Services
             }
         }
 
-        private bool VerifyVerbPredicative(List<Guidance> words, Dictionary<(int, int), int> word_2_vec, Level level)
+        private bool VerifyVerbPredicative(List<Guidance> words, Dictionary<(int, int), int> word_2_vec, Level level, int order_verb, int order_adjective)
         {
             try
             {
@@ -3925,8 +4419,8 @@ namespace Letter.Services
                 int adverbial = -1;
                 int predicative = -1;
 
-                adverbial = VerifyVerb(words, level, Rotate.Front);
-                predicative = VerifyAdjective(words, level, Rotate.Rear, Seat.Predicate);
+                adverbial = VerifyVerb(words, order_verb, level, Rotate.Front);
+                predicative = VerifyAdjective(words, order_adjective, level, Rotate.Rear, Seat.Predicate);
 
                 bool similarity = false;
                 similarity = this._wordEmbeddingService.Similarity(word_2_vec, adverbial, predicative);
@@ -3940,7 +4434,7 @@ namespace Letter.Services
             }
         }
 
-        private List<Tutorial> MountVerbPredicative<TKey, TValue>(List<Tutorial> adverbials_adjectives, List<Tutorial>? sources, Dictionary<TKey, TValue> dictionaries, int order) where TKey : notnull
+        private List<Tutorial> MountVerbPredicative<TKey, TValue>(List<Tutorial> adverbials_adjectives, List<Tutorial>? sources, Dictionary<TKey, TValue> dictionaries, int order_verb, int order_predicate) where TKey : notnull
         {
             try
             {
@@ -3949,7 +4443,7 @@ namespace Letter.Services
                 List<Tutorial> seminars = new List<Tutorial>();
 
                 byte[] predicate = this._wordEmbeddingService.Encode(this._predicate, this._syntax);
-                byte[] order_predicate = this._wordEmbeddingService.Encode(order, this._order);
+                byte[] order_predicative = this._wordEmbeddingService.Encode(order_predicate, this._order);
 
                 Dictionary<(byte[], byte[]), int> word_2_vec = dictionaries as Dictionary<(byte[], byte[]), int>;
 
@@ -3965,10 +4459,10 @@ namespace Letter.Services
                         foreach (Instruction item in adverbial_adjective.lecture)
                         {
                             Instruction word = new Instruction();
-                            word = Lecture(item.term, item.kind, predicate, adverbial_adjective.team, order_predicate);
+                            word = Lecture(item.term, item.kind, predicate, adverbial_adjective.team, order_predicative);
                             words1.Add(word);
                         }
-                        if (!VerifyVerbPredicative(words1, word_2_vec, Level.AsSpanSequence)) continue;
+                        if (!VerifyVerbPredicative(words1, word_2_vec, Level.AsSpanSequence, order_verb, order_predicate)) continue;
                         Tutorial seminar = new Tutorial();
                         seminar.lecture = words1;
                         seminars.Add(seminar);
@@ -3983,7 +4477,7 @@ namespace Letter.Services
             }
         }
 
-        private List<Lesson> MountVerbPredicative<TKey, TValue>(List<Lesson> adverbials_adjectives, List<Lesson>? sources, Dictionary<TKey, TValue> dictionaries, int order) where TKey : notnull
+        private List<Lesson> MountVerbPredicative<TKey, TValue>(List<Lesson> adverbials_adjectives, List<Lesson>? sources, Dictionary<TKey, TValue> dictionaries, int order_verb, int order_predicate) where TKey : notnull
         {
             try
             {
@@ -3992,7 +4486,7 @@ namespace Letter.Services
                 List<Lesson> seminars = new List<Lesson>();
 
                 string predicate = this._predicate;
-                int order_predicate = order;
+                int order_predicative = order_predicate;
 
                 Dictionary<(string, string), int> word_2_vec = dictionaries as Dictionary<(string, string), int>;
 
@@ -4008,11 +4502,11 @@ namespace Letter.Services
                         foreach (Word item in adverbial_adjective.lecture)
                         {
                             Word word = new Word();
-                            word = Lecture(item.term, item.kind, predicate, adverbial_adjective.team, order_predicate);
+                            word = Lecture(item.term, item.kind, predicate, adverbial_adjective.team, order_predicative);
                             words1.Add(word);
                         }
                         ;
-                        if (!VerifyVerbPredicative(words1, word_2_vec, Level.Index)) continue;
+                        if (!VerifyVerbPredicative(words1, word_2_vec, Level.Index, order_verb, order_predicate)) continue;
                         Lesson seminar = new Lesson();
                         seminar.lecture = words1;
                         seminars.Add(seminar);
@@ -4027,7 +4521,7 @@ namespace Letter.Services
             }
         }
 
-        private List<Practice> MountVerbPredicative<TKey, TValue>(List<Practice> adverbials_adjectives, List<Practice>? sources, Dictionary<TKey, TValue> dictionaries, int order) where TKey : notnull
+        private List<Practice> MountVerbPredicative<TKey, TValue>(List<Practice> adverbials_adjectives, List<Practice>? sources, Dictionary<TKey, TValue> dictionaries, int order_verb, int order_predicate) where TKey : notnull
         {
             try
             {
@@ -4036,7 +4530,7 @@ namespace Letter.Services
                 List<Practice> seminars = new List<Practice>();
 
                 int predicate = this._wordEmbeddingService.EncodeInt(this._predicate, this._syntax);
-                int order_predicate = this._wordEmbeddingService.EncodeInt(order, this._order);
+                int order_predicative = this._wordEmbeddingService.EncodeInt(order_predicate, this._order);
 
                 Dictionary<(int, int), int> word_2_vec = dictionaries as Dictionary<(int, int), int>;
 
@@ -4052,11 +4546,10 @@ namespace Letter.Services
                         foreach (Guidance item in adverbial_adjective.lecture)
                         {
                             Guidance word = new Guidance();
-                            word = Lecture(item.term, item.kind, predicate, adverbial_adjective.team, order_predicate);
+                            word = Lecture(item.term, item.kind, predicate, adverbial_adjective.team, order_predicative);
                             words1.Add(word);
                         }
-                        ;
-                        if (!VerifyVerbPredicative(words1, word_2_vec, Level.Default)) continue;
+                        if (!VerifyVerbPredicative(words1, word_2_vec, Level.Default, order_verb, order_predicative)) continue;
                         Practice seminar = new Practice();
                         seminar.lecture = words1;
                         seminars.Add(seminar);
@@ -4071,7 +4564,7 @@ namespace Letter.Services
             }
         }
 
-        public List<Lesson> MountVerbPredicative<T, TKey, TValue>(List<T>? homeworks, Dictionary<TKey, TValue> dictionaries, HashSet<string> vocabulary, List<T>? sources, int order) where TKey : notnull
+        public List<Lesson> MountVerbPredicative<T, TKey, TValue>(List<T>? homeworks, Dictionary<TKey, TValue> dictionaries, HashSet<string> vocabulary, List<T>? sources, int order_verb, int order_predicate) where TKey : notnull
         {
             try
             {
@@ -4121,14 +4614,14 @@ namespace Letter.Services
 
                 if (typeof(T) == typeof(Tutorial))
                 {
-                    List<Tutorial> result = MountVerbPredicative(tutorial_adverbials, tutorial_sources, dictionaries, order);
+                    List<Tutorial> result = MountVerbPredicative(tutorial_adverbials, tutorial_sources, dictionaries, order_verb, order_predicate);
                     seminars = DecodeLesson(result, vocabulary);
                 }
-                if (typeof(T) == typeof(Lesson)) { }
-                    seminars = MountVerbPredicative(lesson_adverbials, lesson_sources, dictionaries, order);
+                if (typeof(T) == typeof(Lesson))
+                    seminars = MountVerbPredicative(lesson_adverbials, lesson_sources, dictionaries, order_verb, order_predicate);
                 if (typeof(T) == typeof(Practice))
                 {
-                    List<Practice> result = MountVerbPredicative(practice_adverbials, practice_sources, dictionaries, order);
+                    List<Practice> result = MountVerbPredicative(practice_adverbials, practice_sources, dictionaries, order_verb, order_predicate);
                     seminars = DecodeLesson(result, vocabulary);
                 }
 
@@ -4141,7 +4634,7 @@ namespace Letter.Services
             }
         }
 
-        private bool VerifyVerbIndirectObject(List<Instruction> words, Dictionary<(byte[], byte[]), int> word_2_vec, Level level)
+        private bool VerifyVerbIndirectObject(List<Instruction> words, Dictionary<(byte[], byte[]), int> word_2_vec, Level level, int order_verb, int order_preposition)
         {
             try
             {
@@ -4150,8 +4643,8 @@ namespace Letter.Services
                 byte[]? adverbial = null;
                 byte[]? preposition = null;
 
-                adverbial = VerifyVerb(words, level, Rotate.Front);
-                preposition = VerifyPreposition(words, level);
+                adverbial = VerifyVerb(words, order_verb, level, Rotate.Front);
+                preposition = VerifyPreposition(words, order_preposition, level);
 
                 bool similarity = false;
                 similarity = this._wordEmbeddingService.Similarity(word_2_vec, adverbial, preposition);
@@ -4165,7 +4658,7 @@ namespace Letter.Services
             }
         }
 
-        private bool VerifyVerbIndirectObject(List<Word> words, Dictionary<(string, string), int> word_2_vec, Level level)
+        private bool VerifyVerbIndirectObject(List<Word> words, Dictionary<(string, string), int> word_2_vec, Level level, int order_verb, int order_preposition)
         {
             try
             {
@@ -4174,8 +4667,8 @@ namespace Letter.Services
                 string adverbial = string.Empty;
                 string preposition = string.Empty;
 
-                adverbial = VerifyVerb(words, level, Rotate.Front);
-                preposition = VerifyPreposition(words, level);
+                adverbial = VerifyVerb(words, order_verb, level, Rotate.Front);
+                preposition = VerifyPreposition(words, order_preposition, level);
 
                 bool similarity = false;
                 similarity = this._wordEmbeddingService.Similarity(word_2_vec, adverbial, preposition);
@@ -4189,7 +4682,7 @@ namespace Letter.Services
             }
         }
 
-        private bool VerifyVerbIndirectObject(List<Guidance> words, Dictionary<(int, int), int> word_2_vec, Level level)
+        private bool VerifyVerbIndirectObject(List<Guidance> words, Dictionary<(int, int), int> word_2_vec, Level level, int order_verb, int order_preposition)
         {
             try
             {
@@ -4198,8 +4691,8 @@ namespace Letter.Services
                 int adverbial = -1;
                 int preposition = -1;
 
-                adverbial = VerifyVerb(words, level, Rotate.Front);
-                preposition = VerifyPreposition(words, level);
+                adverbial = VerifyVerb(words, order_verb, level, Rotate.Front);
+                preposition = VerifyPreposition(words, order_preposition, level);
 
                 bool similarity = false;
                 similarity = this._wordEmbeddingService.Similarity(word_2_vec, adverbial, preposition);
@@ -4213,7 +4706,7 @@ namespace Letter.Services
             }
         }
 
-        private List<Tutorial> MountVerbIndirectObject<TKey, TValue>(List<Tutorial> prepositions, List<Tutorial>? sources, Dictionary<TKey, TValue> dictionaries, int order) where TKey : notnull
+        private List<Tutorial> MountVerbIndirectObject<TKey, TValue>(List<Tutorial> prepositions, List<Tutorial>? sources, Dictionary<TKey, TValue> dictionaries, int order_verb, int order_predicate) where TKey : notnull
         {
             try
             {
@@ -4222,7 +4715,7 @@ namespace Letter.Services
                 List<Tutorial> seminars = new List<Tutorial>();
 
                 byte[] predicate = this._wordEmbeddingService.Encode(this._predicate, this._syntax);
-                byte[] order_predicate = this._wordEmbeddingService.Encode(order, this._order);
+                byte[] order_indirect_object = this._wordEmbeddingService.Encode(order_predicate, this._order);
 
                 Dictionary<(byte[], byte[]), int> word_2_vec = dictionaries as Dictionary<(byte[], byte[]), int>;
 
@@ -4239,10 +4732,10 @@ namespace Letter.Services
                         foreach (Instruction item in preposition.lecture)
                         {
                             Instruction word = new Instruction();
-                            word = Lecture(item.term, item.kind, predicate, preposition.team, order_predicate);
+                            word = Lecture(item.term, item.kind, predicate, preposition.team, order_indirect_object);
                             words1.Add(word);
                         }
-                        if (!VerifyVerbIndirectObject(words1, word_2_vec, Level.AsSpanSequence)) continue;
+                        if (!VerifyVerbIndirectObject(words1, word_2_vec, Level.AsSpanSequence, order_verb, order_predicate)) continue;
                         Tutorial seminar = new Tutorial();
                         seminar.lecture = words1;
                         seminars.Add(seminar);
@@ -4257,7 +4750,7 @@ namespace Letter.Services
             }
         }
 
-        private List<Lesson> MountVerbIndirectObject<TKey, TValue>(List<Lesson> prepositions, List<Lesson>? sources, Dictionary<TKey, TValue> dictionaries, int order) where TKey : notnull
+        private List<Lesson> MountVerbIndirectObject<TKey, TValue>(List<Lesson> prepositions, List<Lesson>? sources, Dictionary<TKey, TValue> dictionaries, int order_verb, int order_predicate) where TKey : notnull
         {
             try
             {
@@ -4266,7 +4759,7 @@ namespace Letter.Services
                 List<Lesson> seminars = new List<Lesson>();
 
                 string predicate = this._predicate;
-                int order_predicate = order;
+                int order_indirect_object = order_predicate;
 
                 Dictionary<(string, string), int> word_2_vec = dictionaries as Dictionary<(string, string), int>;
 
@@ -4283,10 +4776,10 @@ namespace Letter.Services
                         foreach (Word item in preposition.lecture)
                         {
                             Word word = new Word();
-                            word = Lecture(item.term, item.kind, predicate, preposition.team, order_predicate);
+                            word = Lecture(item.term, item.kind, predicate, preposition.team, order_indirect_object);
                             words1.Add(word);
                         }
-                        if (!VerifyVerbIndirectObject(words1, word_2_vec, Level.Index)) continue;
+                        if (!VerifyVerbIndirectObject(words1, word_2_vec, Level.Index, order_verb, order_predicate)) continue;
                         Lesson seminar = new Lesson();
                         seminar.lecture = words1;
                         seminars.Add(seminar);
@@ -4301,7 +4794,7 @@ namespace Letter.Services
             }
         }
 
-        private List<Practice> MountVerbIndirectObject<TKey, TValue>(List<Practice> prepositions, List<Practice>? sources, Dictionary<TKey, TValue> dictionaries, int order) where TKey : notnull
+        private List<Practice> MountVerbIndirectObject<TKey, TValue>(List<Practice> prepositions, List<Practice>? sources, Dictionary<TKey, TValue> dictionaries, int order_verb, int order_predicate) where TKey : notnull
         {
             try
             {
@@ -4310,7 +4803,7 @@ namespace Letter.Services
                 List<Practice> seminars = new List<Practice>();
 
                 int predicate = this._wordEmbeddingService.EncodeInt(this._predicate, this._syntax);
-                int order_predicate = this._wordEmbeddingService.EncodeInt(order, this._order);
+                int order_indirect_object = this._wordEmbeddingService.EncodeInt(order_predicate, this._order);
 
                 Dictionary<(int, int), int> word_2_vec = dictionaries as Dictionary<(int, int), int>;
 
@@ -4327,10 +4820,10 @@ namespace Letter.Services
                         foreach (Guidance item in preposition.lecture)
                         {
                             Guidance word = new Guidance();
-                            word = Lecture(item.term, item.kind, predicate, preposition.team, order_predicate);
+                            word = Lecture(item.term, item.kind, predicate, preposition.team, order_indirect_object);
                             words1.Add(word);
                         }
-                        if (!VerifyVerbIndirectObject(words1, word_2_vec, Level.Default)) continue;
+                        if (!VerifyVerbIndirectObject(words1, word_2_vec, Level.Default, order_verb, order_predicate)) continue;
                         Practice seminar = new Practice();
                         seminar.lecture = words1;
                         seminars.Add(seminar);
@@ -4345,7 +4838,7 @@ namespace Letter.Services
             }
         }
 
-        public List<Lesson> MountVerbIndirectObject<T, TKey, TValue>(List<T>? homeworks, Dictionary<TKey, TValue> dictionaries, HashSet<string> vocabulary, List<T>? sources, int order) where TKey : notnull
+        public List<Lesson> MountVerbIndirectObject<T, TKey, TValue>(List<T>? homeworks, Dictionary<TKey, TValue> dictionaries, HashSet<string> vocabulary, List<T>? sources, int order_verb, int order_predicate) where TKey : notnull
         {
             try
             {
@@ -4395,14 +4888,644 @@ namespace Letter.Services
 
                 if (typeof(T) == typeof(Tutorial))
                 {
-                    List<Tutorial> result = MountVerbIndirectObject(tutorial_prepositions, tutorial_sources, dictionaries, order);
+                    List<Tutorial> result = MountVerbIndirectObject(tutorial_prepositions, tutorial_sources, dictionaries, order_verb, order_predicate);
                     seminars = DecodeLesson(result, vocabulary);
                 }
-                if (typeof(T) == typeof(Lesson)) { }
-                    seminars = MountVerbIndirectObject(lesson_prepositions, lesson_sources, dictionaries, order);
+                if (typeof(T) == typeof(Lesson))
+                    seminars = MountVerbIndirectObject(lesson_prepositions, lesson_sources, dictionaries, order_verb, order_predicate);
                 if (typeof(T) == typeof(Practice))
                 {
-                    List<Practice> result = MountVerbIndirectObject(practice_prepositions, practice_sources, dictionaries, order);
+                    List<Practice> result = MountVerbIndirectObject(practice_prepositions, practice_sources, dictionaries, order_verb, order_predicate);
+                    seminars = DecodeLesson(result, vocabulary);
+                }
+
+                return seminars;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private bool VerifyCompoundConjunction(List<Instruction> conjunctions, List<Instruction> firsts, List<Instruction> lasts, Dictionary<(byte[], byte[]), int> word_2_vec, Level level, Seat seat, int order)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify verb compound subject \"Syntax\" service failed!");
+
+                byte[]? conjunction = null;
+                byte[]? adnominal = null;
+                byte[]? adnominal_second = null;
+
+                conjunction = VerifyConjunction(conjunctions, order, level, seat);
+                adnominal = VerifyNoun(firsts, order, level, Rotate.Front, seat);
+                adnominal_second = VerifyNoun(lasts, order, level, Rotate.Rear, seat);
+
+                bool similarity = false;
+                similarity = this._wordEmbeddingService.Similarity(word_2_vec, adnominal, conjunction);
+                if (similarity) similarity = this._wordEmbeddingService.Similarity(word_2_vec, conjunction, adnominal_second);
+                if (similarity) return true;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private bool VerifyCompoundConjunction(List<Word> firsts, List<Word> conjunctions, List<Word> lasts, Dictionary<(string, string), int> word_2_vec, Level level, Seat seat, int order_first, int order_middle, int order_last)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify verb compound subject \"Syntax\" service failed!");
+
+                string conjunction = string.Empty;
+                string adnominal = string.Empty;
+                string adnominal_second = string.Empty;
+
+                conjunction = VerifyConjunction(conjunctions, order_middle, level, seat);
+                adnominal = VerifyNoun(firsts, order_first, level, Rotate.Front, seat);
+                adnominal_second = VerifyNoun(lasts, order_last, level, Rotate.Rear, seat);
+
+                bool similarity = false;
+                similarity = this._wordEmbeddingService.Similarity(word_2_vec, adnominal, conjunction);
+                if (similarity) similarity = this._wordEmbeddingService.Similarity(word_2_vec, conjunction, adnominal_second);
+                if (similarity) return true;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private bool VerifyCompoundConjunction(List<Guidance> conjunctions, List<Guidance> firsts, List<Guidance> lasts, Dictionary<(int, int), int> word_2_vec, Level level, Seat seat, int order)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify verb compound subject \"Syntax\" service failed!");
+
+                int conjunction = -1;
+                int adnominal = -1;
+                int adnominal_second = -1;
+
+                conjunction = VerifyConjunction(conjunctions, order, level, seat);
+                adnominal = VerifyNoun(firsts, order, level, Rotate.Front, seat);
+                adnominal_second = VerifyNoun(lasts, order, level, Rotate.Rear, seat);
+
+                bool similarity = false;
+                similarity = this._wordEmbeddingService.Similarity(word_2_vec, adnominal, conjunction);
+                if (similarity) similarity = this._wordEmbeddingService.Similarity(word_2_vec, conjunction, adnominal_second);
+                if (similarity) return true;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+                        
+        private bool VerifyDirectObjectPreposition(List<Instruction> words, Dictionary<(byte[], byte[]), int>? word_2_vec, Level level, int order, int order_preposition)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify verb indirect object \"Syntax\" service failed!");
+
+                byte[]? preposition = null;
+                byte[]? adnominal = null;
+
+                preposition = VerifyPreposition(words, order_preposition, level);
+                adnominal = VerifyNoun(words, order, level, Rotate.Rear, Seat.Predicate);
+
+                bool similarity = false;
+                similarity = this._wordEmbeddingService.Similarity(word_2_vec, preposition, adnominal);
+                if (similarity) return true;
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private bool VerifyDirectObjectPreposition(List<Word> words, Dictionary<(string, string), int>? word_2_vec, Level level, int order, int order_preposition)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify verb indirect object \"Syntax\" service failed!");
+
+                string preposition = string.Empty;
+                string adnominal = string.Empty;
+
+                preposition = VerifyPreposition(words, order_preposition, level);
+                adnominal = VerifyNoun(words, order, level, Rotate.Rear, Seat.Predicate);
+
+                bool similarity = false;
+                similarity = this._wordEmbeddingService.Similarity(word_2_vec, preposition, adnominal);
+                if (similarity) return true;
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private bool VerifyDirectObjectPreposition(List<Guidance> words, Dictionary<(int, int), int>? word_2_vec, Level level, int order, int order_preposition)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify verb indirect object \"Syntax\" service failed!");
+
+                int preposition = -1;
+                int adnominal = -1;
+
+                preposition = VerifyPreposition(words, order_preposition, level);
+                adnominal = VerifyNoun(words, order, level, Rotate.Rear, Seat.Predicate);
+
+                bool similarity = false;
+                similarity = this._wordEmbeddingService.Similarity(word_2_vec, preposition, adnominal);
+                if (similarity) return true;
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<Tutorial> MountDirectObjectPreposition<TKey, TValue>(List<Tutorial> prepositions, List<Tutorial>? sources, Dictionary<TKey, TValue> dictionaries, int order_direct_object, int order_indirect_object) where TKey : notnull
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation mount verb indirect object \"Syntax\" view model failed!");
+
+                List<Tutorial> seminars = new List<Tutorial>();
+
+                byte[] predicate = this._wordEmbeddingService.Encode(this._predicate, this._syntax);
+                byte[] order = this._wordEmbeddingService.Encode(order_direct_object, this._order);
+                byte[] order_preposition = this._wordEmbeddingService.Encode(order_indirect_object, this._order);
+
+                Dictionary<(byte[], byte[]), int> word_2_vec = dictionaries as Dictionary<(byte[], byte[]), int>;
+
+                if ((prepositions == null) || (sources == null)) return seminars;
+                if ((prepositions.Count == 0) || (sources.Count == 0)) return seminars;
+                foreach (Tutorial source in sources)
+                {
+                    List<Instruction> words = source.lecture;
+                    foreach (Tutorial preposition in prepositions)
+                    {
+                        List<Instruction> words1 = new List<Instruction>();
+                        words.ForEach(item => words1.Add(item));
+                        foreach (Instruction item in preposition.lecture)
+                        {
+                            Instruction word = new Instruction();
+                            word = Lecture(item.term, item.kind, predicate, preposition.team, order_preposition);
+                            words1.Add(word);
+                        }
+                        if (!VerifyDirectObjectPreposition(words1, word_2_vec, Level.AsSpanSequence, order_direct_object, order_indirect_object)) continue;
+                        Tutorial seminar = new Tutorial();
+                        seminar.lecture = words1;
+                        seminars.Add(seminar);
+                    }
+                }
+                return seminars;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<Lesson> MountDirectObjectPreposition<TKey, TValue>(List<Lesson> prepositions, List<Lesson>? sources, Dictionary<TKey, TValue> dictionaries, int order_direct_object, int order_indirect_object) where TKey : notnull
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation mount verb indirect object \"Syntax\" view model failed!");
+
+                List<Lesson> seminars = new List<Lesson>();
+
+                string predicate = this._predicate;
+                int order = order_direct_object;
+                int order_preposition = order_indirect_object;
+
+                Dictionary<(string, string), int> word_2_vec = dictionaries as Dictionary<(string, string), int>;
+
+                if ((prepositions == null) || (sources == null)) return seminars;
+                if ((prepositions.Count == 0) || (sources.Count == 0)) return seminars;
+                foreach (Lesson source in sources)
+                {
+                    List<Word> words = source.lecture;
+                    foreach (Lesson preposition in prepositions)
+                    {
+                        List<Word> words1 = new List<Word>();
+                        words.ForEach(item => words1.Add(item));
+                        foreach (Word item in preposition.lecture)
+                        {
+                            Word word = new Word();
+                            word = Lecture(item.term, item.kind, predicate, preposition.team, order_preposition);
+                            words1.Add(word);
+                        }
+                        if (!VerifyDirectObjectPreposition(words1, word_2_vec, Level.AsSpanSequence, order_direct_object, order_indirect_object)) continue;
+                        Lesson seminar = new Lesson();
+                        seminar.lecture = words1;
+                        seminars.Add(seminar);
+                    }
+                }
+                return seminars;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<Practice> MountDirectObjectPreposition<TKey, TValue>(List<Practice> prepositions, List<Practice>? sources, Dictionary<TKey, TValue> dictionaries, int order_direct_object, int order_indirect_object) where TKey : notnull
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation mount verb indirect object \"Syntax\" view model failed!");
+
+                List<Practice> seminars = new List<Practice>();
+
+                int predicate = this._wordEmbeddingService.EncodeInt(this._predicate, this._syntax);
+                int order = this._wordEmbeddingService.EncodeInt(order_direct_object, this._order);
+                int order_preposition = this._wordEmbeddingService.EncodeInt(order_indirect_object, this._order);
+
+                Dictionary<(int, int), int> word_2_vec = dictionaries as Dictionary<(int, int), int>;
+
+                if ((prepositions == null) || (sources == null)) return seminars;
+                if ((prepositions.Count == 0) || (sources.Count == 0)) return seminars;
+                foreach (Practice source in sources)
+                {
+                    List<Guidance> words = source.lecture;
+                    foreach (Practice preposition in prepositions)
+                    {
+                        List<Guidance> words1 = new List<Guidance>();
+                        words.ForEach(item => words1.Add(item));
+                        foreach (Guidance item in preposition.lecture)
+                        {
+                            Guidance word = new Guidance();
+                            word = Lecture(item.term, item.kind, predicate, preposition.team, order_preposition);
+                            words1.Add(word);
+                        }
+                        if (!VerifyDirectObjectPreposition(words1, word_2_vec, Level.AsSpanSequence, order_direct_object, order_indirect_object)) continue;
+                        Practice seminar = new Practice();
+                        seminar.lecture = words1;
+                        seminars.Add(seminar);
+                    }
+                }
+                return seminars;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public List<Lesson> MountDirectObjectPreposition<T, TKey, TValue>(List<T>? homeworks, Dictionary<TKey, TValue> dictionaries, HashSet<string> vocabulary, List<T>? sources, int order_direct_object, int order_indirect_object) where TKey : notnull
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation mount verb indirect object \"Syntax\" view model failed!");
+
+                List<Lesson> seminars = new List<Lesson>();
+                if (homeworks == null) return seminars;
+
+                List<Lesson>? lessons = new List<Lesson>();
+                List<Tutorial>? tutorials = new List<Tutorial>();
+                List<Practice>? practices = new List<Practice>();
+
+                List<Tutorial> tutorial_prepositions = new List<Tutorial>();
+                List<Lesson> lesson_prepositions = new List<Lesson>();
+                List<Practice> practice_prepositions = new List<Practice>();
+
+                List<Tutorial>? tutorial_sources = new List<Tutorial>();
+                List<Lesson>? lesson_sources = new List<Lesson>();
+                List<Practice>? practice_sources = new List<Practice>();
+
+                if (typeof(T) == typeof(Tutorial))
+                {
+                    List<byte[]> kind_preposition = new List<byte[]>();
+                    byte[] sha_preposition = this._wordEmbeddingService.Encode(this._preposition, this._morphology);
+                    kind_preposition.Add(sha_preposition);
+                    tutorials = homeworks as List<Tutorial>;
+                    tutorial_sources = sources as List<Tutorial>;
+                    tutorial_prepositions = FilterLesson(tutorials, kind_preposition);
+                }
+                if (typeof(T) == typeof(Lesson))
+                {
+                    List<string> kind_preposition = new List<string>();
+                    kind_preposition.Add(this._preposition);
+                    lessons = homeworks as List<Lesson>;
+                    lesson_sources = sources as List<Lesson>;
+                    lesson_prepositions = FilterLesson(lessons, kind_preposition);
+                }
+                if (typeof(T) == typeof(Practice))
+                {
+                    List<int> kind_preposition = new List<int>();
+                    int index_preposition = this._wordEmbeddingService.EncodeInt(this._preposition, this._morphology);
+                    kind_preposition.Add(index_preposition);
+                    practices = homeworks as List<Practice>;
+                    practice_sources = sources as List<Practice>;
+                    practice_prepositions = FilterLesson(practices, kind_preposition);
+                }
+
+                if (typeof(T) == typeof(Tutorial))
+                {
+                    List<Tutorial> result = MountDirectObjectPreposition(tutorial_prepositions, tutorial_sources, dictionaries, order_direct_object, order_indirect_object);
+                    seminars = DecodeLesson(result, vocabulary);
+                }
+                if (typeof(T) == typeof(Lesson))
+                    seminars = MountDirectObjectPreposition(lesson_prepositions, lesson_sources, dictionaries, order_direct_object, order_indirect_object);
+                if (typeof(T) == typeof(Practice))
+                {
+                    List<Practice> result = MountDirectObjectPreposition(practice_prepositions, practice_sources, dictionaries, order_direct_object, order_indirect_object);
+                    seminars = DecodeLesson(result, vocabulary);
+                }
+
+                return seminars;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private bool VerifyIndirectObject(List<Instruction> words, Dictionary<(byte[], byte[]), int> word_2_vec, Level level, int order)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify verb indirect object \"Syntax\" service failed!");
+
+                byte[]? adnominal = null;
+                byte[]? preposition = null;
+
+                adnominal = VerifyNoun(words, order, level, Rotate.Rear, Seat.Predicate);
+                preposition = VerifyPreposition(words, order, level);
+
+                bool similarity = false;
+                similarity = this._wordEmbeddingService.Similarity(word_2_vec, preposition, adnominal);
+                if (similarity) return true;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private bool VerifyIndirectObject(List<Word> words, Dictionary<(string, string), int> word_2_vec, Level level, int order)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify verb indirect object \"Syntax\" service failed!");
+
+                string adnominal = string.Empty;
+                string preposition = string.Empty;
+
+                adnominal = VerifyNoun(words, order, level, Rotate.Rear, Seat.Predicate);
+                preposition = VerifyPreposition(words, order, level);
+
+                bool similarity = false;
+                similarity = this._wordEmbeddingService.Similarity(word_2_vec, preposition, adnominal);
+                if (similarity) return true;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private bool VerifyIndirectObject(List<Guidance> words, Dictionary<(int, int), int> word_2_vec, Level level, int order)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify verb indirect object \"Syntax\" service failed!");
+
+                int adnominal = -1;
+                int preposition = -1;
+
+                adnominal = VerifyNoun(words, order, level, Rotate.Rear, Seat.Predicate);
+                preposition = VerifyPreposition(words, order, level);
+
+                bool similarity = false;
+                similarity = this._wordEmbeddingService.Similarity(word_2_vec, preposition, adnominal);
+                if (similarity) return true;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<Lesson> MountDirectObjectIndirectObject<TKey, TValue>(List<Lesson> adnominals_adjunts, List<Lesson>? sources, Dictionary<TKey, TValue> dictionaries, int order_indirect_object) where TKey : notnull
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation mount verb noun \"Syntax\" view model failed!");
+
+                List<Lesson> seminars = new List<Lesson>();
+                string predicate = this._predicate;
+                int order_predicate = order_indirect_object;
+
+                Dictionary<(string, string), int> word_2_vec = dictionaries as Dictionary<(string, string), int>;
+
+                foreach (Lesson source in sources)
+                {
+                    List<Word> words = source.lecture;
+                    foreach (Lesson adnominal_adjunt in adnominals_adjunts)
+                    {
+                        List<Word> words1 = new List<Word>();
+                        words.ForEach(item => words1.Add(item));
+                        foreach (Word item in adnominal_adjunt.lecture)
+                        {
+                            Word word = new Word();
+                            word = Lecture(item.term, item.kind, predicate, adnominal_adjunt.team, order_predicate);
+                            words1.Add(word);
+                        }
+                        if (!VerifyIndirectObject(words1, word_2_vec, Level.Index, order_indirect_object)) continue;
+                        Lesson seminar = new Lesson();
+                        seminar.lecture = words1;
+                        seminars.Add(seminar);
+                    }
+                }
+                return seminars;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<Tutorial> MountDirectObjectIndirectObject<TKey, TValue>(List<Tutorial> adnominals_adjunts, List<Tutorial>? sources, Dictionary<TKey, TValue> dictionaries, int order_indirect_object) where TKey : notnull
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation mount verb noun \"Syntax\" view model failed!");
+
+                List<Tutorial> seminars = new List<Tutorial>();
+                byte[]? predicate = this._wordEmbeddingService.Encode(this._predicate, this._syntax);
+                byte[]? order_predicate = this._wordEmbeddingService.Encode(order_indirect_object, this._order);
+
+                Dictionary<(byte[], byte[]), int> word_2_vec = dictionaries as Dictionary<(byte[], byte[]), int>;
+
+                foreach (Tutorial source in sources)
+                {
+                    List<Instruction> words = source.lecture;
+                    foreach (Tutorial adnominal_adjunt in adnominals_adjunts)
+                    {
+                        List<Instruction> words1 = new List<Instruction>();
+                        words.ForEach(item => words1.Add(item));
+                        foreach (Instruction item in adnominal_adjunt.lecture)
+                        {
+                            Instruction word = new Instruction();
+                            word = Lecture(item.term, item.kind, predicate, adnominal_adjunt.team, order_predicate);
+                            words1.Add(word);
+                        }
+                        if (!VerifyIndirectObject(words1, word_2_vec, Level.Index, order_indirect_object)) continue;
+                        Tutorial seminar = new Tutorial();
+                        seminar.lecture = words1;
+                        seminars.Add(seminar);
+                    }
+                }
+                return seminars;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<Practice> MountDirectObjectIndirectObject<TKey, TValue>(List<Practice> adnominals_adjunts, List<Practice>? sources, Dictionary<TKey, TValue> dictionaries, int order_indirect_object) where TKey : notnull
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation mount verb noun \"Syntax\" view model failed!");
+
+                List<Practice> seminars = new List<Practice>();
+                int predicate = this._wordEmbeddingService.EncodeInt(this._predicate, this._syntax);
+                int order_predicate = this._wordEmbeddingService.EncodeInt(order_indirect_object, this._order);
+
+                Dictionary<(int, int), int> word_2_vec = dictionaries as Dictionary<(int, int), int>;
+
+                foreach (Practice source in sources)
+                {
+                    List<Guidance> words = source.lecture;
+                    foreach (Practice adnominal_adjunt in adnominals_adjunts)
+                    {
+                        List<Guidance> words1 = new List<Guidance>();
+                        words.ForEach(item => words1.Add(item));
+                        foreach (Guidance item in adnominal_adjunt.lecture)
+                        {
+                            Guidance word = new Guidance();
+                            word = Lecture(item.term, item.kind, predicate, adnominal_adjunt.team, order_predicate);
+                            words1.Add(word);
+                        }
+                        if (!VerifyIndirectObject(words1, word_2_vec, Level.Index, order_indirect_object)) continue;
+                        Practice seminar = new Practice();
+                        seminar.lecture = words1;
+                        seminars.Add(seminar);
+                    }
+                }
+                return seminars;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public List<Lesson> MountDirectObjectIndirectObject<T, TKey, TValue>(List<T>? homeworks, Dictionary<TKey, TValue> dictionaries, HashSet<string> vocabulary, List<T>? sources, int order_indirect_object) where TKey : notnull
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation mount direct object indirect object \"Syntax\" view model failed!");
+
+                List<Lesson> seminars = new List<Lesson>();
+                if (homeworks == null) return seminars;
+
+                List<Lesson>? lessons = new List<Lesson>();
+                List<Tutorial>? tutorials = new List<Tutorial>();
+                List<Practice>? practices = new List<Practice>();
+
+                List<Tutorial> tutorial_adnominals = new List<Tutorial>();
+                List<Lesson> lesson_adnominals = new List<Lesson>();
+                List<Practice> practice_adnominals = new List<Practice>();
+
+                List<Tutorial>? tutorial_sources = new List<Tutorial>();
+                List<Lesson>? lesson_sources = new List<Lesson>();
+                List<Practice>? practice_sources = new List<Practice>();
+
+                if (typeof(T) == typeof(Tutorial))
+                {
+                    List<byte[]> kind_adnominal = new List<byte[]>();
+                    byte[] sha_adnominal = this._wordEmbeddingService.Encode(this._adnominal_adjunct, this._morphology);
+                    kind_adnominal.Add(sha_adnominal);
+                    byte[] sha_personal = this._wordEmbeddingService.Encode(this._personal, this._morphology);
+                    kind_adnominal.Add(sha_personal);
+                    byte[] sha_demonstrative = this._wordEmbeddingService.Encode(this._demonstrative, this._morphology);
+                    kind_adnominal.Add(sha_demonstrative);
+                    tutorials = homeworks as List<Tutorial>;
+                    tutorial_sources = sources as List<Tutorial>;
+                    tutorial_adnominals = FilterLesson(tutorials, kind_adnominal);
+                }
+                if (typeof(T) == typeof(Lesson))
+                {
+                    List<string> kind_adnominal = new List<string>();
+                    kind_adnominal.Add(this._adnominal_adjunct);
+                    kind_adnominal.Add(this._personal);
+                    kind_adnominal.Add(this._demonstrative);
+                    lessons = homeworks as List<Lesson>;
+                    lesson_sources = sources as List<Lesson>;
+                    lesson_adnominals = FilterLesson(lessons, kind_adnominal);
+                }
+                if (typeof(T) == typeof(Practice))
+                {
+                    List<int> kind_adnominal = new List<int>();
+                    int index_adnominal = this._wordEmbeddingService.EncodeInt(this._adnominal_adjunct, this._morphology);
+                    kind_adnominal.Add(index_adnominal);
+                    int index_personal = this._wordEmbeddingService.EncodeInt(this._personal, this._morphology);
+                    kind_adnominal.Add(index_personal);
+                    int index_demostrative = this._wordEmbeddingService.EncodeInt(this._demonstrative, this._morphology);
+                    kind_adnominal.Add(index_demostrative);
+                    practices = homeworks as List<Practice>;
+                    practice_sources = sources as List<Practice>;
+                    practice_adnominals = FilterLesson(practices, kind_adnominal);
+                }
+
+                if (typeof(T) == typeof(Tutorial))
+                {
+                    List<Tutorial> result = MountDirectObjectIndirectObject(tutorial_adnominals, tutorial_sources, dictionaries, order_indirect_object);
+                    seminars = DecodeLesson(result, vocabulary);
+                }
+                if (typeof(T) == typeof(Lesson))
+                    seminars = MountDirectObjectIndirectObject(lesson_adnominals, lesson_sources, dictionaries, order_indirect_object);
+                if (typeof(T) == typeof(Practice))
+                {
+                    List<Practice> result = MountDirectObjectIndirectObject(practice_adnominals, practice_sources, dictionaries, order_indirect_object);
                     seminars = DecodeLesson(result, vocabulary);
                 }
 
@@ -4487,7 +5610,7 @@ namespace Letter.Services
             }
         }
 
-        public List<Lesson> PredicateDirectObject<T, TKey, TValue>(List<T> homeworks, Dictionary<(TKey, TValue), int> dictionaries, HashSet<string> vocabularies, List<Lesson> sources, int order_init) where TKey : notnull
+        public List<Lesson> PredicateDirectObject<T, TKey, TValue>(List<T> homeworks, Dictionary<(TKey, TValue), int> dictionaries, HashSet<string> vocabularies, List<Lesson> sources, int order_verb, int order_predicate) where TKey : notnull
         {
             try
             {
@@ -4507,22 +5630,22 @@ namespace Letter.Services
                 {
                     lessons = homeworks as List<Lesson>;
                     lessons_sources = sources;
-                    seminars = MountVerbNoun(lessons, dictionaries, vocabularies, lessons_sources, order_init);
-                    seminars = Union(seminars, MountVerbNounConjunctionNoun(lessons, dictionaries, vocabularies, lessons_sources, order_init));
+                    seminars = MountVerbNoun(lessons, dictionaries, vocabularies, lessons_sources, order_verb, order_predicate);
+                    seminars = Union(seminars, MountVerbNounConjunctionNoun(lessons, dictionaries, vocabularies, lessons_sources, order_verb, order_predicate));
                 }
                 if (typeof(T) == typeof(Tutorial))
                 {
                     tutorials = homeworks as List<Tutorial>;
                     tutorials_sources = EncodeLesson(sources, vocabularies);
-                    seminars = MountVerbNoun(tutorials, dictionaries, vocabularies, tutorials_sources, order_init);
-                    seminars = Union(seminars, MountVerbNounConjunctionNoun(tutorials, dictionaries, vocabularies, tutorials_sources, order_init));
+                    seminars = MountVerbNoun(tutorials, dictionaries, vocabularies, tutorials_sources, order_verb, order_predicate);
+                    seminars = Union(seminars, MountVerbNounConjunctionNoun(tutorials, dictionaries, vocabularies, tutorials_sources, order_verb, order_predicate));
                 }
                 if (typeof(T) == typeof(Practice))
                 {
                     practices = homeworks as List<Practice>;
                     practices_sources = EncodeLessonInt(sources, vocabularies);
-                    seminars = MountVerbNoun(practices, dictionaries, vocabularies, practices_sources, order_init);
-                    seminars = Union(seminars, MountVerbNounConjunctionNoun(practices, dictionaries, vocabularies, practices_sources, order_init));
+                    seminars = MountVerbNoun(practices, dictionaries, vocabularies, practices_sources, order_verb, order_predicate);
+                    seminars = Union(seminars, MountVerbNounConjunctionNoun(practices, dictionaries, vocabularies, practices_sources, order_verb, order_predicate));
                 }
 
                 return seminars;
@@ -4534,7 +5657,7 @@ namespace Letter.Services
             }
         }
 
-        public List<Lesson> PredicatePredicative<T, TKey, TValue>(List<T> homeworks, Dictionary<(TKey, TValue), int> dictionaries, HashSet<string> vocabularies, List<Lesson> sources, int order_init) where TKey : notnull
+        public List<Lesson> PredicatePredicative<T, TKey, TValue>(List<T> homeworks, Dictionary<(TKey, TValue), int> dictionaries, HashSet<string> vocabularies, List<Lesson> sources, int order_verb, int order_predicate) where TKey : notnull
         {
             try
             {
@@ -4554,19 +5677,19 @@ namespace Letter.Services
                 {
                     lessons = homeworks as List<Lesson>;
                     lessons_sources = sources;
-                    seminars = MountVerbPredicative(lessons, dictionaries, vocabularies, lessons_sources, order_init);
+                    seminars = MountVerbPredicative(lessons, dictionaries, vocabularies, lessons_sources, order_verb, order_predicate);
                 }
                 if (typeof(T) == typeof(Tutorial))
                 {
                     tutorials = homeworks as List<Tutorial>;
                     tutorials_sources = EncodeLesson(sources, vocabularies);
-                    seminars = MountVerbPredicative(tutorials, dictionaries, vocabularies, tutorials_sources, order_init);
+                    seminars = MountVerbPredicative(tutorials, dictionaries, vocabularies, tutorials_sources, order_verb, order_predicate);
                 }
                 if (typeof(T) == typeof(Practice))
                 {
                     practices = homeworks as List<Practice>;
                     practices_sources = EncodeLessonInt(sources, vocabularies);
-                    seminars = MountVerbPredicative(practices, dictionaries, vocabularies, practices_sources, order_init);
+                    seminars = MountVerbPredicative(practices, dictionaries, vocabularies, practices_sources, order_verb, order_predicate);
                 }
 
                 return seminars;
@@ -4578,7 +5701,7 @@ namespace Letter.Services
             }
         }
 
-        public List<Lesson> PredicateIndirectObject<T, TKey, TValue>(List<T> homeworks, Dictionary<(TKey, TValue), int> dictionaries, HashSet<string> vocabularies, List<Lesson> sources, int order_init) where TKey : notnull
+        public List<Lesson> PredicateIndirectObject<T, TKey, TValue>(List<T> homeworks, Dictionary<(TKey, TValue), int> dictionaries, HashSet<string> vocabularies, List<Lesson> sources, int order_verb, int order_predicate) where TKey : notnull
         {
             try
             {
@@ -4599,9 +5722,9 @@ namespace Letter.Services
                     lessons = homeworks as List<Lesson>;
                     lessons_sources = sources;
                     List<Lesson> prepositions = new List<Lesson>();
-                    prepositions = MountVerbIndirectObject(lessons, dictionaries, vocabularies, lessons_sources, order_init);
-                    seminars = Union(seminars, MountVerbNoun(lessons, dictionaries, vocabularies, prepositions, order_init));
-                    seminars = Union(seminars, MountVerbNounConjunctionNoun(lessons, dictionaries, vocabularies, prepositions, order_init));
+                    prepositions = MountVerbIndirectObject(lessons, dictionaries, vocabularies, lessons_sources, order_verb, order_predicate);
+                    seminars = Union(seminars, MountVerbNoun(lessons, dictionaries, vocabularies, prepositions, order_verb, order_predicate));
+                    seminars = Union(seminars, MountVerbNounConjunctionNoun(lessons, dictionaries, vocabularies, prepositions, order_verb, order_predicate));
 
                 }
                 if (typeof(T) == typeof(Tutorial))
@@ -4609,20 +5732,76 @@ namespace Letter.Services
                     tutorials = homeworks as List<Tutorial>;
                     tutorials_sources = EncodeLesson(sources, vocabularies);
                     List<Lesson> prepositions = new List<Lesson>();
-                    prepositions = MountVerbIndirectObject(tutorials, dictionaries, vocabularies, tutorials_sources, order_init);
+                    prepositions = MountVerbIndirectObject(tutorials, dictionaries, vocabularies, tutorials_sources, order_verb, order_predicate);
                     tutorials_sources = EncodeLesson(prepositions, vocabularies);
-                    seminars = Union(seminars, MountVerbNoun(tutorials, dictionaries, vocabularies, tutorials_sources, order_init));
-                    seminars = Union(seminars, MountVerbNounConjunctionNoun(tutorials, dictionaries, vocabularies, tutorials_sources, order_init));
+                    seminars = Union(seminars, MountVerbNoun(tutorials, dictionaries, vocabularies, tutorials_sources, order_verb, order_predicate));
+                    seminars = Union(seminars, MountVerbNounConjunctionNoun(tutorials, dictionaries, vocabularies, tutorials_sources, order_verb, order_predicate));
                 }
                 if (typeof(T) == typeof(Practice))
                 {
                     practices = homeworks as List<Practice>;
                     practices_sources = EncodeLessonInt(sources, vocabularies);
                     List<Lesson> prepositions = new List<Lesson>();
-                    prepositions = MountVerbIndirectObject(practices, dictionaries, vocabularies, practices_sources, order_init);
+                    prepositions = MountVerbIndirectObject(practices, dictionaries, vocabularies, practices_sources, order_verb, order_predicate);
                     practices_sources = EncodeLessonInt(prepositions, vocabularies);
-                    seminars = Union(seminars, MountVerbNoun(practices, dictionaries, vocabularies, practices_sources, order_init));
-                    seminars = Union(seminars, MountVerbNounConjunctionNoun(practices, dictionaries, vocabularies, practices_sources, order_init));
+                    seminars = Union(seminars, MountVerbNoun(practices, dictionaries, vocabularies, practices_sources, order_verb, order_predicate));
+                    seminars = Union(seminars, MountVerbNounConjunctionNoun(practices, dictionaries, vocabularies, practices_sources, order_verb, order_predicate));
+                }
+
+                return seminars;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public List<Lesson> PredicateDirectObjectIndirectObject<T, TKey, TValue>(List<T> homeworks, Dictionary<(TKey, TValue), int> dictionaries, HashSet<string> vocabularies, List<Lesson> sources, int order_direct_object, int order_indirect_object) where TKey : notnull
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation predicate indirect object \"Syntax\" service failed!");
+
+                List<Lesson>? lessons = new List<Lesson>();
+                List<Tutorial>? tutorials = new List<Tutorial>();
+                List<Practice>? practices = new List<Practice>();
+
+                List<Lesson>? lessons_sources = new List<Lesson>();
+                List<Tutorial>? tutorials_sources = new List<Tutorial>();
+                List<Practice>? practices_sources = new List<Practice>();
+
+                List<Lesson> seminars = new List<Lesson>();
+
+                if (typeof(T) == typeof(Lesson))
+                {
+                    lessons = homeworks as List<Lesson>;
+                    lessons_sources = sources;
+                    List<Lesson> prepositions = new List<Lesson>();
+                    prepositions = MountDirectObjectPreposition(lessons, dictionaries, vocabularies, lessons_sources, order_direct_object, order_indirect_object);
+                    seminars = Union(seminars, MountDirectObjectIndirectObject(lessons, dictionaries, vocabularies, prepositions, order_indirect_object));
+                    //seminars = Union(seminars, MountVerbNounConjunctionNoun(lessons, dictionaries, vocabularies, prepositions, order_init));
+
+                }
+                if (typeof(T) == typeof(Tutorial))
+                {
+                    tutorials = homeworks as List<Tutorial>;
+                    tutorials_sources = EncodeLesson(sources, vocabularies);
+                    List<Lesson> prepositions = new List<Lesson>();
+                    prepositions = MountDirectObjectPreposition(tutorials, dictionaries, vocabularies, tutorials_sources, order_direct_object, order_indirect_object);
+                    tutorials_sources = EncodeLesson(prepositions, vocabularies);
+                    seminars = Union(seminars, MountDirectObjectIndirectObject(tutorials, dictionaries, vocabularies, tutorials_sources, order_indirect_object));
+                    //seminars = Union(seminars, MountVerbNounConjunctionNoun(tutorials, dictionaries, vocabularies, tutorials_sources, order_init));
+                }
+                if (typeof(T) == typeof(Practice))
+                {
+                    practices = homeworks as List<Practice>;
+                    practices_sources = EncodeLessonInt(sources, vocabularies);
+                    List<Lesson> prepositions = new List<Lesson>();
+                    prepositions = MountDirectObjectPreposition(practices, dictionaries, vocabularies, practices_sources, order_direct_object, order_indirect_object);
+                    practices_sources = EncodeLessonInt(prepositions, vocabularies);
+                    seminars = Union(seminars, MountDirectObjectIndirectObject(practices, dictionaries, vocabularies, practices_sources, order_indirect_object));
+                    //seminars = Union(seminars, MountVerbNounConjunctionNoun(practices, dictionaries, vocabularies, practices_sources, order_init));
                 }
 
                 return seminars;
@@ -4634,7 +5813,6 @@ namespace Letter.Services
             }
         }
         //------------------
-
         private bool VerifyVerbSampleSubject(List<Word> words, List<Sentenca> sentences)
         {
             try
@@ -6761,8 +7939,7 @@ namespace Letter.Services
                             word = Lecture(item.term, item.kind, subject, adnominal_adjunct.team, order_noun);
                             words.Add(word);
                         }
-                        ;
-                        if (!VerifyVerbSampleSubject(words, word_2_vec, Level.AsSpanSequence)) continue;
+                        if (!VerifyVerbSampleSubject(words, word_2_vec, Level.AsSpanSequence, this._order_1, this._order_2)) continue;
                         Tutorial seminar = new Tutorial();
                         seminar.lecture = words;
                         seminars.Add(seminar);
@@ -7754,7 +8931,6 @@ namespace Letter.Services
                             word = Lecture(item.term, item.kind, predicate, adnominal_adjunct.team, order_indirect_object);
                             words1.Add(word);
                         }
-                        ;
                         if (!VerifyIndirectObject(words1, word_2_vec, order_indirect_object)) continue;
                         Tutorial seminar = new Tutorial();
                         seminar.lecture = words1;

@@ -1,0 +1,701 @@
+        private string VerifyNoun(List<Word> words, int order, Level level, Rotate rotate, Seat seat)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify noun \"Syntax\" service failed!");
+
+                string adnominal = string.Empty;
+                int order_conjunction = this._order_1;
+
+                adnominal = VerifyNoun(words, order, level, rotate, seat, order_conjunction);
+                return adnominal;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private string VerifyNoun(List<Word> words, int order, Level level, Rotate rotate, Seat seat, int order_conjunction)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify noun \"Syntax\" service failed!");
+
+                string syntax = string.Empty;
+                if (seat == Seat.Subject)
+                    syntax = this._subject;
+                if (seat == Seat.Predicate)
+                    syntax = this._predicate;
+
+                string morphology_adnominal_adjunct = this._adnominal_adjunct;
+                string morphology_noun = this._noun;
+                string morphology_adjective = this._adjective;
+                string morphology_article = this._article;
+                string morphology_numeral = this._numeral;
+                string morphology_pronoun = this._pronoun;
+                int morphology_order = order;
+
+                string noun = string.Empty;
+                string adjective = string.Empty;
+                string article = string.Empty;
+                string numeral = string.Empty;
+                string pronoun = string.Empty;
+
+                string adnominal = string.Empty;
+
+                if (level == Level.Default)
+                {
+                    foreach (Word item in words)
+                    {
+                        if ((item.sentence == syntax)
+                            && (item.team == morphology_adnominal_adjunct)
+                            && (item.kind == morphology_adjective)
+                            && (item.order == morphology_order)) adjective = item.term;
+                        if ((item.sentence == syntax)
+                            && (item.team == morphology_adnominal_adjunct)
+                            && (item.kind == morphology_article)
+                            && (item.order == morphology_order)) article = item.term;
+                        if ((item.sentence == syntax)
+                            && (item.team == morphology_adnominal_adjunct)
+                            && (item.kind == morphology_numeral)
+                            && (item.order == morphology_order)) numeral = item.term;
+                        if ((item.sentence == syntax)
+                            && (item.team == morphology_adnominal_adjunct)
+                            && (item.kind == morphology_pronoun)
+                            && (item.order == morphology_order)) pronoun = item.term;
+                        if ((item.sentence == syntax)
+                            && (item.team == morphology_adnominal_adjunct)
+                            && (item.kind == morphology_noun)
+                            && (item.order == morphology_order)) noun = item.term;
+                        if ((item.sentence == syntax)
+                            && (!(item.team == morphology_adnominal_adjunct))
+                            && (item.kind == morphology_pronoun)
+                            && (item.order == morphology_order)) noun = item.term;
+                    }
+                }
+                if (level == Level.Equal)
+                {
+                    foreach (Word item in words)
+                    {
+                        if ((item.sentence.Equals(syntax))
+                            && (item.team.Equals(morphology_adnominal_adjunct))
+                            && (item.kind.Equals(morphology_adjective))
+                            && (item.order.Equals(morphology_order))) adjective = item.term;
+                        if ((item.sentence.Equals(syntax))
+                            && (item.team.Equals(morphology_adnominal_adjunct))
+                            && (item.kind.Equals(morphology_article))
+                            && (item.order.Equals(morphology_order))) article = item.term;
+                        if ((item.sentence.Equals(syntax))
+                            && (item.team.Equals(morphology_adnominal_adjunct))
+                            && (item.kind.Equals(morphology_numeral))
+                            && (item.order.Equals(morphology_order))) numeral = item.term;
+                        if ((item.sentence.Equals(syntax))
+                            && (item.team.Equals(morphology_adnominal_adjunct))
+                            && (item.kind.Equals(morphology_pronoun))
+                            && (item.order.Equals(morphology_order))) pronoun = item.term;
+                        if ((item.sentence.Equals(syntax))
+                            && (item.team.Equals(morphology_adnominal_adjunct))
+                            && (item.kind.Equals(morphology_noun))
+                            && (item.order.Equals(morphology_order))) noun = item.term;
+                        if ((item.sentence.Equals(syntax))
+                            && (!item.team.Equals(morphology_adnominal_adjunct))
+                            && (item.kind.Equals(morphology_pronoun))
+                            && (item.order.Equals(morphology_order))) noun = item.term;
+                    }
+                }
+                if (level == Level.AsSpanSequence)
+                {
+                    foreach (Word item in words)
+                    {
+                        if ((item.sentence.AsSpan().SequenceEqual(syntax))
+                            && (item.team.AsSpan().SequenceEqual(morphology_adnominal_adjunct))
+                            && (item.kind.AsSpan().SequenceEqual(morphology_adjective))
+                            && (item.order == morphology_order)) adjective = item.term;
+                        if ((item.sentence.AsSpan().SequenceEqual(syntax))
+                            && (item.team.AsSpan().SequenceEqual(morphology_adnominal_adjunct))
+                            && (item.kind.AsSpan().SequenceEqual(morphology_article))
+                            && (item.order == morphology_order)) article = item.term;
+                        if ((item.sentence.AsSpan().SequenceEqual(syntax))
+                            && (item.team.AsSpan().SequenceEqual(morphology_adnominal_adjunct))
+                            && (item.kind.AsSpan().SequenceEqual(morphology_numeral))
+                            && (item.order == morphology_order)) numeral = item.term;
+                        if ((item.sentence.AsSpan().SequenceEqual(syntax))
+                            && (item.team.AsSpan().SequenceEqual(morphology_adnominal_adjunct))
+                            && (item.kind.AsSpan().SequenceEqual(morphology_pronoun))
+                            && (item.order == morphology_order)) pronoun = item.term;
+                        if ((item.sentence.AsSpan().SequenceEqual(syntax))
+                            && (item.team.AsSpan().SequenceEqual(morphology_adnominal_adjunct))
+                            && (item.kind.AsSpan().SequenceEqual(morphology_noun))
+                            && (item.order == morphology_order)) noun = item.term;
+                        if ((item.sentence.AsSpan().SequenceEqual(syntax))
+                            && (!item.team.AsSpan().SequenceEqual(morphology_adnominal_adjunct))
+                            && (item.kind.AsSpan().SequenceEqual(morphology_pronoun))
+                            && (item.order == morphology_order)) noun = item.term;
+                    }
+                }
+                if (level == Level.Sequence)
+                {
+                    foreach (Word item in words)
+                    {
+                        if ((item.sentence.SequenceEqual(syntax))
+                            && (item.team.SequenceEqual(morphology_adnominal_adjunct))
+                            && (item.kind.SequenceEqual(morphology_adjective))
+                            && (item.order == morphology_order)) adjective = item.term;
+                        if ((item.sentence.SequenceEqual(syntax))
+                            && (item.team.SequenceEqual(morphology_adnominal_adjunct))
+                            && (item.kind.SequenceEqual(morphology_article))
+                            && (item.order == morphology_order)) article = item.term;
+                        if ((item.sentence.SequenceEqual(syntax))
+                            && (item.team.SequenceEqual(morphology_adnominal_adjunct))
+                            && (item.kind.SequenceEqual(morphology_numeral))
+                            && (item.order == morphology_order)) numeral = item.term;
+                        if ((item.sentence.SequenceEqual(syntax))
+                            && (item.team.SequenceEqual(morphology_adnominal_adjunct))
+                            && (item.kind.SequenceEqual(morphology_pronoun))
+                            && (item.order == morphology_order)) pronoun = item.term;
+                        if ((item.sentence.SequenceEqual(syntax))
+                            && (item.team.SequenceEqual(morphology_adnominal_adjunct))
+                            && (item.kind.SequenceEqual(morphology_noun))
+                            && (item.order == morphology_order)) noun = item.term;
+                        if ((item.sentence.SequenceEqual(syntax))
+                            && (!item.team.SequenceEqual(morphology_adnominal_adjunct))
+                            && (item.kind.SequenceEqual(morphology_pronoun))
+                            && (item.order == morphology_order)) noun = item.term;
+                    }
+                }
+                if (level == Level.Compare)
+                {
+                    foreach (Word item in words)
+                    {
+                        if ((item.sentence.CompareTo(syntax) != -1)
+                            && (item.team.CompareTo(morphology_adnominal_adjunct) != -1)
+                            && (item.kind.CompareTo(morphology_adjective) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) adjective = item.term;
+                        if ((item.sentence.CompareTo(syntax) != -1)
+                            && (item.team.CompareTo(morphology_adnominal_adjunct) != -1)
+                            && (item.kind.CompareTo(morphology_article) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) article = item.term;
+                        if ((item.sentence.CompareTo(syntax) != -1)
+                            && (item.team.CompareTo(morphology_adnominal_adjunct) != -1)
+                            && (item.kind.CompareTo(morphology_numeral) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) numeral = item.term;
+                        if ((item.sentence.CompareTo(syntax) != -1)
+                            && (item.team.CompareTo(morphology_adnominal_adjunct) != -1)
+                            && (item.kind.CompareTo(morphology_pronoun) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) pronoun = item.term;
+                        if ((item.sentence.CompareTo(syntax) != -1)
+                            && (item.team.CompareTo(morphology_adnominal_adjunct) != -1)
+                            && (item.kind.CompareTo(morphology_noun) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) noun = item.term;
+                        if ((item.sentence.CompareTo(syntax) != -1)
+                            && (!(item.team.CompareTo(morphology_adnominal_adjunct) != -1))
+                            && (item.kind.CompareTo(morphology_pronoun) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) noun = item.term;
+                    }
+                }
+                if (level == Level.Index)
+                {
+                    foreach (Word item in words)
+                    {
+                        if ((item.sentence.IndexOf(syntax) != -1)
+                            && (item.team.IndexOf(morphology_adnominal_adjunct) != -1)
+                            && (item.kind.IndexOf(morphology_adjective) != -1)
+                            && (item.order == morphology_order)) adjective = item.term;
+                        if ((item.sentence.IndexOf(syntax) != -1)
+                            && (item.team.IndexOf(morphology_adnominal_adjunct) != -1)
+                            && (item.kind.IndexOf(morphology_article) != -1)
+                            && (item.order == morphology_order)) article = item.term;
+                        if ((item.sentence.IndexOf(syntax) != -1)
+                            && (item.team.IndexOf(morphology_adnominal_adjunct) != -1)
+                            && (item.kind.IndexOf(morphology_numeral) != -1)
+                            && (item.order == morphology_order)) numeral = item.term;
+                        if ((item.sentence.IndexOf(syntax) != -1)
+                            && (item.team.IndexOf(morphology_adnominal_adjunct) != -1)
+                            && (item.kind.IndexOf(morphology_pronoun) != -1)
+                            && (item.order == morphology_order)) pronoun = item.term;
+                        if ((item.sentence.IndexOf(syntax) != -1)
+                            && (item.team.IndexOf(morphology_adnominal_adjunct) != -1)
+                            && (item.kind.IndexOf(morphology_noun) != -1)
+                            && (item.order == morphology_order)) noun = item.term;
+                        if ((item.sentence.IndexOf(syntax) != -1)
+                            && (!(item.team.IndexOf(morphology_adnominal_adjunct) != -1))
+                            && (item.kind.IndexOf(morphology_pronoun) != -1)
+                            && (item.order == morphology_order)) noun = item.term;
+                    }
+                }
+
+                if (rotate == Rotate.Front)
+                {
+                    if (noun != string.Empty)
+                        adnominal = noun;
+                    if ((noun != string.Empty) && (adjective != string.Empty))
+                        adnominal = noun;
+                    if ((noun != string.Empty) && (article != string.Empty))
+                        adnominal = noun;
+                    if ((noun != string.Empty) && (numeral != string.Empty))
+                        adnominal = noun;
+                    if ((noun != string.Empty) && (pronoun != string.Empty))
+                        adnominal = noun;
+                }
+                if (rotate == Rotate.Rear)
+                {
+                    if (noun != string.Empty)
+                        adnominal = noun;
+                    if ((noun != string.Empty) && (adjective != string.Empty))
+                        adnominal = adjective;
+                    if ((noun != string.Empty) && (article != string.Empty))
+                        adnominal = article;
+                    if ((noun != string.Empty) && (numeral != string.Empty))
+                        adnominal = numeral;
+                    if ((noun != string.Empty) && (pronoun != string.Empty))
+                        adnominal = pronoun;
+                }
+
+                return adnominal;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private byte[]? VerifyNoun(List<Instruction> words, int order, Level level, Rotate rotate, Seat seat)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify noun \"Syntax\" service failed!");
+
+                byte[]? adnominal = null;
+                byte[]? order_conjunction = this._tutorial_sequence_1;
+
+                adnominal = VerifyNoun(words, order, level, rotate, seat, order_conjunction);
+                return adnominal;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private byte[]? VerifyNoun(List<Instruction> words, int order, Level level, Rotate rotate, Seat seat, byte[] order_conjunction)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify noun \"Syntax\" service failed!");
+
+                byte[] syntax = null;
+                if (seat == Seat.Subject)
+                    syntax = this._wordEmbeddingService.Encode(this._subject, this._syntax);
+                if (seat == Seat.Predicate)
+                    syntax = this._wordEmbeddingService.Encode(this._predicate, this._syntax);
+
+                byte[] morphology_adnominal_adjunct = this._wordEmbeddingService.Encode(this._adnominal_adjunct, this._morphology);
+                byte[] morphology_noun = this._wordEmbeddingService.Encode(this._noun, this._morphology);
+                byte[] morphology_adjective = this._wordEmbeddingService.Encode(this._adjective, this._morphology);
+                byte[] morphology_article = this._wordEmbeddingService.Encode(this._article, this._morphology);
+                byte[] morphology_numeral = this._wordEmbeddingService.Encode(this._numeral, this._morphology);
+                byte[] morphology_pronoun = this._wordEmbeddingService.Encode(this._pronoun, this._morphology);
+                byte[] morphology_order = this._wordEmbeddingService.Encode(order, this._order);
+
+                byte[]? noun = null;
+                byte[]? adjective = null;
+                byte[]? article = null;
+                byte[]? numeral = null;
+                byte[]? pronoun = null;
+
+                byte[]? adnominal = null;
+
+                if (level == Level.Default)
+                {
+                    foreach (Instruction item in words)
+                    {
+                        if ((item.sentence == syntax)
+                            && (item.team == morphology_adnominal_adjunct)
+                            && (item.kind == morphology_adjective)
+                            && (item.order == morphology_order)) adjective = item.term;
+                        if ((item.sentence == syntax)
+                            && (item.team == morphology_adnominal_adjunct)
+                            && (item.kind == morphology_article)
+                            && (item.order == morphology_order)) article = item.term;
+                        if ((item.sentence == syntax)
+                            && (item.team == morphology_adnominal_adjunct)
+                            && (item.kind == morphology_numeral)
+                            && (item.order == morphology_order)) numeral = item.term;
+                        if ((item.sentence == syntax)
+                            && (item.team == morphology_adnominal_adjunct)
+                            && (item.kind == morphology_pronoun)
+                            && (item.order == morphology_order)) pronoun = item.term;
+                        if ((item.sentence == syntax)
+                            && (item.team == morphology_adnominal_adjunct)
+                            && (item.kind == morphology_noun)
+                            && (item.order == morphology_order)) noun = item.term;
+                        if ((item.sentence == syntax)
+                            && (!(item.team == morphology_adnominal_adjunct))
+                            && (item.kind == morphology_pronoun)
+                            && (item.order == morphology_order)) noun = item.term;
+                    }
+                }
+                if (level == Level.Equal)
+                {
+                    foreach (Instruction item in words)
+                    {
+                        if ((item.sentence.Equals(syntax))
+                            && (item.team.Equals(morphology_adnominal_adjunct))
+                            && (item.kind.Equals(morphology_adjective))
+                            && (item.order.Equals(morphology_order))) adjective = item.term;
+                        if ((item.sentence.Equals(syntax))
+                            && (item.team.Equals(morphology_adnominal_adjunct))
+                            && (item.kind.Equals(morphology_article))
+                            && (item.order.Equals(morphology_order))) article = item.term;
+                        if ((item.sentence.Equals(syntax))
+                            && (item.team.Equals(morphology_adnominal_adjunct))
+                            && (item.kind.Equals(morphology_numeral))
+                            && (item.order.Equals(morphology_order))) numeral = item.term;
+                        if ((item.sentence.Equals(syntax))
+                            && (item.team.Equals(morphology_adnominal_adjunct))
+                            && (item.kind.Equals(morphology_pronoun))
+                            && (item.order.Equals(morphology_order))) pronoun = item.term;
+                        if ((item.sentence.Equals(syntax))
+                            && (item.team.Equals(morphology_adnominal_adjunct))
+                            && (item.kind.Equals(morphology_noun))
+                            && (item.order.Equals(morphology_order))) noun = item.term;
+                        if ((item.sentence.Equals(syntax))
+                            && (!item.team.Equals(morphology_adnominal_adjunct))
+                            && (item.kind.Equals(morphology_pronoun))
+                            && (item.order.Equals(morphology_order))) noun = item.term;
+                    }
+                }
+                if (level == Level.AsSpanSequence)
+                {
+                    foreach (Instruction item in words)
+                    {
+                        if ((item.sentence.AsSpan().SequenceEqual(syntax))
+                            && (item.team.AsSpan().SequenceEqual(morphology_adnominal_adjunct))
+                            && (item.kind.AsSpan().SequenceEqual(morphology_adjective))
+                            && (item.order.AsSpan().SequenceEqual(morphology_order))) adjective = item.term;
+                        if ((item.sentence.AsSpan().SequenceEqual(syntax))
+                            && (item.team.AsSpan().SequenceEqual(morphology_adnominal_adjunct))
+                            && (item.kind.AsSpan().SequenceEqual(morphology_article))
+                            && (item.order.AsSpan().SequenceEqual(morphology_order))) article = item.term;
+                        if ((item.sentence.AsSpan().SequenceEqual(syntax))
+                            && (item.team.AsSpan().SequenceEqual(morphology_adnominal_adjunct))
+                            && (item.kind.AsSpan().SequenceEqual(morphology_numeral))
+                            && (item.order.AsSpan().SequenceEqual(morphology_order))) numeral = item.term;
+                        if ((item.sentence.AsSpan().SequenceEqual(syntax))
+                            && (item.team.AsSpan().SequenceEqual(morphology_adnominal_adjunct))
+                            && (item.kind.AsSpan().SequenceEqual(morphology_pronoun))
+                            && (item.order.AsSpan().SequenceEqual(morphology_order))) pronoun = item.term;
+                        if ((item.sentence.AsSpan().SequenceEqual(syntax))
+                            && (item.team.AsSpan().SequenceEqual(morphology_adnominal_adjunct))
+                            && (item.kind.AsSpan().SequenceEqual(morphology_noun))
+                            && (item.order.AsSpan().SequenceEqual(morphology_order))) noun = item.term;
+                        if ((item.sentence.AsSpan().SequenceEqual(syntax))
+                            && (!item.team.AsSpan().SequenceEqual(morphology_adnominal_adjunct))
+                            && (item.kind.AsSpan().SequenceEqual(morphology_pronoun))
+                            && (item.order.AsSpan().SequenceEqual(morphology_order))) noun = item.term;
+                    }
+                }
+                if (level == Level.Sequence)
+                {
+                    foreach (Instruction item in words)
+                    {
+                        if ((item.sentence.SequenceEqual(syntax))
+                            && (item.team.SequenceEqual(morphology_adnominal_adjunct))
+                            && (item.kind.SequenceEqual(morphology_adjective))
+                            && (item.order.SequenceEqual(morphology_order))) adjective = item.term;
+                        if ((item.sentence.SequenceEqual(syntax))
+                            && (item.team.SequenceEqual(morphology_adnominal_adjunct))
+                            && (item.kind.SequenceEqual(morphology_article))
+                            && (item.order.SequenceEqual(morphology_order))) article = item.term;
+                        if ((item.sentence.SequenceEqual(syntax))
+                            && (item.team.SequenceEqual(morphology_adnominal_adjunct))
+                            && (item.kind.SequenceEqual(morphology_numeral))
+                            && (item.order.SequenceEqual(morphology_order))) numeral = item.term;
+                        if ((item.sentence.SequenceEqual(syntax))
+                            && (item.team.SequenceEqual(morphology_adnominal_adjunct))
+                            && (item.kind.SequenceEqual(morphology_pronoun))
+                            && (item.order.SequenceEqual(morphology_order))) pronoun = item.term;
+                        if ((item.sentence.SequenceEqual(syntax))
+                            && (item.team.SequenceEqual(morphology_adnominal_adjunct))
+                            && (item.kind.SequenceEqual(morphology_noun))
+                            && (item.order.SequenceEqual(morphology_order))) noun = item.term;
+                        if ((item.sentence.SequenceEqual(syntax))
+                            && (!item.team.SequenceEqual(morphology_adnominal_adjunct))
+                            && (item.kind.SequenceEqual(morphology_pronoun))
+                            && (item.order.SequenceEqual(morphology_order))) noun = item.term;
+                    }
+                }
+                if (level == Level.Compare)
+                {
+                    foreach (Instruction item in words)
+                    {
+                        if ((item.sentence.SequenceCompareTo(syntax) != -1)
+                            && (item.team.SequenceCompareTo(morphology_adnominal_adjunct) != -1)
+                            && (item.kind.SequenceCompareTo(morphology_adjective) != -1)
+                            && (item.order.SequenceCompareTo(morphology_order) != -1)) adjective = item.term;
+                        if ((item.sentence.SequenceCompareTo(syntax) != -1)
+                            && (item.team.SequenceCompareTo(morphology_adnominal_adjunct) != -1)
+                            && (item.kind.SequenceCompareTo(morphology_article) != -1)
+                            && (item.order.SequenceCompareTo(morphology_order) != -1)) article = item.term;
+                        if ((item.sentence.SequenceCompareTo(syntax) != -1)
+                            && (item.team.SequenceCompareTo(morphology_adnominal_adjunct) != -1)
+                            && (item.kind.SequenceCompareTo(morphology_numeral) != -1)
+                            && (item.order.SequenceCompareTo(morphology_order) != -1)) numeral = item.term;
+                        if ((item.sentence.SequenceCompareTo(syntax) != -1)
+                            && (item.team.SequenceCompareTo(morphology_adnominal_adjunct) != -1)
+                            && (item.kind.SequenceCompareTo(morphology_pronoun) != -1)
+                            && (item.order.SequenceCompareTo(morphology_order) != -1)) pronoun = item.term;
+                        if ((item.sentence.SequenceCompareTo(syntax) != -1)
+                            && (item.team.SequenceCompareTo(morphology_adnominal_adjunct) != -1)
+                            && (item.kind.SequenceCompareTo(morphology_noun) != -1)
+                            && (item.order.SequenceCompareTo(morphology_order) != -1)) noun = item.term;
+                        if ((item.sentence.SequenceCompareTo(syntax) != -1)
+                            && (!(item.team.SequenceCompareTo(morphology_adnominal_adjunct) != -1))
+                            && (item.kind.SequenceCompareTo(morphology_pronoun) != -1)
+                            && (item.order.SequenceCompareTo(morphology_order) != -1)) noun = item.term;
+                    }
+                }
+                if (level == Level.Index)
+                {
+                    foreach (Instruction item in words)
+                    {
+                        if ((item.sentence.IndexOf(syntax) != -1)
+                            && (item.team.IndexOf(morphology_adnominal_adjunct) != -1)
+                            && (item.kind.IndexOf(morphology_adjective) != -1)
+                            && (item.order.IndexOf(morphology_order) != -1)) adjective = item.term;
+                        if ((item.sentence.IndexOf(syntax) != -1)
+                            && (item.team.IndexOf(morphology_adnominal_adjunct) != -1)
+                            && (item.kind.IndexOf(morphology_article) != -1)
+                            && (item.order.IndexOf(morphology_order) != -1)) article = item.term;
+                        if ((item.sentence.IndexOf(syntax) != -1)
+                            && (item.team.IndexOf(morphology_adnominal_adjunct) != -1)
+                            && (item.kind.IndexOf(morphology_numeral) != -1)
+                            && (item.order.IndexOf(morphology_order) != -1)) numeral = item.term;
+                        if ((item.sentence.IndexOf(syntax) != -1)
+                            && (item.team.IndexOf(morphology_adnominal_adjunct) != -1)
+                            && (item.kind.IndexOf(morphology_pronoun) != -1)
+                            && (item.order.IndexOf(morphology_order) != -1)) pronoun = item.term;
+                        if ((item.sentence.IndexOf(syntax) != -1)
+                            && (item.team.IndexOf(morphology_adnominal_adjunct) != -1)
+                            && (item.kind.IndexOf(morphology_noun) != -1)
+                            && (item.order.IndexOf(morphology_order) != -1)) noun = item.term;
+                        if ((item.sentence.IndexOf(syntax) != -1)
+                            && (!(item.team.IndexOf(morphology_adnominal_adjunct) != -1))
+                            && (item.kind.IndexOf(morphology_pronoun) != -1)
+                            && (item.order.IndexOf(morphology_order) != -1)) noun = item.term;
+                    }
+                }
+
+                if (rotate == Rotate.Front)
+                {
+                    if (noun != null)
+                        adnominal = noun;
+                    if ((noun != null) && (adjective != null))
+                        adnominal = noun;
+                    if ((noun != null) && (article != null))
+                        adnominal = noun;
+                    if ((noun != null) && (numeral != null))
+                        adnominal = noun;
+                    if ((noun != null) && (pronoun != null))
+                        adnominal = noun;
+                }
+                if (rotate == Rotate.Rear)
+                {
+                    if (noun != null)
+                        adnominal = noun;
+                    if ((noun != null) && (adjective != null))
+                        adnominal = adjective;
+                    if ((noun != null) && (article != null))
+                        adnominal = article;
+                    if ((noun != null) && (numeral != null))
+                        adnominal = numeral;
+                    if ((noun != null) && (pronoun != null))
+                        adnominal = pronoun;
+                }
+
+                return adnominal;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private int VerifyNoun(List<Guidance> words, int order, Level level, Rotate rotate, Seat seat)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify noun \"Syntax\" service failed!");
+
+                int adnominal = -1;
+                int order_conjunction = this._practice_sequence_1;
+
+                adnominal = VerifyNoun(words, order, level, rotate, seat, order_conjunction);
+                return adnominal;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private int VerifyNoun(List<Guidance> words, int order, Level level, Rotate rotate, Seat seat, int order_conjunction)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify noun \"Syntax\" service failed!");
+
+                int syntax = -1;
+                if (seat == Seat.Subject)
+                    syntax = this._wordEmbeddingService.EncodeInt(this._subject, this._syntax);
+                if (seat == Seat.Predicate)
+                    syntax = this._wordEmbeddingService.EncodeInt(this._predicate, this._syntax);
+
+                int morphology_adnominal_adjunct = this._wordEmbeddingService.EncodeInt(this._adnominal_adjunct, this._morphology);
+                int morphology_noun = this._wordEmbeddingService.EncodeInt(this._noun, this._morphology);
+                int morphology_adjective = this._wordEmbeddingService.EncodeInt(this._adjective, this._morphology);
+                int morphology_article = this._wordEmbeddingService.EncodeInt(this._article, this._morphology);
+                int morphology_numeral = this._wordEmbeddingService.EncodeInt(this._numeral, this._morphology);
+                int morphology_pronoun = this._wordEmbeddingService.EncodeInt(this._pronoun, this._morphology);
+                int morphology_order = this._wordEmbeddingService.EncodeInt(order, this._order);
+
+                int noun = -1;
+                int adjective = -1;
+                int article = -1;
+                int numeral = -1;
+                int pronoun = -1;
+
+                int adnominal = -1;
+
+                if (level == Level.Default)
+                {
+                    foreach (Guidance item in words)
+                    {
+                        if ((item.sentence == syntax)
+                            && (item.team == morphology_adnominal_adjunct)
+                            && (item.kind == morphology_adjective)
+                            && (item.order == morphology_order)) adjective = item.term;
+                        if ((item.sentence == syntax)
+                            && (item.team == morphology_adnominal_adjunct)
+                            && (item.kind == morphology_article)
+                            && (item.order == morphology_order)) article = item.term;
+                        if ((item.sentence == syntax)
+                            && (item.team == morphology_adnominal_adjunct)
+                            && (item.kind == morphology_numeral)
+                            && (item.order == morphology_order)) numeral = item.term;
+                        if ((item.sentence == syntax)
+                            && (item.team == morphology_adnominal_adjunct)
+                            && (item.kind == morphology_pronoun)
+                            && (item.order == morphology_order)) pronoun = item.term;
+                        if ((item.sentence == syntax)
+                            && (item.team == morphology_adnominal_adjunct)
+                            && (item.kind == morphology_noun)
+                            && (item.order == morphology_order)) noun = item.term;
+                        if ((item.sentence == syntax)
+                            && (!(item.team == morphology_adnominal_adjunct))
+                            && (item.kind == morphology_pronoun)
+                            && (item.order == morphology_order)) noun = item.term;
+                    }
+                }
+                if (level == Level.Equal)
+                {
+                    foreach (Guidance item in words)
+                    {
+                        if ((item.sentence.Equals(syntax))
+                            && (item.team.Equals(morphology_adnominal_adjunct))
+                            && (item.kind.Equals(morphology_adjective))
+                            && (item.order.Equals(morphology_order))) adjective = item.term;
+                        if ((item.sentence.Equals(syntax))
+                            && (item.team.Equals(morphology_adnominal_adjunct))
+                            && (item.kind.Equals(morphology_article))
+                            && (item.order.Equals(morphology_order))) article = item.term;
+                        if ((item.sentence.Equals(syntax))
+                            && (item.team.Equals(morphology_adnominal_adjunct))
+                            && (item.kind.Equals(morphology_numeral))
+                            && (item.order.Equals(morphology_order))) numeral = item.term;
+                        if ((item.sentence.Equals(syntax))
+                            && (item.team.Equals(morphology_adnominal_adjunct))
+                            && (item.kind.Equals(morphology_pronoun))
+                            && (item.order.Equals(morphology_order))) pronoun = item.term;
+                        if ((item.sentence.Equals(syntax))
+                            && (item.team.Equals(morphology_adnominal_adjunct))
+                            && (item.kind.Equals(morphology_noun))
+                            && (item.order.Equals(morphology_order))) noun = item.term;
+                        if ((item.sentence.Equals(syntax))
+                            && (!item.team.Equals(morphology_adnominal_adjunct))
+                            && (item.kind.Equals(morphology_pronoun))
+                            && (item.order.Equals(morphology_order))) noun = item.term;
+                    }
+                }
+                if (level == Level.Compare)
+                {
+                    foreach (Guidance item in words)
+                    {
+                        if ((item.sentence.CompareTo(syntax) != -1)
+                            && (item.team.CompareTo(morphology_adnominal_adjunct) != -1)
+                            && (item.kind.CompareTo(morphology_adjective) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) adjective = item.term;
+                        if ((item.sentence.CompareTo(syntax) != -1)
+                            && (item.team.CompareTo(morphology_adnominal_adjunct) != -1)
+                            && (item.kind.CompareTo(morphology_article) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) article = item.term;
+                        if ((item.sentence.CompareTo(syntax) != -1)
+                            && (item.team.CompareTo(morphology_adnominal_adjunct) != -1)
+                            && (item.kind.CompareTo(morphology_numeral) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) numeral = item.term;
+                        if ((item.sentence.CompareTo(syntax) != -1)
+                            && (item.team.CompareTo(morphology_adnominal_adjunct) != -1)
+                            && (item.kind.CompareTo(morphology_pronoun) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) pronoun = item.term;
+                        if ((item.sentence.CompareTo(syntax) != -1)
+                            && (item.team.CompareTo(morphology_adnominal_adjunct) != -1)
+                            && (item.kind.CompareTo(morphology_noun) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) noun = item.term;
+                        if ((item.sentence.CompareTo(syntax) != -1)
+                            && (!(item.team.CompareTo(morphology_adnominal_adjunct) != -1))
+                            && (item.kind.CompareTo(morphology_pronoun) != -1)
+                            && (item.order.CompareTo(morphology_order) != -1)) noun = item.term;
+                    }
+                }
+
+                if (rotate == Rotate.Front)
+                {
+                    if (noun != -1)
+                        adnominal = noun;
+                    if ((noun != -1) && (adjective != -1))
+                        adnominal = noun;
+                    if ((noun != -1) && (article != -1))
+                        adnominal = noun;
+                    if ((noun != -1) && (numeral != -1))
+                        adnominal = noun;
+                    if ((noun != -1) && (pronoun != -1))
+                        adnominal = noun;
+                }
+                if (rotate == Rotate.Rear)
+                {
+                    if (noun != -1)
+                        adnominal = noun;
+                    if ((noun != -1) && (adjective != -1))
+                        adnominal = adjective;
+                    if ((noun != -1) && (article != -1))
+                        adnominal = article;
+                    if ((noun != -1) && (numeral != -1))
+                        adnominal = numeral;
+                    if ((noun != -1) && (pronoun != -1))
+                        adnominal = pronoun;
+                }
+
+                return adnominal;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }

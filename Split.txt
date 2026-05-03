@@ -1,0 +1,660 @@
+        private List<Instruction> SelectConjunction(List<Instruction> words, Level level, Seat seat)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation select conjunction \"Syntax\" service failed!");
+
+                byte[]? syntax = null;
+                if (seat == Seat.Subject)
+                    syntax = this._wordEmbeddingService.Encode(this._subject, this._syntax);
+                if (seat == Seat.Predicate)
+                    syntax = this._wordEmbeddingService.Encode(this._predicate, this._syntax);
+
+                byte[] morphology_conjunction = this._wordEmbeddingService.Encode(this._conjunction, this._morphology);
+
+                List<Instruction> conjunctions = new List<Instruction>();
+
+                if (level == Level.Default)
+                {
+                    conjunctions = words.FindAll(index => index.team == morphology_conjunction
+                        && index.sentence == syntax);
+                }
+                if (level == Level.Equal)
+                {
+                    conjunctions = words.FindAll(index => index.team.Equals(morphology_conjunction)
+                        && index.sentence.Equals(syntax));
+                }
+                if (level == Level.AsSpanSequence)
+                {
+                    conjunctions = words.FindAll(index => index.team.AsSpan().SequenceEqual(morphology_conjunction)
+                        && index.sentence.AsSpan().SequenceEqual(syntax));
+                }
+                if (level == Level.Sequence)
+                {
+                    conjunctions = words.FindAll(index => index.team.SequenceEqual(morphology_conjunction)
+                        && index.sentence.SequenceEqual(syntax));
+                }
+                if (level == Level.Compare)
+                {
+                    conjunctions = words.FindAll(index => (index.team.SequenceCompareTo(morphology_conjunction) != -1)
+                        && (index.sentence.SequenceCompareTo(syntax) != -1));
+                }
+                if (level == Level.Index)
+                {
+                    conjunctions = words.FindAll(index => (index.team.IndexOf(morphology_conjunction) != -1)
+                        && (index.sentence.IndexOf(syntax) != -1));
+                }
+
+                return conjunctions;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<Word> SelectConjunction(List<Word> words, Level level, Seat seat)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation select conjunction \"Syntax\" service failed!");
+
+                string syntax = string.Empty;
+                if (seat == Seat.Subject)
+                    syntax = this._subject;
+                if (seat == Seat.Predicate)
+                    syntax = this._predicate;
+
+                string morphology_conjunction = this._conjunction;
+
+                List<Word> conjunctions = new List<Word>();
+
+                if (level == Level.Default)
+                {
+                    conjunctions = words.FindAll(index => index.team == morphology_conjunction
+                        && index.sentence == syntax);
+                }
+                if (level == Level.Equal)
+                {
+                    conjunctions = words.FindAll(index => index.team.Equals(morphology_conjunction)
+                        && index.sentence.Equals(syntax));
+                }
+                if (level == Level.AsSpanSequence)
+                {
+                    conjunctions = words.FindAll(index => index.team.AsSpan().SequenceEqual(morphology_conjunction)
+                        && index.sentence.AsSpan().SequenceEqual(syntax));
+                }
+                if (level == Level.Sequence)
+                {
+                    conjunctions = words.FindAll(index => index.team.SequenceEqual(morphology_conjunction)
+                        && index.sentence.SequenceEqual(syntax));
+                }
+                if (level == Level.Compare)
+                {
+                    conjunctions = words.FindAll(index => (index.team.CompareTo(morphology_conjunction) != -1)
+                        && (index.sentence.CompareTo(syntax) != -1));
+                }
+                if (level == Level.Index)
+                {
+                    conjunctions = words.FindAll(index => (index.team.IndexOf(morphology_conjunction) != -1)
+                        && (index.sentence.IndexOf(syntax) != -1));
+                }
+
+                return conjunctions;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<Guidance> SelectConjunction(List<Guidance> words, Level level, Seat seat)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation select conjunction \"Syntax\" service failed!");
+
+                int syntax = -1;
+                if (seat == Seat.Subject)
+                    syntax = this._wordEmbeddingService.EncodeInt(this._subject, this._syntax);
+                if (seat == Seat.Predicate)
+                    syntax = this._wordEmbeddingService.EncodeInt(this._predicate, this._syntax);
+
+                int morphology_conjunction = this._wordEmbeddingService.EncodeInt(this._conjunction, this._morphology);
+
+                List<Guidance> conjunctions = new List<Guidance>();
+
+                if (level == Level.Default)
+                {
+                    conjunctions = words.FindAll(index => index.team == morphology_conjunction
+                        && index.sentence == syntax);
+                }
+                if (level == Level.Equal)
+                {
+                    conjunctions = words.FindAll(index => index.team.Equals(morphology_conjunction)
+                        && index.sentence.Equals(syntax));
+                }
+                if (level == Level.AsSpanSequence)
+                {
+                    conjunctions = words.FindAll(index => index.team == morphology_conjunction
+                        && index.sentence == syntax);
+                }
+                if (level == Level.Sequence)
+                {
+                    conjunctions = words.FindAll(index => index.team == morphology_conjunction
+                        && index.sentence == syntax);
+                }
+                if (level == Level.Compare)
+                {
+                    conjunctions = words.FindAll(index => (index.team.CompareTo(morphology_conjunction) != -1)
+                        && (index.sentence.CompareTo(syntax) != -1));
+                }
+                if (level == Level.Index)
+                {
+                    conjunctions = words.FindAll(index => index.team == morphology_conjunction
+                        && index.sentence == syntax);
+                }
+
+                return conjunctions;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<Instruction> SelectNoun(List<Instruction> words, Level level, Seat seat)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation select noun \"Syntax\" service failed!");
+
+                byte[]? syntax = null;
+                if (seat == Seat.Subject)
+                    syntax = this._wordEmbeddingService.Encode(this._subject, this._syntax);
+                if (seat == Seat.Predicate)
+                    syntax = this._wordEmbeddingService.Encode(this._predicate, this._syntax);
+
+                byte[]? morphology_adnominal = this._wordEmbeddingService.Encode(this._adnominal_adjunct, this._syntax);
+                byte[]? morphology_pronoun = this._wordEmbeddingService.Encode(this._pronoun, this._syntax);
+
+                List<Instruction> adnominal = new List<Instruction>();
+
+                if (level == Level.Default)
+                {
+                    adnominal = words.FindAll(index => (index.team == morphology_adnominal
+                        && index.sentence == syntax) 
+                        || (!(index.team == morphology_adnominal) && index.kind == morphology_pronoun 
+                        && index.sentence == syntax));
+                }
+                if (level == Level.Equal)
+                {
+                    adnominal = words.FindAll(index => (index.team.Equals(morphology_adnominal)
+                        && index.sentence.Equals(syntax))
+                        || (!(index.team.Equals(morphology_adnominal)) && index.kind.Equals(morphology_pronoun)
+                        && index.sentence.Equals(syntax)));
+                }
+                if (level == Level.AsSpanSequence)
+                {
+                    adnominal = words.FindAll(index => (index.team.AsSpan().SequenceEqual(morphology_adnominal)
+                        && index.sentence.AsSpan().SequenceEqual(syntax))
+                        || (!(index.team.AsSpan().SequenceEqual(morphology_adnominal)) && index.kind.AsSpan().SequenceEqual(morphology_pronoun)
+                        && index.sentence.AsSpan().SequenceEqual(syntax)));
+                }
+                if (level == Level.Sequence)
+                {
+                    adnominal = words.FindAll(index => (index.team.SequenceEqual(morphology_adnominal)
+                        && index.sentence.SequenceEqual(syntax))
+                        || (!(index.team.SequenceEqual(morphology_adnominal)) && index.kind.SequenceEqual(morphology_pronoun)
+                        && index.sentence.SequenceEqual(syntax)));
+                }
+                if (level == Level.Compare)
+                {
+                    adnominal = words.FindAll(index => ((index.team.SequenceCompareTo(morphology_adnominal) != -1)
+                        && (index.sentence.SequenceCompareTo(syntax) != -1))
+                        || (!(index.team.SequenceCompareTo(morphology_adnominal) != -1) && (index.kind.SequenceCompareTo(morphology_pronoun) != -1)
+                        && (index.sentence.SequenceCompareTo(syntax) != -1)));
+                }
+                if (level == Level.Index)
+                {
+                    adnominal = words.FindAll(index => ((index.team.IndexOf(morphology_adnominal) != -1)
+                        && (index.sentence.IndexOf(syntax) != -1))
+                        || (!(index.team.IndexOf(morphology_adnominal) != -1) && (index.kind.IndexOf(morphology_pronoun) != -1)
+                        && (index.sentence.IndexOf(syntax) != -1)));
+                }
+
+                return adnominal;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<Word> SelectNoun(List<Word> words, Level level, Seat seat)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation select noun \"Syntax\" service failed!");
+
+                string syntax = string.Empty;
+                if (seat == Seat.Subject)
+                    syntax = this._subject;
+                if (seat == Seat.Predicate)
+                    syntax = this._predicate;
+
+                string morphology_adnominal = this._adnominal_adjunct;
+                string morphology_pronoun = this._pronoun;
+
+                List<Word> adnominal = new List<Word>();
+
+                if (level == Level.Default)
+                {
+                    adnominal = words.FindAll(index => (index.team == morphology_adnominal
+                        && index.sentence == syntax)
+                        || (!(index.team == morphology_adnominal) && index.kind == morphology_pronoun
+                        && index.sentence == syntax));
+                }
+                if (level == Level.Equal)
+                {
+                    adnominal = words.FindAll(index => (index.team.Equals(morphology_adnominal)
+                        && index.sentence.Equals(syntax))
+                        || (!(index.team.Equals(morphology_adnominal)) && index.kind.Equals(morphology_pronoun)
+                        && index.sentence.Equals(syntax)));
+                }
+                if (level == Level.AsSpanSequence)
+                {
+                    adnominal = words.FindAll(index => (index.team.AsSpan().SequenceEqual(morphology_adnominal)
+                        && index.sentence.AsSpan().SequenceEqual(syntax))
+                        || (!(index.team.AsSpan().SequenceEqual(morphology_adnominal)) && index.kind.AsSpan().SequenceEqual(morphology_pronoun)
+                        && index.sentence.AsSpan().SequenceEqual(syntax)));
+                }
+                if (level == Level.Sequence)
+                {
+                    adnominal = words.FindAll(index => (index.team.SequenceEqual(morphology_adnominal)
+                        && index.sentence.SequenceEqual(syntax))
+                        || (!(index.team.SequenceEqual(morphology_adnominal)) && index.kind.SequenceEqual(morphology_pronoun)
+                        && index.sentence.SequenceEqual(syntax)));
+                }
+                if (level == Level.Compare)
+                {
+                    adnominal = words.FindAll(index => ((index.team.CompareTo(morphology_adnominal) != -1)
+                        && (index.sentence.CompareTo(syntax) != -1))
+                        || (!(index.team.CompareTo(morphology_adnominal) != -1) && (index.kind.CompareTo(morphology_pronoun) != -1)
+                        && (index.sentence.CompareTo(syntax) != -1)));
+                }
+                if (level == Level.Index)
+                {
+                    adnominal = words.FindAll(index => ((index.team.IndexOf(morphology_adnominal) != -1)
+                        && (index.sentence.IndexOf(syntax) != -1))
+                        || (!(index.team.IndexOf(morphology_adnominal) != -1) && (index.kind.IndexOf(morphology_pronoun) != -1)
+                        && (index.sentence.IndexOf(syntax) != -1)));
+                }
+
+                return adnominal;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<Guidance> SelectNoun(List<Guidance> words, Level level, Seat seat)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation select noun \"Syntax\" service failed!");
+
+                int syntax = -1;
+                if (seat == Seat.Subject)
+                    syntax = this._wordEmbeddingService.EncodeInt(this._subject, this._syntax);
+                if (seat == Seat.Predicate)
+                    syntax = this._wordEmbeddingService.EncodeInt(this._predicate, this._syntax);
+
+                int morphology_adnominal = this._wordEmbeddingService.EncodeInt(this._adnominal_adjunct, this._syntax);
+                int morphology_pronoun = this._wordEmbeddingService.EncodeInt(this._pronoun, this._syntax);
+
+                List<Guidance> adnominal = new List<Guidance>();
+
+                if (level == Level.Default)
+                {
+                    adnominal = words.FindAll(index => (index.team == morphology_adnominal
+                        && index.sentence == syntax)
+                        || (!(index.team == morphology_adnominal) && index.kind == morphology_pronoun
+                        && index.sentence == syntax));
+                }
+                if (level == Level.Equal)
+                {
+                    adnominal = words.FindAll(index => (index.team.Equals(morphology_adnominal)
+                        && index.sentence.Equals(syntax))
+                        || (!(index.team.Equals(morphology_adnominal)) && index.kind.Equals(morphology_pronoun)
+                        && index.sentence.Equals(syntax)));
+                }
+                if (level == Level.AsSpanSequence)
+                {
+                    adnominal = words.FindAll(index => (index.team == morphology_adnominal
+                        && index.sentence == syntax)
+                        || (!(index.team == morphology_adnominal) && index.kind == morphology_pronoun
+                        && index.sentence == syntax));
+                }
+                if (level == Level.Sequence)
+                {
+                    adnominal = words.FindAll(index => (index.team == morphology_adnominal
+                        && index.sentence == syntax)
+                        || (!(index.team == morphology_adnominal) && index.kind == morphology_pronoun
+                        && index.sentence == syntax));
+                }
+                if (level == Level.Compare)
+                {
+                    adnominal = words.FindAll(index => ((index.team.CompareTo(morphology_adnominal) != -1)
+                        && (index.sentence.CompareTo(syntax) != -1))
+                        || (!(index.team.CompareTo(morphology_adnominal) != -1) && (index.kind.CompareTo(morphology_pronoun) != -1)
+                        && (index.sentence.CompareTo(syntax) != -1)));
+                }
+                if (level == Level.Index)
+                {
+                    adnominal = words.FindAll(index => (index.team == morphology_adnominal
+                        && index.sentence == syntax)
+                        || (!(index.team == morphology_adnominal) && index.kind == morphology_pronoun
+                        && index.sentence == syntax));
+                }
+
+                return adnominal;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<Instruction> SelectOrder(List<Instruction> words, int order, Level level)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation select noun \"Syntax\" service failed!");
+
+                List<Instruction> adnominal = new List<Instruction>();
+
+                byte[]? order_noun  = this._wordEmbeddingService.Encode(order, this._order);
+
+                if (level == Level.Default)
+                {
+                    adnominal = words.FindAll(index => index.order == order_noun);
+                }
+                if (level == Level.Equal)
+                {
+                    adnominal = words.FindAll(index => index.order.Equals(order_noun));
+                }
+                if (level == Level.AsSpanSequence)
+                {
+                    adnominal = words.FindAll(index => index.order.AsSpan().SequenceEqual(order_noun));
+                }
+                if (level == Level.Sequence)
+                {
+                    adnominal = words.FindAll(index => index.order.SequenceEqual(order_noun));
+                }
+                if (level == Level.Compare)
+                {
+                    adnominal = words.FindAll(index => index.order.SequenceCompareTo(order_noun) != -1);
+                }
+                if (level == Level.Index)
+                {
+                    adnominal = words.FindAll(index => index.order.IndexOf(order_noun) != -1);
+                }
+
+                return adnominal;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<Word> SelectOrder(List<Word> words, int order, Level level)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation select noun \"Syntax\" service failed!");
+
+                List<Word> adnominal = new List<Word>();
+
+                int order_noun = order;
+
+                if (level == Level.Default)
+                {
+                    adnominal = words.FindAll(index => index.order == order_noun);
+                }
+                if (level == Level.Equal)
+                {
+                    adnominal = words.FindAll(index => index.order.Equals(order_noun));
+                }
+                if (level == Level.AsSpanSequence)
+                {
+                    adnominal = words.FindAll(index => index.order == order_noun);
+                }
+                if (level == Level.Sequence)
+                {
+                    adnominal = words.FindAll(index => index.order == order_noun);
+                }
+                if (level == Level.Compare)
+                {
+                    adnominal = words.FindAll(index => index.order.CompareTo(order_noun) != -1);
+                }
+                if (level == Level.Index)
+                {
+                    adnominal = words.FindAll(index => index.order == order_noun);
+                }
+
+                return adnominal;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<Guidance> SelectOrder(List<Guidance> words, int order, Level level)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation select noun \"Syntax\" service failed!");
+
+                List<Guidance> adnominal = new List<Guidance>();
+
+                int order_noun = this._wordEmbeddingService.EncodeInt(order, this._order);
+
+                if (level == Level.Default)
+                {
+                    adnominal = words.FindAll(index => index.order == order_noun);
+                }
+                if (level == Level.Equal)
+                {
+                    adnominal = words.FindAll(index => index.order.Equals(order_noun));
+                }
+                if (level == Level.AsSpanSequence)
+                {
+                    adnominal = words.FindAll(index => index.order == order_noun);
+                }
+                if (level == Level.Sequence)
+                {
+                    adnominal = words.FindAll(index => index.order == order_noun);
+                }
+                if (level == Level.Compare)
+                {
+                    adnominal = words.FindAll(index => index.order.CompareTo(order_noun) != -1);
+                }
+                if (level == Level.Index)
+                {
+                    adnominal = words.FindAll(index => index.order == order_noun);
+                }
+
+                return adnominal;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<Instruction> SliptConjunction(List<Instruction> words, Dictionary<(byte[], byte[]), int>? word_2_vec, Level level, Seat seat)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify noun \"Syntax\" service failed!");
+
+                List<Instruction> seminars = new List<Instruction>();
+
+                List<Instruction> conjunctions = SelectConjunction(words, level, seat);
+                List<Instruction> adnominals = SelectNoun(words, level, seat);
+                List<Instruction> adnominals_seconds = adnominals;
+
+                int quantity = conjunctions.Count + adnominals.Count;
+
+                byte[]? order_first = this._wordEmbeddingService.Encode(this._order_1, this._order);
+                byte[]? order_second = this._wordEmbeddingService.Encode(this._order_2, this._order); ;
+                
+                List<Instruction> firsts = new List<Instruction>();
+                foreach (Instruction adnominal in adnominals)
+                {
+                    Instruction first = new Instruction();
+                    first = Lecture(adnominal.term, adnominal.kind, adnominal.sentence, adnominal.team, order_first);
+                    firsts.Add(first);
+                    List<Instruction> seconds = new List<Instruction>();
+                    foreach (Instruction adnomnal_second in adnominals_seconds)
+                    {
+                        Instruction second = new Instruction();
+                        second = Lecture(adnominal.term, adnominal.kind, adnominal.sentence, adnominal.team, order_second);
+                        seconds.Add(second);
+                        if (!VerifyCompoundConjunction(conjunctions, firsts, seconds, word_2_vec, level, seat, this._order_1)) continue;
+                        int loop = conjunctions.Count + seconds.Count;
+                        if (loop == quantity)
+                        {
+                            firsts.ForEach(index => seminars.Add(index));
+                            seconds.ForEach(index => seminars.Add(index));
+                        }
+                        return seminars; 
+                    }
+                }
+
+                return seminars;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<Word> SliptConjunction(List<Word> words, Dictionary<(string, string), int>? word_2_vec, Level level, Seat seat)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify noun \"Syntax\" service failed!");
+
+                List<Word> seminars = new List<Word>();
+
+                List<Word> conjunctions = SelectConjunction(words, level, seat);
+                List<Word> adnominals = SelectNoun(words, level, seat);
+                List<Word> adnominals_seconds = adnominals;
+
+                int quantity = conjunctions.Count + adnominals.Count;
+
+                int order_first = this._order_1;
+                int order_middle = this._order_2;
+                int order_second = this._order_3;
+
+                List<Word> middles = new List<Word>();
+                foreach (Word conjunction in conjunctions)
+                {
+                    Word middle = new Word();
+                    middle = Lecture(conjunction.term, conjunction.kind, conjunction.sentence, conjunction.team, order_middle);
+                    middles.Add(middle);
+                    List<Word> firsts = new List<Word>();
+                    foreach (Word adnominal in adnominals)
+                    {
+                        Word first = new Word();
+                        first = Lecture(adnominal.term, adnominal.kind, adnominal.sentence, adnominal.team, order_first);
+                        firsts.Add(first);
+                        List<Word> seconds = new List<Word>();
+                        foreach (Word adnomnal_second in adnominals_seconds)
+                        {
+                            Word second = new Word();
+                            second = Lecture(adnominal.term, adnominal.kind, adnominal.sentence, adnominal.team, order_second);
+                            seconds.Add(second);
+                            if (!VerifyCompoundConjunction(firsts, middles, seconds, word_2_vec, level, seat, order_first, order_middle, order_second)) continue;
+                            int loop = conjunctions.Count + seconds.Count;
+                            if (loop == quantity)
+                            {
+                                firsts.ForEach(index => seminars.Add(index));
+                                seconds.ForEach(index => seminars.Add(index));
+                                return seminars;
+                            }
+                        }
+                    }
+                }
+                return seminars;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<Guidance> SliptConjunction(List<Guidance> words, Dictionary<(int, int), int>? word_2_vec, Level level, Seat seat)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify noun \"Syntax\" service failed!");
+
+                List<Guidance> seminars = new List<Guidance>();
+
+                List<Guidance> conjunctions = SelectConjunction(words, level, seat);
+                List<Guidance> adnominals = SelectNoun(words, level, seat);
+                List<Guidance> adnominals_seconds = adnominals;
+
+                int quantity = conjunctions.Count + adnominals.Count;
+
+                int order_first = this._wordEmbeddingService.EncodeInt(this._order_1, this._order);
+                int order_second = this._wordEmbeddingService.EncodeInt(this._order_2, this._order); ;
+
+                List<Guidance> firsts = new List<Guidance>();
+                foreach (Guidance adnominal in adnominals)
+                {
+                    Guidance first = new Guidance();
+                    first = Lecture(adnominal.term, adnominal.kind, adnominal.sentence, adnominal.team, order_first);
+                    firsts.Add(first);
+                    List<Guidance> seconds = new List<Guidance>();
+                    foreach (Guidance adnomnal_second in adnominals_seconds)
+                    {
+                        Guidance second = new Guidance();
+                        second = Lecture(adnominal.term, adnominal.kind, adnominal.sentence, adnominal.team, order_second);
+                        seconds.Add(second);
+                        if (!VerifyCompoundConjunction(conjunctions, firsts, seconds, word_2_vec, level, seat, this._order_1)) continue;
+                        int loop = conjunctions.Count + seconds.Count;
+                        if (loop == quantity)
+                        {
+                            firsts.ForEach(index => seminars.Add(index));
+                            seconds.ForEach(index => seminars.Add(index));
+                        }
+                        return seminars;
+                    }
+                }
+
+                return seminars;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }

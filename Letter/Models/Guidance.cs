@@ -8,5 +8,6 @@
         public int model { get; set; }
         public int team { get; set; }
         public int order { get; set; }
+        public int sequence { get; set; }
     }
 }

@@ -26,8 +26,8 @@ namespace Letter.Services
         #endregion
 
         #region VARIABLE
-        private string _url = "http://192.168.0.3:8885/";
-        //private string _url = "http://api.stomach.com.br:8885/";
+        //private string _url = "http://192.168.0.3:8885/";
+        private string _url = "http://api.stomach.com.br:8885/";
 
         private HttpClient _httpClient;
         #endregion

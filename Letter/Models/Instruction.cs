@@ -8,5 +8,6 @@
         public byte[] model { get; set; }
         public byte[] team { get; set; }
         public byte[] order { get; set; }
+        public byte[] sequence { get; set; }
     }
 }
