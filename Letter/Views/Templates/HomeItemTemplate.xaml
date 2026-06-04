@@ -31,10 +31,8 @@
                             CommandParameter="{Binding .}"/>
                     </SwipeItems>
                 </SwipeView.RightItems>
-                <Border StrokeThickness="0"
-                    Stroke="{StaticResource ModalColor}"
-                    StrokeShape="RoundRectangle 20, 20, 20, 10"
-                    BackgroundColor="{StaticResource MessageColor}">
+                <Border 
+                    Style="{StaticResource borHomeItemTemplate}">
                     <Grid
                         ColumnDefinitions="Auto, *"
                         RowSpacing="0"
@@ -47,7 +45,7 @@
                         </Grid.GestureRecognizers>
                         <Grid
                             Grid.Column="0"
-                            Style="{StaticResource colViewHomeItemTemplate}">
+                            Style="{StaticResource gridHomeItemTemplate}">
                             <Ellipse
                                 x:DataType="models:Message"
                                 BackgroundColor="{Binding Sender.Color}"
@@ -70,17 +68,6 @@
                                     x:DataType="models:Message"
                                     Text="{Binding Text}"
                                     Style="{StaticResource lblMessageHomeItemTemplate}"/>
-                                <!--
-                                <Grid 
-                                    BackgroundColor="{StaticResource MessageColor}" 
-                                    IsVisible="True">
-                                    <ActivityIndicator IsRunning="True" 
-                                       Color="{StaticResource LetterColor}" 
-                                       Scale="0.3"
-                                       VerticalOptions="Center" 
-                                       HorizontalOptions="Start" />
-                                </Grid
-                                -->
                             </StackLayout>
                         </Grid>
                     </Grid>

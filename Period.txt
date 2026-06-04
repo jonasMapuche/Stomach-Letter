@@ -1,0 +1,58 @@
+        private List<Word> Period(List<Word> seminars)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation subject \"Grammar\" service failed!");
+
+                List<Word> terms = new List<Word>();
+
+                int order = seminars.OrderBy(index => index.order).Last().order;
+                for (int quantity = 1; quantity <= order; quantity++)
+                {
+                    int order_sequence = seminars.FindAll(index => index.order == quantity).OrderBy(index => index.sequence).Last().sequence;
+                    List<Word> sequences = seminars.FindAll(index => index.order == quantity);
+                    for (int flow = 0; flow < order_sequence; flow++)
+                    {
+                        if (sequences[flow].team == this._adnominal_adjunct)
+                        {
+                            if (sequences[flow].kind == this._article) terms.Add(sequences[flow]);
+                            if (sequences[flow].kind == this._adjective) terms.Add(sequences[flow]);
+                            if (sequences[flow].kind == this._adverb) terms.Add(sequences[flow]);
+                            if (sequences[flow].kind == this._adverb_adverb) terms.Add(sequences[flow]);
+                            if (sequences[flow].kind == this._numeral) terms.Add(sequences[flow]);
+                            if (sequences[flow].kind == this._demonstrative) terms.Add(sequences[flow]);
+                            if (sequences[flow].kind == this._possessive_adjective) terms.Add(sequences[flow]);
+                            if (sequences[flow].kind == this._noun) terms.Add(sequences[flow]);
+                        }
+                        if ((sequences[flow].team == this._personal)
+                            || (sequences[flow].team == this._possessive)
+                            || (sequences[flow].team == this._demonstrative))
+                        {
+                            if (sequences[flow].kind == this._pronoun) terms.Add(sequences[flow]);
+                        }
+                        if (sequences[flow].team == this._adverbial_verb) 
+                        {
+                            if (sequences[flow].kind == this._verb) terms.Add(sequences[flow]);
+                            if (sequences[flow].kind == this._adverb) terms.Add(sequences[flow]);
+                            if (sequences[flow].kind == this._adverb_adverb) terms.Add(sequences[flow]);
+                        }
+                        if (sequences[flow].team == this._adverbial_adjective) 
+                        {
+                            if (sequences[flow].kind == this._adjective) terms.Add(sequences[flow]);
+                            if (sequences[flow].kind == this._adverb) terms.Add(sequences[flow]);
+                            if (sequences[flow].kind == this._adverb_adverb) terms.Add(sequences[flow]);
+                        }
+                        if (sequences[flow].team == this._preposition)
+                            if (sequences[flow].kind == this._preposition) terms.Add(sequences[flow]);
+                        if (sequences[flow].team == this._conjunction)
+                            if (sequences[flow].kind == this._conjunction) terms.Add(sequences[flow]);
+                    }
+                }
+                return terms;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }

@@ -53,7 +53,8 @@ namespace Letter.Services
         private static readonly string personal_portugues = "pessoal";
         private static readonly string preposition_portugues = "preposição";
         private static readonly string possessive_portugues = "possessivo";
-        private static readonly string demostrtive_portugues = "demonstrativo";
+        private static readonly string demonstrative_portugues = "demonstrativo";
+        private static readonly string possessive_adjective_portugues = "possessivo adjetivo";
 
         public static readonly string especial_portugues = "especial";
 
@@ -61,6 +62,21 @@ namespace Letter.Services
         public static readonly string plural_portugues = "plural";
 
         public static readonly string declarative_portugues = "declarativa";
+        public static readonly string interrogative_portugues = "interrogativa";
+        public static readonly string imperative_portugues = "imperativo";
+        public static readonly string subordinate_portugues = "subordinada";
+        public static readonly string coordenative_portugues = "coordenada";
+
+        public static readonly string subordinate_english = "subordinate";
+        public static readonly string coordenative_english = "coordinative";
+
+        public static readonly string declarative_english = "declarative";
+        public static readonly string interrogative_english = "interrogative";
+        public static readonly string imperative_english = "imperative";
+
+        public static readonly string sample_portugues = "simples";
+        public static readonly string compound_portugues = "composto";
+        public static readonly string hidden_portugues = "inexistente";
 
         public static readonly string infinitive_portugues = "infinitivo";
 
@@ -76,6 +92,7 @@ namespace Letter.Services
         private static readonly int order_10 = 10;
 
         private static readonly string load_english = "load";
+        private static readonly string load_deutsch = "laden";
         private static readonly string execute_english = "execute";
         private static readonly string see_english = "see";
         private static readonly string view_english = "view";
@@ -87,6 +104,7 @@ namespace Letter.Services
         private static readonly string rotate_english = "rotate";
         private static readonly string preview_english = "preview";
         private static readonly string stop_english = "stop";
+        private static readonly string stop_deutsch = "stoppen";
         private static readonly string capture_english = "capture";
         private static readonly string speak_english = "speak";
         private static readonly string save_english = "save";
@@ -117,6 +135,7 @@ namespace Letter.Services
         private static readonly string wav_english = "wav";
         private static readonly string mp3_english = "mp3";
         private static readonly string camera_english = "camera";
+        private static readonly string camera_deutsch = "kamera";
         private static readonly string file_english = "file";
         private static readonly string vibration_english = "vibration";
         private static readonly string phone_english = "phone";
@@ -136,6 +155,10 @@ namespace Letter.Services
         private static readonly string charge_english = "charge";
         private static readonly string unknow_english = "unknow";
         private static readonly string letter_english = "letter";
+        private static readonly string letter_deutsch = "brief";
+        private static readonly string sample_english = "sample";
+        private static readonly string compound_english = "compound";
+        private static readonly string hidden_english = "hidden";
 
         private static readonly string on_english = "on";
         private static readonly string off_english = "off";
@@ -157,6 +180,7 @@ namespace Letter.Services
 
         private static readonly string init_english = "What can I do for you?";
         private static readonly string dont_language_english = "Language not work yet.";
+        private static readonly string dont_language_deutsch = "Die sprache arbeiten nicht noch.";
         #endregion
 
         #region CONSTRUCTOR
@@ -305,7 +329,8 @@ namespace Letter.Services
 
         public readonly string Personal = personal_portugues;
         public readonly string Possessive = possessive_portugues;
-        public readonly string Demostrtive = demostrtive_portugues;
+        public readonly string Demonstrative = demonstrative_portugues;
+        public readonly string Possessive_Adjective = possessive_adjective_portugues;
 
         public readonly string Especial = especial_portugues;
 
@@ -329,7 +354,7 @@ namespace Letter.Services
             adverb_adverb_portugues,
             personal_portugues,
             possessive_portugues,
-            demostrtive_portugues,
+            demonstrative_portugues,
             adnominal_adjunct_portugues,
             adverbial_verb_portugues,
             adverbial_adjective_portugues
@@ -362,6 +387,7 @@ namespace Letter.Services
         public Dictionary<string, string> Execute = new Dictionary<string, string>()
         {
             { load_english, _english},
+            { load_deutsch, _deutsch},
             { execute_english, _english},
             { see_english, _english },
             { click_english, _english },
@@ -372,6 +398,7 @@ namespace Letter.Services
             { rotate_english, _english },
             { preview_english, _english },
             { stop_english, _english },
+            { stop_deutsch, _deutsch },
             { capture_english, _english },
             { speak_english, _english },
             { view_english, _english },
@@ -391,7 +418,7 @@ namespace Letter.Services
         {
             { load_english, _english },
             { execute_english, _english },
-            { click_english, _english },
+            { click_english, _english }
         };
 
         public Dictionary<string, string> View = new Dictionary<string, string>()
@@ -412,7 +439,8 @@ namespace Letter.Services
 
         public Dictionary<string, string> Stop = new Dictionary<string, string>()
         {
-            { stop_english, _english }
+            { stop_english, _english },
+            { stop_deutsch, _deutsch }
         };
 
         public Dictionary<string, string> Speak = new Dictionary<string, string>()
@@ -457,6 +485,7 @@ namespace Letter.Services
             { bluetooth_english, _english },
             { battery_english, _english },
             { camera_english, _english },
+            { camera_deutsch, _deutsch },
             { wav_english, _english },
             { mp3_english, _english },
             { file_english, _english },
@@ -467,7 +496,8 @@ namespace Letter.Services
             { flash_english, _english },
             { text_english, _english },
             { raspberry_english, _english },
-            { letter_english, _english  }
+            { letter_english, _english },
+            { letter_deutsch, _deutsch }
         };
 
         public Dictionary<string, string> Feature = new Dictionary<string, string>()
@@ -518,7 +548,8 @@ namespace Letter.Services
 
         public Dictionary<string, string> Camera = new Dictionary<string, string>()
         {
-            { camera_english, _english }
+            { camera_english, _english },
+            { camera_deutsch, _deutsch }
         };
 
         public Dictionary<string, string> WAV = new Dictionary<string, string>()
@@ -889,7 +920,8 @@ namespace Letter.Services
 
         public Dictionary<string, string> Dont_Language = new Dictionary<string, string>()
         {
-            { dont_language_english, _english }
+            { dont_language_english, _english },
+            { dont_language_deutsch, _deutsch }
         };
 
         public Dictionary<string, string> Charge = new Dictionary<string, string>()
@@ -909,12 +941,14 @@ namespace Letter.Services
 
         public Dictionary<string, string> Load = new Dictionary<string, string>()
         {
-            { load_english, _english }
+            { load_english, _english },
+            { load_deutsch, _deutsch }
         };
 
         public Dictionary<string, string> Letter = new Dictionary<string, string>()
         {
-            { letter_english, _english }
+            { letter_english, _english },
+            { letter_deutsch, _deutsch }
         };
 
         public List<Materia>? Book_English { get; set; } = new List<Materia>();
@@ -922,6 +956,68 @@ namespace Letter.Services
         public List<Materia>? Book_Italiano { get; set; } = new List<Materia>();
         public List<Materia>? Book_Francais { get; set; } = new List<Materia>();
         public List<Materia>? Book_Espanol { get; set; } = new List<Materia>();
+
+        public Dictionary<string, string> Informative = new Dictionary<string, string>()
+        {
+            { declarative_portugues, _english }
+        };
+
+        public Dictionary<string, string> Inquisitive = new Dictionary<string, string>()
+        {
+            { interrogative_portugues, _english }
+        };
+
+        public Dictionary<string, string> Immediate = new Dictionary<string, string>()
+        {
+            { imperative_portugues, _english }
+        };
+
+        public Dictionary<string, string> Sample = new Dictionary<string, string>()
+        {
+            { sample_english, _english }
+        };
+
+        public Dictionary<string, string> Compound = new Dictionary<string, string>()
+        {
+            { compound_english, _english }
+        };
+
+        public Dictionary<string, string> Hidden = new Dictionary<string, string>()
+        {
+            { hidden_english, _english }
+        };
+
+        public Dictionary<string, string> Subordinative = new Dictionary<string, string>()
+        {
+            { subordinate_portugues, _english },
+        };
+
+        public Dictionary<string, string> Coordenative = new Dictionary<string, string>()
+        {
+            { coordenative_portugues, _english },
+        };
+
+        public Dictionary<string, string> Veredict = new Dictionary<string, string>()
+        {
+            { declarative_english, _english },
+            { interrogative_english, _english },
+            { imperative_english, _english}
+        };
+
+        public Dictionary<string, string> Conditional = new Dictionary<string, string>()
+        {
+            { hidden_english, _english },
+            { sample_english, _english },
+            { compound_english, _english}
+        };
+
+        public Dictionary<string, string> Compost = new Dictionary<string, string>()
+        {
+            { sample_english, _english },
+            { coordenative_english, _english },
+            { subordinate_english, _english}
+        };
+
         #endregion
     }
 }

@@ -4,6 +4,8 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:viewmodels="clr-namespace:Letter.ViewModels"
              xmlns:controls="clr-namespace:Letter.Controls"
+             Shell.BackgroundColor="{StaticResource LetterColor}"
+             Shell.ForegroundColor="{StaticResource WhiteColor}"
              x:Class="Letter.Views.SettingView">
     <Shell.BackButtonBehavior>
         <BackButtonBehavior Command="{Binding BackCommand}"/>
@@ -60,8 +62,7 @@
                     <Grid
                         Grid.Row="0">
                         <Label Text="Select Table"
-                            FontSize="20"
-                            HorizontalOptions="Start"
+                            Style="{StaticResource lblTextSettingView}"
                             Margin="20, 50"/>
                         <Picker 
                             Title="Select Option"
@@ -71,14 +72,13 @@
                             ItemDisplayBinding="{Binding Name}"
                             SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                             SelectedIndexChanged="OnSelectedIndexChanged"
-                            FontSize="20"
+                            Style="{StaticResource pckTableSettingView}"
                             Margin="30, 80, 30, 0"/>
                     </Grid>
                     <Grid
                         Grid.Row="1">
                         <Label Text="Update Table"
-                            FontSize="20"
-                            HorizontalOptions="Start"
+                            Style="{StaticResource lblTextSettingView}"
                             Margin="20, 20, 0, 0"/>
                         <Switch 
                             x:Name="swtUpdateTable"
@@ -91,8 +91,7 @@
                     <Grid
                         Grid.Row="2">
                         <Label Text="SQLite"
-                            FontSize="20"
-                            HorizontalOptions="Start"
+                            Style="{StaticResource lblTextSettingView}"
                             Margin="20, 20, 0, 0"/>
                         <Switch 
                             x:Name="swtSQLite"
@@ -105,8 +104,7 @@
                     <Grid
                         Grid.Row="3">
                         <Label Text="Drop SQLite"
-                            FontSize="20"
-                            HorizontalOptions="Start"
+                            Style="{StaticResource lblTextSettingView}"
                             Margin="20, 20, 0, 0"/>
                         <Switch 
                             x:Name="swtDrop"
@@ -119,8 +117,7 @@
                     <Grid
                         Grid.Row="4">
                         <Label Text="Pitch"
-                            FontSize="20"
-                            HorizontalOptions="Start"
+                            Style="{StaticResource lblTextSettingView}"
                             Margin="20, 20, 0, 0"/>
                         <Label x:Name="lblPich"
                             FontSize="20"
@@ -142,8 +139,7 @@
                     <Grid
                         Grid.Row="5">
                         <Label Text="Volume"
-                            FontSize="20"
-                            HorizontalOptions="Start"
+                            Style="{StaticResource lblTextSettingView}"
                             Margin="20, 20, 0, 0"/>
                         <Label x:Name="lblVolume"
                             FontSize="20"

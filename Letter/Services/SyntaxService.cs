@@ -1,7 +1,6 @@
 ﻿using Letter.Enums;
 using Letter.Models;
 using Letter.Services.Interfaces;
-using System.Reflection;
 using Level = Letter.Enums.Level;
 
 namespace Letter.Services
@@ -85,7 +84,7 @@ namespace Letter.Services
                 this._numeral = this._settingService.Numeral;
                 this._preposition = this._settingService.Preposition;
                 this._possessive = this._settingService.Possessive;
-                this._demonstrative = this._settingService.Demostrtive;
+                this._demonstrative = this._settingService.Demonstrative;
                 this._adverb = this._settingService.Adverb;
                 this._adverb_adverb = this._settingService.Adverb_Adverb;
                 this._adjective_noun = this._settingService.Adjective_Noun;
@@ -407,15 +406,15 @@ namespace Letter.Services
                     foreach (Word item in words)
                     {
                         if ((item.kind.IndexOf(morphology_verb) != -1) 
-                            && (item.order == morphology_order)) verb = item.term;
+                            && (item.order.Equals(morphology_order))) verb = item.term;
                         if ((item.sentence.IndexOf(syntax_predicate) != -1)
                             && (item.team.IndexOf(morphology_adverbial_verb) != -1)
                             && (item.kind.IndexOf(morphology_adverb) != -1)
-                            && (item.order == morphology_order)) verb_adverb = item.term;
+                            && (item.order.Equals(morphology_order))) verb_adverb = item.term;
                         if ((item.sentence.IndexOf(syntax_predicate) != -1)
                             && (item.team.IndexOf(morphology_adverbial_verb) != -1)
                             && (item.kind.IndexOf(morphology_adverb_adverb) != -1)
-                            && (item.order == morphology_order)) verb_adverb_adverb = item.term;
+                            && (item.order.Equals(morphology_order))) verb_adverb_adverb = item.term;
                     }
                 }
 
@@ -908,33 +907,33 @@ namespace Letter.Services
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (item.team.IndexOf(morphology_adnominal_adjunct) != -1)
                             && (item.kind.IndexOf(morphology_adjective) != -1)
-                            && (item.order == morphology_order)
-                            && (item.sequence == morphology_sequence)) adjective = item.term;
+                            && (item.order.Equals(morphology_order))
+                            && (item.sequence.Equals(morphology_sequence))) adjective = item.term;
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (item.team.IndexOf(morphology_adnominal_adjunct) != -1)
                             && (item.kind.IndexOf(morphology_article) != -1)
-                            && (item.order == morphology_order)
-                            && (item.sequence == morphology_sequence)) article = item.term;
+                            && (item.order.Equals(morphology_order))
+                            && (item.sequence.Equals(morphology_sequence))) article = item.term;
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (item.team.IndexOf(morphology_adnominal_adjunct) != -1)
                             && (item.kind.IndexOf(morphology_numeral) != -1)
-                            && (item.order == morphology_order)
-                            && (item.sequence == morphology_sequence)) numeral = item.term;
+                            && (item.order.Equals(morphology_order))
+                            && (item.sequence.Equals(morphology_sequence))) numeral = item.term;
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (item.team.IndexOf(morphology_adnominal_adjunct) != -1)
                             && (item.kind.IndexOf(morphology_pronoun) != -1)
-                            && (item.order == morphology_order)
-                            && (item.sequence == morphology_sequence)) pronoun = item.term;
+                            && (item.order.Equals(morphology_order))
+                            && (item.sequence.Equals(morphology_sequence))) pronoun = item.term;
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (item.team.IndexOf(morphology_adnominal_adjunct) != -1)
                             && (item.kind.IndexOf(morphology_noun) != -1)
-                            && (item.order == morphology_order)
-                            && (item.sequence == morphology_sequence)) noun = item.term;
+                            && (item.order.Equals(morphology_order))
+                            && (item.sequence.Equals(morphology_sequence))) noun = item.term;
                         if ((item.sentence.IndexOf(syntax) != -1)
                             && (!(item.team.IndexOf(morphology_adnominal_adjunct) != -1))
                             && (item.kind.IndexOf(morphology_pronoun) != -1)
-                            && (item.order == morphology_order)
-                            && (item.sequence == morphology_sequence)) noun = item.term;
+                            && (item.order.Equals(morphology_order))
+                            && (item.sequence.Equals(morphology_sequence))) noun = item.term;
                     }
                 }
 
@@ -2039,7 +2038,7 @@ namespace Letter.Services
                 string preposition = string.Empty;
 
                 adverbial = VerifyVerb(words, order_verb, level, Rotate.Front);
-                adnominal = VerifyNoun(words, order_noun, level, Rotate.Rear, Seat.Subject);
+                adnominal = VerifyNoun(words, order_noun, level, Rotate.Rear, Seat.Predicate);
                 preposition = VerifyPreposition(words, order_noun, level);
 
                 bool similarity = false;
@@ -4908,87 +4907,6 @@ namespace Letter.Services
             }
         }
 
-        private bool VerifyCompoundConjunction(List<Instruction> conjunctions, List<Instruction> firsts, List<Instruction> lasts, Dictionary<(byte[], byte[]), int> word_2_vec, Level level, Seat seat, int order)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation verify verb compound subject \"Syntax\" service failed!");
-
-                byte[]? conjunction = null;
-                byte[]? adnominal = null;
-                byte[]? adnominal_second = null;
-
-                conjunction = VerifyConjunction(conjunctions, order, level, seat);
-                adnominal = VerifyNoun(firsts, order, level, Rotate.Front, seat);
-                adnominal_second = VerifyNoun(lasts, order, level, Rotate.Rear, seat);
-
-                bool similarity = false;
-                similarity = this._wordEmbeddingService.Similarity(word_2_vec, adnominal, conjunction);
-                if (similarity) similarity = this._wordEmbeddingService.Similarity(word_2_vec, conjunction, adnominal_second);
-                if (similarity) return true;
-                return false;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        private bool VerifyCompoundConjunction(List<Word> firsts, List<Word> conjunctions, List<Word> lasts, Dictionary<(string, string), int> word_2_vec, Level level, Seat seat, int order_first, int order_middle, int order_last)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation verify verb compound subject \"Syntax\" service failed!");
-
-                string conjunction = string.Empty;
-                string adnominal = string.Empty;
-                string adnominal_second = string.Empty;
-
-                conjunction = VerifyConjunction(conjunctions, order_middle, level, seat);
-                adnominal = VerifyNoun(firsts, order_first, level, Rotate.Front, seat);
-                adnominal_second = VerifyNoun(lasts, order_last, level, Rotate.Rear, seat);
-
-                bool similarity = false;
-                similarity = this._wordEmbeddingService.Similarity(word_2_vec, adnominal, conjunction);
-                if (similarity) similarity = this._wordEmbeddingService.Similarity(word_2_vec, conjunction, adnominal_second);
-                if (similarity) return true;
-                return false;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        private bool VerifyCompoundConjunction(List<Guidance> conjunctions, List<Guidance> firsts, List<Guidance> lasts, Dictionary<(int, int), int> word_2_vec, Level level, Seat seat, int order)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation verify verb compound subject \"Syntax\" service failed!");
-
-                int conjunction = -1;
-                int adnominal = -1;
-                int adnominal_second = -1;
-
-                conjunction = VerifyConjunction(conjunctions, order, level, seat);
-                adnominal = VerifyNoun(firsts, order, level, Rotate.Front, seat);
-                adnominal_second = VerifyNoun(lasts, order, level, Rotate.Rear, seat);
-
-                bool similarity = false;
-                similarity = this._wordEmbeddingService.Similarity(word_2_vec, adnominal, conjunction);
-                if (similarity) similarity = this._wordEmbeddingService.Similarity(word_2_vec, conjunction, adnominal_second);
-                if (similarity) return true;
-                return false;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-                        
         private bool VerifyDirectObjectPreposition(List<Instruction> words, Dictionary<(byte[], byte[]), int>? word_2_vec, Level level, int order, int order_preposition)
         {
             try
@@ -5338,7 +5256,7 @@ namespace Letter.Services
             }
         }
 
-        private List<Lesson> MountDirectObjectIndirectObject<TKey, TValue>(List<Lesson> adnominals_adjunts, List<Lesson>? sources, Dictionary<TKey, TValue> dictionaries, int order_indirect_object) where TKey : notnull
+        private List<Lesson> MountIndirectObjectSample<TKey, TValue>(List<Lesson> adnominals_adjunts, List<Lesson>? sources, Dictionary<TKey, TValue> dictionaries, int order_indirect_object) where TKey : notnull
         {
             try
             {
@@ -5378,7 +5296,7 @@ namespace Letter.Services
             }
         }
 
-        private List<Tutorial> MountDirectObjectIndirectObject<TKey, TValue>(List<Tutorial> adnominals_adjunts, List<Tutorial>? sources, Dictionary<TKey, TValue> dictionaries, int order_indirect_object) where TKey : notnull
+        private List<Tutorial> MountIndirectObjectSample<TKey, TValue>(List<Tutorial> adnominals_adjunts, List<Tutorial>? sources, Dictionary<TKey, TValue> dictionaries, int order_indirect_object) where TKey : notnull
         {
             try
             {
@@ -5418,7 +5336,7 @@ namespace Letter.Services
             }
         }
 
-        private List<Practice> MountDirectObjectIndirectObject<TKey, TValue>(List<Practice> adnominals_adjunts, List<Practice>? sources, Dictionary<TKey, TValue> dictionaries, int order_indirect_object) where TKey : notnull
+        private List<Practice> MountIndirectObjectSample<TKey, TValue>(List<Practice> adnominals_adjunts, List<Practice>? sources, Dictionary<TKey, TValue> dictionaries, int order_indirect_object) where TKey : notnull
         {
             try
             {
@@ -5458,7 +5376,7 @@ namespace Letter.Services
             }
         }
 
-        public List<Lesson> MountDirectObjectIndirectObject<T, TKey, TValue>(List<T>? homeworks, Dictionary<TKey, TValue> dictionaries, HashSet<string> vocabulary, List<T>? sources, int order_indirect_object) where TKey : notnull
+        public List<Lesson> MountIndirectObjectSample<T, TKey, TValue>(List<T>? homeworks, Dictionary<TKey, TValue> dictionaries, HashSet<string> vocabulary, List<T>? sources, int order_indirect_object) where TKey : notnull
         {
             try
             {
@@ -5518,14 +5436,718 @@ namespace Letter.Services
 
                 if (typeof(T) == typeof(Tutorial))
                 {
-                    List<Tutorial> result = MountDirectObjectIndirectObject(tutorial_adnominals, tutorial_sources, dictionaries, order_indirect_object);
+                    List<Tutorial> result = MountIndirectObjectSample(tutorial_adnominals, tutorial_sources, dictionaries, order_indirect_object);
                     seminars = DecodeLesson(result, vocabulary);
                 }
                 if (typeof(T) == typeof(Lesson))
-                    seminars = MountDirectObjectIndirectObject(lesson_adnominals, lesson_sources, dictionaries, order_indirect_object);
+                    seminars = MountIndirectObjectSample(lesson_adnominals, lesson_sources, dictionaries, order_indirect_object);
                 if (typeof(T) == typeof(Practice))
                 {
-                    List<Practice> result = MountDirectObjectIndirectObject(practice_adnominals, practice_sources, dictionaries, order_indirect_object);
+                    List<Practice> result = MountIndirectObjectSample(practice_adnominals, practice_sources, dictionaries, order_indirect_object);
+                    seminars = DecodeLesson(result, vocabulary);
+                }
+
+                return seminars;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private bool VerifyIndirectObjectConjunction(List<Instruction> words, List<Instruction> firsts, List<Instruction> lasts, Dictionary<(byte[], byte[]), int> word_2_vec, Level level, Seat seat, int order)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify verb compound subject \"Syntax\" service failed!");
+
+                byte[]? preposition = null;
+                byte[]? conjunction = null;
+                byte[]? adnominal_front = null;
+                byte[]? adnominal_rear = null;
+                byte[]? adnominal2 = null;
+
+                int order_last = this._order_3;
+
+                preposition = VerifyPreposition(words, order, level);
+                conjunction = VerifyConjunction(words, order, level, seat);
+                adnominal_front = VerifyNoun(firsts, order, level, Rotate.Front, seat);
+                adnominal_rear = VerifyNoun(firsts, order, level, Rotate.Rear, seat);
+                adnominal2 = VerifyNoun(lasts, order, level, Rotate.Rear, seat, order_last);
+
+                bool similarity = false;
+                similarity = this._wordEmbeddingService.Similarity(word_2_vec, preposition, adnominal_rear);
+                if (similarity) similarity = this._wordEmbeddingService.Similarity(word_2_vec, adnominal_front, conjunction);
+                if (similarity) similarity = this._wordEmbeddingService.Similarity(word_2_vec, conjunction, adnominal2);
+                if (similarity) return true;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private bool VerifyIndirectObjectConjunction(List<Word> words, List<Word> firsts, List<Word> lasts, Dictionary<(string, string), int> word_2_vec, Level level, Seat seat, int order)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify verb compound subject \"Syntax\" service failed!");
+
+                string preposition = string.Empty;
+                string conjunction = string.Empty;
+                string adnominal_front = string.Empty;
+                string adnominal_rear = string.Empty;
+                string adnominal2 = string.Empty;
+
+                int order_last = this._order_3;
+
+                preposition = VerifyPreposition(words, order, level);
+                conjunction = VerifyConjunction(words, order, level, seat);
+                adnominal_front = VerifyNoun(firsts, order, level, Rotate.Front, seat);
+                adnominal_rear = VerifyNoun(firsts, order, level, Rotate.Rear, seat);
+                adnominal2 = VerifyNoun(lasts, order, level, Rotate.Rear, seat, order_last);
+
+                bool similarity = false;
+                similarity = this._wordEmbeddingService.Similarity(word_2_vec, preposition, adnominal_rear);
+                if (similarity) similarity = this._wordEmbeddingService.Similarity(word_2_vec, adnominal_front, conjunction);
+                if (similarity) similarity = this._wordEmbeddingService.Similarity(word_2_vec, conjunction, adnominal2);
+                if (similarity) return true;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private bool VerifyIndirectObjectConjunction(List<Guidance> words, List<Guidance> firsts, List<Guidance> lasts, Dictionary<(int, int), int> word_2_vec, Level level, Seat seat, int order)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify verb compound subject \"Syntax\" service failed!");
+
+                int preposition = -1;
+                int conjunction = -1;
+                int adnominal_front = -1;
+                int adnominal_rear = -1;
+                int adnominal2 = -1;
+
+                int order_last = this._order_3;
+
+                preposition = VerifyPreposition(words, order, level);
+                conjunction = VerifyConjunction(words, order, level, seat);
+                adnominal_front = VerifyNoun(firsts, order, level, Rotate.Front, seat);
+                adnominal_rear = VerifyNoun(firsts, order, level, Rotate.Rear, seat);
+                adnominal2 = VerifyNoun(lasts, order, level, Rotate.Rear, seat, order_last);
+
+                bool similarity = false;
+                similarity = this._wordEmbeddingService.Similarity(word_2_vec, preposition, adnominal_rear);
+                if (similarity) similarity = this._wordEmbeddingService.Similarity(word_2_vec, adnominal_front, conjunction);
+                if (similarity) similarity = this._wordEmbeddingService.Similarity(word_2_vec, conjunction, adnominal2);
+                if (similarity) return true;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<Tutorial> MountIndirectObjectConjunction<TKey, TValue>(List<Tutorial> adnominals_adjuncts, List<Tutorial> adnominals_second, List<Tutorial> conjunctions, Dictionary<TKey, TValue> dictionaries, List<Tutorial>? sources, int order_indirect_object) where TKey : notnull
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation mount verb noun conjunction noun \"Syntax\" view model failed!");
+
+                List<Tutorial> seminars = new List<Tutorial>();
+                byte[] predicate = this._wordEmbeddingService.Encode(this._predicate, this._syntax);
+                byte[] order_compound = this._wordEmbeddingService.Encode(order_indirect_object, this._order);
+
+                byte[] order_first = this._wordEmbeddingService.Encode(this._order_1, this._order);
+                byte[] order_middle = this._wordEmbeddingService.Encode(this._order_2, this._order);
+                byte[] order_second = this._wordEmbeddingService.Encode(this._order_3, this._order);
+
+                Dictionary<(byte[], byte[]), int> word_2_vec = dictionaries as Dictionary<(byte[], byte[]), int>;
+
+                foreach (Tutorial source in sources)
+                {
+                    List<Instruction> words = source.lecture;
+                    foreach (Tutorial conjunction in conjunctions)
+                    {
+                        foreach (Tutorial adnominal_first in adnominals_adjuncts)
+                        {
+                            foreach (Tutorial adnominal_last in adnominals_second)
+                            {
+                                List<Instruction> words1 = new List<Instruction>();
+                                List<Instruction> firsts = new List<Instruction>();
+                                List<Instruction> lasts = new List<Instruction>();
+                                words.ForEach(item => words1.Add(item));
+                                foreach (Instruction item in adnominal_first.lecture)
+                                {
+                                    Instruction word = new Instruction();
+                                    word = Lecture(item.term, item.kind, predicate, adnominal_first.team, order_compound, order_first);
+                                    words1.Add(word);
+                                    firsts.Add(word);
+                                }
+                                foreach (Instruction item in adnominal_last.lecture)
+                                {
+                                    Instruction word = new Instruction();
+                                    word = Lecture(item.term, item.kind, predicate, adnominal_last.team, order_compound, order_second);
+                                    words1.Add(word);
+                                    lasts.Add(word);
+                                }
+                                foreach (Instruction item in conjunction.lecture)
+                                {
+                                    Instruction word = new Instruction();
+                                    word = Lecture(item.term, item.kind, predicate, conjunction.team, order_compound, order_middle);
+                                    words1.Add(word);
+                                }
+                                if (!VerifyIndirectObjectConjunction(words1, firsts, lasts, word_2_vec, Level.AsSpanSequence, Seat.Predicate, order_indirect_object)) continue;
+                                Tutorial seminar = new Tutorial();
+                                seminar.lecture = words1;
+                                seminars.Add(seminar);
+                            }
+                        }
+                    }
+                }
+                return seminars;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<Lesson> MountIndirectObjectConjunction<TKey, TValue>(List<Lesson> adnominals_adjuncts, List<Lesson> adnominals_second, List<Lesson> conjunctions, Dictionary<TKey, TValue> dictionaries, List<Lesson>? sources, int order_indirect_object) where TKey : notnull
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation mount verb noun conjunction noun \"Syntax\" view model failed!");
+
+                List<Lesson> seminars = new List<Lesson>();
+                string predicate = this._predicate;
+                int order_compound = order_indirect_object;
+
+                int order_first = this._order_1;
+                int order_middle = this._order_2;
+                int order_second = this._order_3;
+
+                Dictionary<(string, string), int> word_2_vec = dictionaries as Dictionary<(string, string), int>;
+
+                foreach (Lesson source in sources)
+                {
+                    List<Word> words = source.lecture;
+                    foreach (Lesson conjunction in conjunctions)
+                    {
+                        foreach (Lesson adnominal_first in adnominals_adjuncts)
+                        {
+                            foreach (Lesson adnominal_last in adnominals_second)
+                            {
+                                List<Word> words1 = new List<Word>();
+                                List<Word> firsts = new List<Word>();
+                                List<Word> lasts = new List<Word>();
+                                words.ForEach(item => words1.Add(item));
+                                foreach (Word item in adnominal_first.lecture)
+                                {
+                                    Word word = new Word();
+                                    word = Lecture(item.term, item.kind, predicate, adnominal_first.team, order_compound, order_first);
+                                    words1.Add(word);
+                                    firsts.Add(word);
+                                }
+                                foreach (Word item in adnominal_last.lecture)
+                                {
+                                    Word word = new Word();
+                                    word = Lecture(item.term, item.kind, predicate, adnominal_last.team, order_compound, order_second);
+                                    words1.Add(word);
+                                    lasts.Add(word);
+                                }
+                                foreach (Word item in conjunction.lecture)
+                                {
+                                    Word word = new Word();
+                                    word = Lecture(item.term, item.kind, predicate, conjunction.team, order_compound, order_middle);
+                                    words1.Add(word);
+                                }
+                                if (!VerifyIndirectObjectConjunction(words1, firsts, lasts, word_2_vec, Level.AsSpanSequence, Seat.Predicate, order_indirect_object)) continue;
+                                Lesson seminar = new Lesson();
+                                seminar.lecture = words1;
+                                seminars.Add(seminar);
+                            }
+                        }
+                    }
+                }
+                return seminars;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<Practice> MountIndirectObjectConjunction<TKey, TValue>(List<Practice> adnominals_adjuncts, List<Practice> adnominals_second, List<Practice> conjunctions, Dictionary<TKey, TValue> dictionaries, List<Practice>? sources, int order_indirect_object) where TKey : notnull
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation mount verb noun conjunction noun \"Syntax\" view model failed!");
+
+                List<Practice> seminars = new List<Practice>();
+                int predicate = this._wordEmbeddingService.EncodeInt(this._predicate, this._syntax);
+                int order_compound = this._wordEmbeddingService.EncodeInt(order_indirect_object, this._order);
+
+                int order_first = this._wordEmbeddingService.EncodeInt(this._order_1, this._order);
+                int order_middle = this._wordEmbeddingService.EncodeInt(this._order_2, this._order);
+                int order_second = this._wordEmbeddingService.EncodeInt(this._order_3, this._order);
+
+                Dictionary<(int, int), int> word_2_vec = dictionaries as Dictionary<(int, int), int>;
+
+                foreach (Practice source in sources)
+                {
+                    List<Guidance> words = source.lecture;
+                    foreach (Practice conjunction in conjunctions)
+                    {
+                        foreach (Practice adnominal_first in adnominals_adjuncts)
+                        {
+                            foreach (Practice adnominal_last in adnominals_second)
+                            {
+                                List<Guidance> words1 = new List<Guidance>();
+                                List<Guidance> firsts = new List<Guidance>();
+                                List<Guidance> lasts = new List<Guidance>();
+                                words.ForEach(item => words1.Add(item));
+                                foreach (Guidance item in adnominal_first.lecture)
+                                {
+                                    Guidance word = new Guidance();
+                                    word = Lecture(item.term, item.kind, predicate, adnominal_first.team, order_compound, order_first);
+                                    words1.Add(word);
+                                    firsts.Add(word);
+                                }
+                                foreach (Guidance item in adnominal_last.lecture)
+                                {
+                                    Guidance word = new Guidance();
+                                    word = Lecture(item.term, item.kind, predicate, adnominal_last.team, order_compound, order_second);
+                                    words1.Add(word);
+                                    lasts.Add(word);
+                                }
+                                foreach (Guidance item in conjunction.lecture)
+                                {
+                                    Guidance word = new Guidance();
+                                    word = Lecture(item.term, item.kind, predicate, conjunction.team, order_compound, order_middle);
+                                    words1.Add(word);
+                                }
+                                if (!VerifyIndirectObjectConjunction(words1, firsts, lasts, word_2_vec, Level.AsSpanSequence, Seat.Predicate, order_indirect_object)) continue;
+                                Practice seminar = new Practice();
+                                seminar.lecture = words1;
+                                seminars.Add(seminar);
+                            }
+                        }
+                    }
+                }
+                return seminars;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<Lesson> MountIndirectObjectConjunction<T, TKey, TValue>(List<T>? homeworks, Dictionary<TKey, TValue> dictionaries, HashSet<string> vocabulary, List<T>? sources, int order_indirect_object) where TKey : notnull
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation mount verb noun conjunction noun \"Syntax\" view model failed!");
+
+                List<Lesson> seminars = new List<Lesson>();
+                if (homeworks == null) return seminars;
+
+                List<Lesson>? lessons = new List<Lesson>();
+                List<Tutorial>? tutorials = new List<Tutorial>();
+                List<Practice>? practices = new List<Practice>();
+
+                List<Tutorial>? tutorial_sources = new List<Tutorial>();
+                List<Lesson>? lesson_sources = new List<Lesson>();
+                List<Practice>? practice_sources = new List<Practice>();
+
+                List<Tutorial> tutorial_adnominals = new List<Tutorial>();
+                List<Tutorial> tutorial_adnominals_second = new List<Tutorial>();
+                List<Lesson> lesson_adnominals = new List<Lesson>();
+                List<Lesson> lesson_adnominals_second = new List<Lesson>();
+                List<Practice> practice_adnominals = new List<Practice>();
+                List<Practice> practice_adnominals_second = new List<Practice>();
+
+                if (typeof(T) == typeof(Tutorial))
+                {
+                    List<byte[]> kind_adnominal = new List<byte[]>();
+                    byte[] sha_adnominal = this._wordEmbeddingService.Encode(this._adnominal_adjunct, this._morphology);
+                    kind_adnominal.Add(sha_adnominal);
+                    byte[] sha_personal = this._wordEmbeddingService.Encode(this._personal, this._morphology);
+                    kind_adnominal.Add(sha_personal);
+                    byte[] sha_demonstrative = this._wordEmbeddingService.Encode(this._demonstrative, this._morphology);
+                    kind_adnominal.Add(sha_demonstrative);
+                    byte[] sha_numeral = this._wordEmbeddingService.Encode(this._numeral, this._morphology);
+                    kind_adnominal.Add(sha_numeral);
+                    byte[] sha_adverbial_adjective = this._wordEmbeddingService.Encode(this._adverbial_adjective, this._morphology);
+                    kind_adnominal.Add(sha_adverbial_adjective);
+                    tutorials = homeworks as List<Tutorial>;
+                    tutorial_sources = sources as List<Tutorial>;
+                    tutorial_adnominals = FilterLesson(tutorials, kind_adnominal);
+                    tutorial_adnominals_second = FilterLesson(tutorials, kind_adnominal);
+                }
+                if (typeof(T) == typeof(Lesson))
+                {
+                    List<string> kind_adnominal = new List<string>();
+                    kind_adnominal.Add(this._adnominal_adjunct);
+                    kind_adnominal.Add(this._personal);
+                    kind_adnominal.Add(this._demonstrative);
+                    kind_adnominal.Add(this._numeral);
+                    kind_adnominal.Add(this._adverbial_adjective);
+                    lessons = homeworks as List<Lesson>;
+                    lesson_sources = sources as List<Lesson>;
+                    lesson_adnominals = FilterLesson(lessons, kind_adnominal);
+                    lesson_adnominals_second = FilterLesson(lessons, kind_adnominal);
+                }
+                if (typeof(T) == typeof(Practice))
+                {
+                    List<int> kind_adnominal = new List<int>();
+                    int index_adnominal = this._wordEmbeddingService.EncodeInt(this._adnominal_adjunct, this._morphology);
+                    kind_adnominal.Add(index_adnominal);
+                    int index_personal = this._wordEmbeddingService.EncodeInt(this._personal, this._morphology);
+                    kind_adnominal.Add(index_personal);
+                    int index_demostrative = this._wordEmbeddingService.EncodeInt(this._demonstrative, this._morphology);
+                    kind_adnominal.Add(index_demostrative);
+                    int sha_numeral = this._wordEmbeddingService.EncodeInt(this._numeral, this._morphology);
+                    kind_adnominal.Add(sha_numeral);
+                    int sha_adverbial_adjective = this._wordEmbeddingService.EncodeInt(this._adverbial_adjective, this._morphology);
+                    kind_adnominal.Add(sha_adverbial_adjective);
+                    practices = homeworks as List<Practice>;
+                    practice_sources = sources as List<Practice>;
+                    practice_adnominals = FilterLesson(practices, kind_adnominal);
+                    practice_adnominals_second = FilterLesson(practices, kind_adnominal);
+                }
+
+                List<Tutorial> tutorial_conjunctions = new List<Tutorial>();
+                List<Lesson> lesson_conjunctions = new List<Lesson>();
+                List<Practice> practice_conjunctions = new List<Practice>();
+
+                if (typeof(T) == typeof(Tutorial))
+                {
+                    List<byte[]> kind_conjunction = new List<byte[]>();
+                    byte[] sha_conjunction = this._wordEmbeddingService.Encode(this._conjunction, this._morphology);
+                    kind_conjunction.Add(sha_conjunction);
+                    tutorial_conjunctions = FilterLesson(tutorials, kind_conjunction);
+                }
+                if (typeof(T) == typeof(Lesson))
+                {
+                    List<string> kind_conjunction = new List<string>();
+                    kind_conjunction.Add(this._conjunction);
+                    lesson_conjunctions = FilterLesson(lessons, kind_conjunction);
+                }
+                if (typeof(T) == typeof(Tutorial))
+                {
+                    List<int> kind_conjunction = new List<int>();
+                    int index_conjunction = this._wordEmbeddingService.EncodeInt(this._conjunction, this._morphology);
+                    kind_conjunction.Add(index_conjunction);
+                    practice_conjunctions = FilterLesson(practices, kind_conjunction);
+                }
+
+                if (typeof(T) == typeof(Tutorial))
+                {
+                    List<Tutorial> result = MountIndirectObjectConjunction(tutorial_adnominals, tutorial_adnominals_second, tutorial_conjunctions, dictionaries, tutorial_sources, order_indirect_object);
+                    seminars = DecodeLesson(result, vocabulary);
+                }
+                if (typeof(T) == typeof(Lesson))
+                    seminars = MountIndirectObjectConjunction(lesson_adnominals, lesson_adnominals_second, lesson_conjunctions, dictionaries, lesson_sources, order_indirect_object);
+                if (typeof(T) == typeof(Practice))
+                {
+                    List<Practice> result = MountIndirectObjectConjunction(practice_adnominals, practice_adnominals_second, practice_conjunctions, dictionaries, practice_sources, order_indirect_object);
+                    seminars = DecodeLesson(result, vocabulary);
+                }
+
+                return seminars;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private bool VerifyObjectPredicative(List<Instruction> words, Dictionary<(byte[], byte[]), int>? word_2_vec, Level level, int order, int order_predicative)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify verb indirect object \"Syntax\" service failed!");
+
+                byte[]? predicative = null;
+                byte[]? adnominal = null;
+
+                int order_last = this._order_3;
+
+                predicative = VerifyAdjective(words, order_predicative, level, Rotate.Front, Seat.Predicate);
+                adnominal = VerifyNoun(words, order, level, Rotate.Rear, Seat.Predicate, order_last);
+
+                bool similarity = false;
+                similarity = this._wordEmbeddingService.Similarity(word_2_vec, adnominal, predicative);
+                if (similarity) return true;
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private bool VerifyObjectPredicative(List<Word> words, Dictionary<(string, string), int>? word_2_vec, Level level, int order, int order_predicative)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify verb indirect object \"Syntax\" service failed!");
+
+                string predicative = string.Empty;
+                string adnominal = string.Empty;
+
+                int order_last = this._order_3;
+
+                predicative = VerifyAdjective(words, order_predicative, level, Rotate.Front, Seat.Predicate);
+                adnominal = VerifyNoun(words, order, level, Rotate.Rear, Seat.Predicate, order_last);
+
+                bool similarity = false;
+                similarity = this._wordEmbeddingService.Similarity(word_2_vec, adnominal, predicative);
+                if (similarity) return true;
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private bool VerifyObjectPredicative(List<Guidance> words, Dictionary<(int, int), int>? word_2_vec, Level level, int order, int order_predicative)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify verb indirect object \"Syntax\" service failed!");
+
+                int predicative = -1;
+                int adnominal = -1;
+
+                int order_last = this._order_3;
+
+                predicative = VerifyAdjective(words, order_predicative, level, Rotate.Front, Seat.Predicate);
+                adnominal = VerifyNoun(words, order, level, Rotate.Rear, Seat.Predicate, order_last);
+
+                bool similarity = false;
+                similarity = this._wordEmbeddingService.Similarity(word_2_vec, adnominal, predicative);
+                if (similarity) return true;
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<Tutorial> MountObjectPredicative<TKey, TValue>(List<Tutorial> predicatives, List<Tutorial>? sources, Dictionary<TKey, TValue> dictionaries, int order_direct_object, int order_predicative) where TKey : notnull
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation mount verb indirect object \"Syntax\" view model failed!");
+
+                List<Tutorial> seminars = new List<Tutorial>();
+
+                byte[] predicate = this._wordEmbeddingService.Encode(this._predicate, this._syntax);
+                byte[] order = this._wordEmbeddingService.Encode(order_direct_object, this._order);
+                byte[] order_adjective = this._wordEmbeddingService.Encode(order_predicative, this._order);
+
+                Dictionary<(byte[], byte[]), int> word_2_vec = dictionaries as Dictionary<(byte[], byte[]), int>;
+
+                if ((predicatives == null) || (sources == null)) return seminars;
+                if ((predicatives.Count == 0) || (sources.Count == 0)) return seminars;
+                foreach (Tutorial source in sources)
+                {
+                    List<Instruction> words = source.lecture;
+                    foreach (Tutorial preposition in predicatives)
+                    {
+                        List<Instruction> words1 = new List<Instruction>();
+                        words.ForEach(item => words1.Add(item));
+                        foreach (Instruction item in preposition.lecture)
+                        {
+                            Instruction word = new Instruction();
+                            word = Lecture(item.term, item.kind, predicate, preposition.team, order_adjective);
+                            words1.Add(word);
+                        }
+                        if (!VerifyObjectPredicative(words1, word_2_vec, Level.AsSpanSequence, order_direct_object, order_predicative)) continue;
+                        Tutorial seminar = new Tutorial();
+                        seminar.lecture = words1;
+                        seminars.Add(seminar);
+                    }
+                }
+                return seminars;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<Lesson> MountObjectPredicative<TKey, TValue>(List<Lesson> predicatives, List<Lesson>? sources, Dictionary<TKey, TValue> dictionaries, int order_direct_object, int order_predicative) where TKey : notnull
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation mount verb indirect object \"Syntax\" view model failed!");
+
+                List<Lesson> seminars = new List<Lesson>();
+
+                string predicate = this._predicate;
+                int order = order_direct_object;
+                int order_adjective = order_predicative;
+
+                Dictionary<(string, string), int> word_2_vec = dictionaries as Dictionary<(string, string), int>;
+
+                if ((predicatives == null) || (sources == null)) return seminars;
+                if ((predicatives.Count == 0) || (sources.Count == 0)) return seminars;
+                foreach (Lesson source in sources)
+                {
+                    List<Word> words = source.lecture;
+                    foreach (Lesson preposition in predicatives)
+                    {
+                        List<Word> words1 = new List<Word>();
+                        words.ForEach(item => words1.Add(item));
+                        foreach (Word item in preposition.lecture)
+                        {
+                            Word word = new Word();
+                            word = Lecture(item.term, item.kind, predicate, preposition.team, order_adjective);
+                            words1.Add(word);
+                        }
+                        if (!VerifyObjectPredicative(words1, word_2_vec, Level.AsSpanSequence, order_direct_object, order_predicative)) continue;
+                        Lesson seminar = new Lesson();
+                        seminar.lecture = words1;
+                        seminars.Add(seminar);
+                    }
+                }
+                return seminars;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private List<Practice> MountObjectPredicative<TKey, TValue>(List<Practice> predicatives, List<Practice>? sources, Dictionary<TKey, TValue> dictionaries, int order_direct_object, int order_predicative) where TKey : notnull
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation mount verb indirect object \"Syntax\" view model failed!");
+
+                List<Practice> seminars = new List<Practice>();
+
+                int predicate = this._wordEmbeddingService.EncodeInt(this._predicate, this._syntax);
+                int order = this._wordEmbeddingService.EncodeInt(order_direct_object, this._order);
+                int order_adjective = this._wordEmbeddingService.EncodeInt(order_predicative, this._order);
+
+                Dictionary<(int, int), int> word_2_vec = dictionaries as Dictionary<(int, int), int>;
+
+                if ((predicatives == null) || (sources == null)) return seminars;
+                if ((predicatives.Count == 0) || (sources.Count == 0)) return seminars;
+                foreach (Practice source in sources)
+                {
+                    List<Guidance> words = source.lecture;
+                    foreach (Practice preposition in predicatives)
+                    {
+                        List<Guidance> words1 = new List<Guidance>();
+                        words.ForEach(item => words1.Add(item));
+                        foreach (Guidance item in preposition.lecture)
+                        {
+                            Guidance word = new Guidance();
+                            word = Lecture(item.term, item.kind, predicate, preposition.team, order_adjective);
+                            words1.Add(word);
+                        }
+                        if (!VerifyObjectPredicative(words1, word_2_vec, Level.AsSpanSequence, order_direct_object, order_predicative)) continue;
+                        Practice seminar = new Practice();
+                        seminar.lecture = words1;
+                        seminars.Add(seminar);
+                    }
+                }
+                return seminars;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public List<Lesson> MountObjectPredicative<T, TKey, TValue>(List<T>? homeworks, Dictionary<TKey, TValue> dictionaries, HashSet<string> vocabulary, List<T>? sources, int order_direct_object, int order_predicative) where TKey : notnull
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation mount verb predicative \"Syntax\" view model failed!");
+
+                List<Lesson> seminars = new List<Lesson>();
+                if (homeworks == null) return seminars;
+
+                List<Lesson>? lessons = new List<Lesson>();
+                List<Tutorial>? tutorials = new List<Tutorial>();
+                List<Practice>? practices = new List<Practice>();
+
+                List<Tutorial> tutorial_adverbials = new List<Tutorial>();
+                List<Lesson> lesson_adverbials = new List<Lesson>();
+                List<Practice> practice_adverbials = new List<Practice>();
+
+                List<Tutorial>? tutorial_sources = new List<Tutorial>();
+                List<Lesson>? lesson_sources = new List<Lesson>();
+                List<Practice>? practice_sources = new List<Practice>();
+
+                if (typeof(T) == typeof(Tutorial))
+                {
+                    List<byte[]> kind_adverbial = new List<byte[]>();
+                    byte[] sha_adverbial = this._wordEmbeddingService.Encode(this._adverbial_adjective, this._morphology);
+                    kind_adverbial.Add(sha_adverbial);
+                    tutorials = homeworks as List<Tutorial>;
+                    tutorial_sources = sources as List<Tutorial>;
+                    tutorial_adverbials = FilterLesson(tutorials, kind_adverbial);
+                }
+                if (typeof(T) == typeof(Lesson))
+                {
+                    List<string> kind_adverbial = new List<string>();
+                    kind_adverbial.Add(this._adverbial_adjective);
+                    lessons = homeworks as List<Lesson>;
+                    lesson_sources = sources as List<Lesson>;
+                    lesson_adverbials = FilterLesson(lessons, kind_adverbial);
+                }
+                if (typeof(T) == typeof(Practice))
+                {
+                    List<int> kind_adverbial = new List<int>();
+                    int index_adnominal = this._wordEmbeddingService.EncodeInt(this._adverbial_adjective, this._morphology);
+                    kind_adverbial.Add(index_adnominal);
+                    practices = homeworks as List<Practice>;
+                    practice_sources = sources as List<Practice>;
+                    practice_adverbials = FilterLesson(practices, kind_adverbial);
+                }
+
+                if (typeof(T) == typeof(Tutorial))
+                {
+                    List<Tutorial> result = MountObjectPredicative(tutorial_adverbials, tutorial_sources, dictionaries, order_direct_object, order_predicative);
+                    seminars = DecodeLesson(result, vocabulary);
+                }
+                if (typeof(T) == typeof(Lesson))
+                    seminars = MountObjectPredicative(lesson_adverbials, lesson_sources, dictionaries, order_direct_object, order_predicative);
+                if (typeof(T) == typeof(Practice))
+                {
+                    List<Practice> result = MountObjectPredicative(practice_adverbials, practice_sources, dictionaries, order_direct_object, order_predicative);
                     seminars = DecodeLesson(result, vocabulary);
                 }
 
@@ -5779,8 +6401,8 @@ namespace Letter.Services
                     lessons_sources = sources;
                     List<Lesson> prepositions = new List<Lesson>();
                     prepositions = MountDirectObjectPreposition(lessons, dictionaries, vocabularies, lessons_sources, order_direct_object, order_indirect_object);
-                    seminars = Union(seminars, MountDirectObjectIndirectObject(lessons, dictionaries, vocabularies, prepositions, order_indirect_object));
-                    //seminars = Union(seminars, MountVerbNounConjunctionNoun(lessons, dictionaries, vocabularies, prepositions, order_init));
+                    seminars = Union(seminars, MountIndirectObjectSample(lessons, dictionaries, vocabularies, prepositions, order_indirect_object));
+                    seminars = Union(seminars, MountIndirectObjectConjunction(lessons, dictionaries, vocabularies, prepositions, order_indirect_object));
 
                 }
                 if (typeof(T) == typeof(Tutorial))
@@ -5790,8 +6412,8 @@ namespace Letter.Services
                     List<Lesson> prepositions = new List<Lesson>();
                     prepositions = MountDirectObjectPreposition(tutorials, dictionaries, vocabularies, tutorials_sources, order_direct_object, order_indirect_object);
                     tutorials_sources = EncodeLesson(prepositions, vocabularies);
-                    seminars = Union(seminars, MountDirectObjectIndirectObject(tutorials, dictionaries, vocabularies, tutorials_sources, order_indirect_object));
-                    //seminars = Union(seminars, MountVerbNounConjunctionNoun(tutorials, dictionaries, vocabularies, tutorials_sources, order_init));
+                    seminars = Union(seminars, MountIndirectObjectSample(tutorials, dictionaries, vocabularies, tutorials_sources, order_indirect_object));
+                    seminars = Union(seminars, MountIndirectObjectConjunction(tutorials, dictionaries, vocabularies, tutorials_sources, order_indirect_object));
                 }
                 if (typeof(T) == typeof(Practice))
                 {
@@ -5800,8 +6422,53 @@ namespace Letter.Services
                     List<Lesson> prepositions = new List<Lesson>();
                     prepositions = MountDirectObjectPreposition(practices, dictionaries, vocabularies, practices_sources, order_direct_object, order_indirect_object);
                     practices_sources = EncodeLessonInt(prepositions, vocabularies);
-                    seminars = Union(seminars, MountDirectObjectIndirectObject(practices, dictionaries, vocabularies, practices_sources, order_indirect_object));
-                    //seminars = Union(seminars, MountVerbNounConjunctionNoun(practices, dictionaries, vocabularies, practices_sources, order_init));
+                    seminars = Union(seminars, MountIndirectObjectSample(practices, dictionaries, vocabularies, practices_sources, order_indirect_object));
+                    seminars = Union(seminars, MountIndirectObjectConjunction(practices, dictionaries, vocabularies, practices_sources, order_indirect_object));
+                }
+
+                return seminars;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public List<Lesson> PredicateObjectPredicative<T, TKey, TValue>(List<T> homeworks, Dictionary<(TKey, TValue), int> dictionaries, HashSet<string> vocabularies, List<Lesson> sources, int order_direct_object, int order_predicative) where TKey : notnull
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation predicate indirect object \"Syntax\" service failed!");
+
+                List<Lesson>? lessons = new List<Lesson>();
+                List<Tutorial>? tutorials = new List<Tutorial>();
+                List<Practice>? practices = new List<Practice>();
+
+                List<Lesson>? lessons_sources = new List<Lesson>();
+                List<Tutorial>? tutorials_sources = new List<Tutorial>();
+                List<Practice>? practices_sources = new List<Practice>();
+
+                List<Lesson> seminars = new List<Lesson>();
+
+                if (typeof(T) == typeof(Lesson))
+                {
+                    lessons = homeworks as List<Lesson>;
+                    lessons_sources = sources;
+                    seminars = MountObjectPredicative(lessons, dictionaries, vocabularies, lessons_sources, order_direct_object, order_predicative);
+
+                }
+                if (typeof(T) == typeof(Tutorial))
+                {
+                    tutorials = homeworks as List<Tutorial>;
+                    tutorials_sources = EncodeLesson(sources, vocabularies);
+                    seminars = MountObjectPredicative(tutorials, dictionaries, vocabularies, tutorials_sources, order_direct_object, order_predicative);
+                }
+                if (typeof(T) == typeof(Practice))
+                {
+                    practices = homeworks as List<Practice>;
+                    practices_sources = EncodeLessonInt(sources, vocabularies);
+                    seminars = MountObjectPredicative(practices, dictionaries, vocabularies, practices_sources, order_direct_object, order_predicative);
                 }
 
                 return seminars;

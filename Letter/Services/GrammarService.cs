@@ -120,6 +120,11 @@ namespace Letter.Services
         private string _adnominal_adjunct;
         private string _adverbial_verb;
         private string _adverbial_adjective;
+        private string _demonstrative;
+        private string _possessive_adjective;
+        private string _preposition;
+        private string _personal;
+        private string _possessive;
 
         private HashSet<string> _language_lesson;
         private HashSet<string> _morphology;
@@ -218,6 +223,11 @@ namespace Letter.Services
                 this._syntax = this._settingService.Syntax;
                 this._order = this._settingService.Order;
                 this._language_lesson = this._settingService.Lesson;
+                this._demonstrative = this._settingService.Demonstrative;
+                this._possessive_adjective = this._settingService.Possessive_Adjective;
+                this._preposition = this._settingService.Preposition;
+                this._possessive = this._settingService.Possessive;
+                this._personal = this._settingService.Personal;
             }
             catch (Exception ex)
             {
@@ -993,124 +1003,6 @@ namespace Letter.Services
             }
         }
 
-        private List<Tutorial> Union(List<Tutorial> firsts, List<Tutorial> lasts)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation union \"Grammar\" service failed!");
-
-                List<Tutorial> tutorials = new List<Tutorial>();
-                firsts.ForEach(first => tutorials.Add(first));
-                lasts.ForEach(last => tutorials.Add(last));
-                return tutorials;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        private List<Lesson> OrderLesson(List<Lesson> firsts)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation order lesson \"Grammar\" service failed!");
-
-                List<Lesson> lessons = new List<Lesson>();
-                int order = 0;
-                firsts.ForEach(value =>
-                {
-                    order++;
-                    Lesson item = new Lesson();
-                    item.order = order;
-                    item.team = value.team;
-                    item.lecture = value.lecture;
-                    lessons.Add(item);
-                });
-                return lessons;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        private List<Lesson> OrderLesson(List<Lesson> firsts, List<Lesson> lasts)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation order lesson \"Grammar\" service failed!");
-
-                List<Lesson> lessons = new List<Lesson>();
-                int order = 0;
-                firsts.ForEach(value =>
-                {
-                    order = value.order;
-                    lessons.Add(value);
-                });
-                lasts.ForEach(value =>
-                {
-                    order++;
-                    Lesson item = new Lesson();
-                    item.order = order;
-                    item.lecture = value.lecture;
-                    item.team = value.team;
-                    lessons.Add(item);
-                });
-                return lessons;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        private List<Lesson> MountOrationSample(List<Sentenca> sentences, List<Lesson> terms)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation mount oration sample \"Grammar\" service failed!");
-
-                List<Lesson> words = new List<Lesson>();
-                List<Lesson> sampleSubjectVerb = new List<Lesson>();
-                List<Lesson> predicatePredicative = new List<Lesson>();
-                List<Lesson> predicateDirectObject = new List<Lesson>();
-                List<Lesson> predicateIndirectObject = new List<Lesson>();
-                List<Lesson> predicateDirectObjectIndirectObject = new List<Lesson>();
-                List<Lesson> predicateDirectObjectPredicative = new List<Lesson>();
-                List<Lesson> predicateIndirectObjectPredicative = new List<Lesson>();
-                List<Lesson> predicatePredicativeIndirectObject = new List<Lesson>();
-
-                int order_sample = this._order_3;
-                int order_predicate = this._order_4;
-                sampleSubjectVerb = this._syntaxService.SampleSubjectVerb(sentences, terms);
-                words = sampleSubjectVerb;
-                predicatePredicative = this._syntaxService.PredicatePredicative(sentences, terms, sampleSubjectVerb, order_sample);
-                words = Union(words, predicatePredicative);
-                predicateDirectObject = this._syntaxService.PredicateDirectObject(sentences, terms, sampleSubjectVerb, order_sample);
-                words = Union(words, predicateDirectObject);
-                predicateIndirectObject = this._syntaxService.PredicateIndirectObject(sentences, terms, predicateDirectObject, order_sample);
-                words = Union(words, predicateIndirectObject);
-                predicateDirectObjectIndirectObject = this._syntaxService.PredicateDirectObjectIndirectObject(sentences, terms, predicateDirectObject, order_predicate);
-                words = Union(words, predicateDirectObjectIndirectObject);
-                predicateDirectObjectPredicative = this._syntaxService.PredicateDirectObjectPredicative(sentences, terms, predicateDirectObject, order_predicate);
-                words = Union(words, predicateDirectObjectPredicative);
-                predicateIndirectObjectPredicative = this._syntaxService.PredicateIndirectObjectPredicative(sentences, terms, predicateIndirectObject, order_predicate);
-                words = Union(words, predicateIndirectObjectPredicative);
-                predicatePredicativeIndirectObject = this._syntaxService.PredicatePredicativeIndirectObject(sentences, terms, predicatePredicative, order_predicate);
-                words = Union(words, predicatePredicativeIndirectObject);
-                return words;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
         private List<Tutorial> MountOrationSample(List<Tutorial> tutorials, Dictionary<(byte[], byte[]), int> word_2_vec)
         {
             try
@@ -1185,6 +1077,8 @@ namespace Letter.Services
                 List<Lesson> predicatePredicative = new List<Lesson>();
                 List<Lesson> predicateIndirectObject = new List<Lesson>();
                 List<Lesson> predicateDirectObjectIndirectObject = new List<Lesson>();
+                List<Lesson> predicateDirectObjectPredicative = new List<Lesson>();
+                List<Lesson> predicateIndirectObjectPredicative = new List<Lesson>();
                 List <Lesson> homewoks = new List<Lesson>();
 
                 int order_verb = this._order_2;
@@ -1192,12 +1086,12 @@ namespace Letter.Services
                 int order_predicate = this._order_4;
 
                 sampleSubjectVerb = this._syntaxService.SampleSubjectVerb(tutorials, dictionaries, vocabularies);
-                compoundSubjectVerb = this._syntaxService.CompoundSubjectVerb(tutorials, dictionaries, vocabularies);
+                //compoundSubjectVerb = this._syntaxService.CompoundSubjectVerb(tutorials, dictionaries, vocabularies);
                 subjectVerb = Union(sampleSubjectVerb, compoundSubjectVerb);
 
-                predicateDirectObject = this._syntaxService.PredicateDirectObject(tutorials, dictionaries, vocabularies, subjectVerb, order_verb, order_sample);
+                //predicateDirectObject = this._syntaxService.PredicateDirectObject(tutorials, dictionaries, vocabularies, subjectVerb, order_verb, order_sample);
                 homewoks = Union(subjectVerb, predicateDirectObject);
-                 
+                /* 
                 predicatePredicative = this._syntaxService.PredicatePredicative(tutorials, dictionaries, vocabularies, subjectVerb, order_verb, order_sample);
                 homewoks = Union(homewoks, predicatePredicative);
 
@@ -1207,635 +1101,14 @@ namespace Letter.Services
                 predicateDirectObjectIndirectObject = this._syntaxService.PredicateDirectObjectIndirectObject(tutorials, dictionaries, vocabularies, predicateDirectObject, order_sample, order_predicate);
                 homewoks = Union(homewoks, predicateDirectObjectIndirectObject);
 
+                predicateDirectObjectPredicative = this._syntaxService.PredicateObjectPredicative(tutorials, dictionaries, vocabularies, predicateDirectObject, order_sample, order_predicate);
+                homewoks = Union(homewoks, predicateDirectObjectPredicative);
+
+                predicateIndirectObjectPredicative = this._syntaxService.PredicateObjectPredicative(tutorials, dictionaries, vocabularies, predicateIndirectObject, order_sample, order_predicate);
+                homewoks = Union(homewoks, predicateIndirectObjectPredicative);
+                */
                 lessons = homewoks;
 
-                /*
-                predicateDirectObjectIndirectObject = this._syntaxService.PredicateDirectObjectIndirectObject(tutorials, word_2_vec, predicateDirectObject, order_sample, order_predicate);
-                words = Union(words, predicateDirectObjectIndirectObject);
-
-                predicateDirectObjectPredicative = this._syntaxService.PredicateDirectObjectPredicative(tutorials, word_2_vec, predicateDirectObject, order_sample, order_predicate);
-                words = Union(words, predicateDirectObjectPredicative);
-
-                predicateIndirectObjectPredicative = this._syntaxService.PredicateIndirectObjectPredicative(tutorials, word_2_vec, predicateIndirectObject, order_sample, order_predicate);
-                words = Union(words, predicateIndirectObjectPredicative);
-                */
-
-                return lessons;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        private List<Lesson> MountOrationCompound(List<Sentenca> sentences, List<Lesson> terms)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation mount oration compound \"Grammar\" service failed!");
-
-                List<Lesson> words = new List<Lesson>();
-                List<Lesson> compoundSubjectVerb = new List<Lesson>();
-                List<Lesson> predicatePredicative = new List<Lesson>();
-                List<Lesson> predicateDirectObject = new List<Lesson>();
-                List<Lesson> predicateIndirectObject = new List<Lesson>();
-                List<Lesson> predicateDirectObjectIndirectObject = new List<Lesson>();
-                List<Lesson> predicateDirectObjectPredicative = new List<Lesson>();
-                List<Lesson> predicateIndirectObjectPredicative = new List<Lesson>();
-                List<Lesson> predicatePredicativeIndirectObject = new List<Lesson>();
-
-                int order_sample = this._order_5;
-                int order_predicate = this._order_6;
-                compoundSubjectVerb = this._syntaxService.CompoundSubjectVerb(sentences, terms);
-                words = compoundSubjectVerb;
-                predicatePredicative = this._syntaxService.PredicatePredicative(sentences, terms, compoundSubjectVerb, order_sample);
-                words = Union(words, predicatePredicative);
-                predicateDirectObject = this._syntaxService.PredicateDirectObject(sentences, terms, compoundSubjectVerb, order_sample);
-                words = Union(words, predicateDirectObject);
-                predicateIndirectObject = this._syntaxService.PredicateIndirectObject(sentences, terms, compoundSubjectVerb, order_sample);
-                words = Union(words, predicateIndirectObject);
-                predicateDirectObjectIndirectObject = this._syntaxService.PredicateDirectObjectIndirectObject(sentences, terms, predicateDirectObject, order_predicate);
-                words = Union(words, predicateDirectObjectIndirectObject);
-                predicateDirectObjectPredicative = this._syntaxService.PredicateDirectObjectPredicative(sentences, terms, predicateDirectObject, order_predicate);
-                words = Union(words, predicateDirectObjectPredicative);
-                predicateIndirectObjectPredicative = this._syntaxService.PredicateIndirectObjectPredicative(sentences, terms, predicateIndirectObject, order_predicate);
-                words = Union(words, predicateIndirectObjectPredicative);
-                predicatePredicativeIndirectObject = this._syntaxService.PredicatePredicativeIndirectObject(sentences, terms, predicatePredicative, order_predicate);
-                words = Union(words, predicatePredicativeIndirectObject);
-                return words;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        private List<Lesson> Conjunction(List<Lesson> firsts, List<Lesson> lasts, List<Word> conjunctions)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation adnominal \"Grammar\" service failed!");
-
-                List<Lesson> lessons = new List<Lesson>();
-                foreach (Lesson first in firsts)
-                {
-                    foreach (Lesson last in lasts)
-                    {
-                        List<Word> words = new List<Word>();
-                        words = first.lecture;
-                        foreach (Word conjunction in conjunctions)
-                        {
-                            words.Add(conjunction);
-                        }
-                        foreach (Word item in last.lecture)
-                        {
-                            words.Add(item);
-                        }
-                        Lesson lesson = new Lesson();
-                        lesson.lecture = words;
-                        lessons.Add(lesson);
-                    }
-                }
-                return lessons;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        private List<Lesson> Numeral(List<Word> words)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation numeral \"Grammar\" service failed!");
-
-                List<Lesson> lessons = new List<Lesson>();
-                Lesson lesson = new Lesson();
-                List<Word> terms = new List<Word>();
-
-                lesson = new Lesson();
-                terms = new List<Word>();
-                List<Word> numerals = new List<Word>();
-                numerals = words.FindAll(index => index.team == this._numeral && index.kind == this._numeral);
-                foreach (Word numeral in numerals)
-                {
-                    terms.Add(numeral);
-                }
-                if (terms.Count > 0)
-                {
-                    lesson.lecture = terms;
-                    lessons.Add(lesson);
-                }
-                return lessons;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        private List<Lesson> Adverbial(List<Word> words)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation adverbial \"Grammar\" service failed!");
-
-                List<Lesson> lessons = new List<Lesson>();
-                Lesson lesson = new Lesson();
-                List<Word> terms = new List<Word>();
-
-                lesson = new Lesson();
-                terms = new List<Word>();
-                List<Word> adjectives = new List<Word>();
-                adjectives = words.FindAll(index => index.team == this._adverbial_adjective && index.kind == this._adjective);
-                foreach (Word adjective in adjectives)
-                {
-                    terms.Add(adjective);
-                }
-                if (terms.Count > 0)
-                {
-                    lesson.lecture = terms;
-                    lessons.Add(lesson);
-                }
-
-                lesson = new Lesson();
-                terms = new List<Word>();
-                List<Word> adverbs = new List<Word>();
-                adverbs = words.FindAll(index => index.team == this._adverbial_adjective && index.kind == this._adverb);
-                foreach (Word adverb in adverbs)
-                {
-                    foreach (Word adjective in adjectives)
-                    {
-                        terms.Add(adjective);
-                        terms.Add(adverb);
-                    }
-                }
-                if (terms.Count > 0)
-                {
-                    lesson.lecture = terms;
-                    lessons.Add(lesson);
-                }
-
-                lesson = new Lesson();
-                terms = new List<Word>();
-                List<Word> adverbs_adverbs = new List<Word>();
-                adverbs_adverbs = words.FindAll(index => index.team == this._adverbial_adjective && index.kind == this._adverb_adverb);
-                foreach (Word adverb_adverb in adverbs_adverbs)
-                {
-                    foreach (Word adverb in adverbs)
-                    {
-                        foreach (Word adjective in adjectives)
-                        {
-                            terms.Add(adjective);
-                            terms.Add(adverb);
-                            terms.Add(adverb_adverb);
-                        }
-                    }
-                }
-                if (terms.Count > 0)
-                {
-                    lesson.lecture = terms;
-                    lessons.Add(lesson);
-                }
-
-                lesson = new Lesson();
-                terms = new List<Word>();
-                List<Word> verbs = new List<Word>();
-                verbs = words.FindAll(index => index.team == this._adverbial_verb && index.kind == this._verb);
-                foreach (Word verb in verbs)
-                {
-                    terms.Add(verb);
-                }
-                if (terms.Count > 0)
-                {
-                    lesson.lecture = terms;
-                    lessons.Add(lesson);
-                }
-
-                lesson = new Lesson();
-                terms = new List<Word>();
-                List<Word> adverbs_verbs = new List<Word>();
-                adverbs_verbs = words.FindAll(index => index.team == this._adverbial_verb && index.kind == this._adverb);
-                foreach (Word adverb_verb in adverbs_verbs)
-                {
-                    foreach (Word verb in verbs)
-                    {
-                        terms.Add(verb);
-                        terms.Add(adverb_verb);
-                    }
-                }
-                if (terms.Count > 0)
-                {
-                    lesson.lecture = terms;
-                    lessons.Add(lesson);
-                }
-
-                lesson = new Lesson();
-                terms = new List<Word>();
-                List<Word> adverbs_adverbs_verbs = new List<Word>();
-                adverbs_adverbs_verbs = words.FindAll(index => index.team == this._adverbial_verb && index.kind == this._adverb_adverb);
-                foreach (Word adverb_adverb_verb in adverbs_adverbs_verbs)
-                {
-                    foreach (Word adverb_verb in adverbs_verbs)
-                    {
-                        foreach (Word verb in verbs)
-                        {
-                            terms.Add(verb);
-                            terms.Add(adverb_verb);
-                            terms.Add(adverb_adverb_verb);
-                        }
-                    }
-                }
-                if (terms.Count > 0)
-                {
-                    lesson.lecture = terms;
-                    lessons.Add(lesson);
-                }
-                return lessons;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        private List<Lesson> Adnominal(List<Word> words)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation adnominal \"Grammar\" service failed!");
-
-                List<Lesson> lessons = new List<Lesson>();
-                Lesson lesson = new Lesson();
-                List<Word> terms = new List<Word>();
-
-                List<Word> pronouns = new List<Word>();
-                pronouns = words.FindAll(index => index.team != this._adnominal_adjunct && index.kind == this._pronoun);
-                foreach (Word pronoun in pronouns)
-                {
-                    terms.Add(pronoun);
-                }
-                if (terms.Count > 0)
-                {
-                    lesson.lecture = terms;
-                    lessons.Add(lesson);
-                }
-
-                lesson = new Lesson();
-                terms = new List<Word>();
-                List<Word> nouns = new List<Word>();
-                nouns = words.FindAll(index => index.team == this._adnominal_adjunct && index.kind == this._noun);
-                foreach (Word noun in nouns)
-                {
-                    terms.Add(noun);
-                }
-                if (terms.Count > 0)
-                {
-                    lesson.lecture = terms;
-                    lessons.Add(lesson);
-                }
-
-                lesson = new Lesson();
-                terms = new List<Word>();
-                List<Word> numerals = new List<Word>();
-                numerals = words.FindAll(index => index.team == this._adnominal_adjunct && index.kind == this._numeral);
-                foreach (Word numeral in numerals)
-                {
-                    foreach (Word noun in nouns)
-                    {
-                        terms.Add(numeral);
-                        terms.Add(noun);
-                    }
-                }
-                if (terms.Count > 0)
-                {
-                    lesson.lecture = terms;
-                    lessons.Add(lesson);
-                }
-
-                lesson = new Lesson();
-                terms = new List<Word>();
-                List<Word> articles = new List<Word>();
-                articles = words.FindAll(index => index.team == this._adnominal_adjunct && index.kind == this._article);
-                foreach (Word article in articles)
-                {
-                    foreach (Word noun in nouns)
-                    {
-                        terms.Add(article);
-                        terms.Add(noun);
-                    }
-                }
-                if (terms.Count > 0)
-                {
-                    lesson.lecture = terms;
-                    lessons.Add(lesson);
-                }
-
-                lesson = new Lesson();
-                terms = new List<Word>();
-                List<Word> pronouns_adnominals = new List<Word>();
-                pronouns_adnominals = words.FindAll(index => index.team == this._adnominal_adjunct && index.kind == this._pronoun);
-                foreach (Word pronoun in pronouns_adnominals)
-                {
-                    foreach (Word noun in nouns)
-                    {
-                        terms.Add(pronoun);
-                        terms.Add(noun);
-                    }
-                }
-                if (terms.Count > 0)
-                {
-                    lesson.lecture = terms;
-                    lessons.Add(lesson);
-                }
-
-                lesson = new Lesson();
-                terms = new List<Word>();
-                List<Word> adjectives = new List<Word>();
-                adjectives = words.FindAll(index => index.team == this._adnominal_adjunct && index.kind == this._adjective);
-                foreach (Word adjective in adjectives)
-                {
-                    foreach (Word noun in nouns)
-                    {
-                        terms.Add(adjective);
-                        terms.Add(noun);
-                    }
-                }
-                if (terms.Count > 0)
-                {
-                    lesson.lecture = terms;
-                    lessons.Add(lesson);
-                }
-
-                lesson = new Lesson();
-                terms = new List<Word>();
-                foreach (Word numeral in numerals)
-                {
-                    foreach (Word adjective in adjectives)
-                    {
-                        foreach (Word noun in nouns)
-                        {
-                            terms.Add(numeral);
-                            terms.Add(adjective);
-                            terms.Add(noun);
-                        }
-                    }
-                }
-                if (terms.Count > 0)
-                {
-                    lesson.lecture = terms;
-                    lessons.Add(lesson);
-                }
-
-                lesson = new Lesson();
-                terms = new List<Word>();
-                foreach (Word article in articles)
-                {
-                    foreach (Word adjective in adjectives)
-                    {
-                        foreach (Word noun in nouns)
-                        {
-                            terms.Add(article);
-                            terms.Add(adjective);
-                            terms.Add(noun);
-                        }
-                    }
-                }
-                if (terms.Count > 0)
-                {
-                    lesson.lecture = terms;
-                    lessons.Add(lesson);
-                }
-
-                lesson = new Lesson();
-                terms = new List<Word>();
-                foreach (Word pronoun in pronouns)
-                {
-                    foreach (Word adjective in adjectives)
-                    {
-                        foreach (Word noun in nouns)
-                        {
-                            terms.Add(pronoun);
-                            terms.Add(adjective);
-                            terms.Add(noun);
-                        }
-                    }
-                }
-                if (terms.Count > 0)
-                {
-                    lesson.lecture = terms;
-                    lessons.Add(lesson);
-                }
-
-                lesson = new Lesson();
-                terms = new List<Word>();
-                List<Word> adverbs = new List<Word>();
-                adverbs = words.FindAll(index => index.team == this._adnominal_adjunct && index.kind == this._adverb);
-                foreach (Word adverb in adverbs)
-                {
-                    foreach (Word adjective in adjectives)
-                    {
-                        foreach (Word noun in nouns)
-                        {
-                            terms.Add(adjective);
-                            terms.Add(adverb);
-                            terms.Add(noun);
-                        }
-                    }
-                }
-                if (terms.Count > 0)
-                {
-                    lesson.lecture = terms;
-                    lessons.Add(lesson);
-                }
-
-                lesson = new Lesson();
-                terms = new List<Word>();
-                foreach (Word numeral in numerals)
-                {
-                    foreach (Word adverb in adverbs)
-                    {
-                        foreach (Word adjective in adjectives)
-                        {
-                            foreach (Word noun in nouns)
-                            {
-                                terms.Add(numeral);
-                                terms.Add(adjective);
-                                terms.Add(adverb);
-                                terms.Add(noun);
-                            }
-                        }
-                    }
-                }
-                if (terms.Count > 0)
-                {
-                    lesson.lecture = terms;
-                    lessons.Add(lesson);
-                }
-
-                lesson = new Lesson();
-                terms = new List<Word>();
-                foreach (Word article in articles)
-                {
-                    foreach (Word adverb in adverbs)
-                    {
-                        foreach (Word adjective in adjectives)
-                        {
-                            foreach (Word noun in nouns)
-                            {
-                                terms.Add(article);
-                                terms.Add(adjective);
-                                terms.Add(adverb);
-                                terms.Add(noun);
-                            }
-                        }
-                    }
-                }
-                if (terms.Count > 0)
-                {
-                    lesson.lecture = terms;
-                    lessons.Add(lesson);
-                }
-
-                lesson = new Lesson();
-                terms = new List<Word>();
-                foreach (Word pronoun in pronouns)
-                {
-                    foreach (Word adverb in adverbs)
-                    {
-                        foreach (Word adjective in adjectives)
-                        {
-                            foreach (Word noun in nouns)
-                            {
-                                terms.Add(pronoun);
-                                terms.Add(adjective);
-                                terms.Add(adverb);
-                                terms.Add(noun);
-                            }
-                        }
-                    }
-                }
-                if (terms.Count > 0)
-                {
-                    lesson.lecture = terms;
-                    lessons.Add(lesson);
-                }
-
-                lesson = new Lesson();
-                terms = new List<Word>();
-                List<Word> adverbs_adverbs = new List<Word>();
-                adverbs_adverbs = words.FindAll(index => index.team == this._adnominal_adjunct && index.kind == this._adverb_adverb);
-                foreach (Word adverb_adverb in adverbs_adverbs)
-                {
-                    foreach (Word adverb in adverbs)
-                    {
-                        foreach (Word adjective in adjectives)
-                        {
-                            foreach (Word noun in nouns)
-                            {
-                                terms.Add(adjective);
-                                terms.Add(adverb);
-                                terms.Add(adverb_adverb);
-                                terms.Add(noun);
-                            }
-                        }
-                    }
-                }
-                if (terms.Count > 0)
-                {
-                    lesson.lecture = terms;
-                    lessons.Add(lesson);
-                }
-
-                lesson = new Lesson();
-                terms = new List<Word>();
-                foreach (Word numeral in numerals)
-                {
-                    foreach (Word adverb_adverb in adverbs_adverbs)
-                    {
-                        foreach (Word adverb in adverbs)
-                        {
-                            foreach (Word adjective in adjectives)
-                            {
-                                foreach (Word noun in nouns)
-                                {
-                                    terms.Add(numeral);
-                                    terms.Add(adjective);
-                                    terms.Add(adverb);
-                                    terms.Add(adverb_adverb);
-                                    terms.Add(noun);
-                                }
-                            }
-                        }
-                    }
-                }
-                if (terms.Count > 0)
-                {
-                    lesson.lecture = terms;
-                    lessons.Add(lesson);
-                }
-
-                lesson = new Lesson();
-                terms = new List<Word>();
-                foreach (Word article in articles)
-                {
-                    foreach (Word adverb_adverb in adverbs_adverbs)
-                    {
-                        foreach (Word adverb in adverbs)
-                        {
-                            foreach (Word adjective in adjectives)
-                            {
-                                foreach (Word noun in nouns)
-                                {
-                                    terms.Add(article);
-                                    terms.Add(adjective);
-                                    terms.Add(adverb);
-                                    terms.Add(adverb_adverb);
-                                    terms.Add(noun);
-                                }
-                            }
-                        }
-                    }
-                }
-                if (terms.Count > 0)
-                {
-                    lesson.lecture = terms;
-                    lessons.Add(lesson);
-                }
-
-                lesson = new Lesson();
-                terms = new List<Word>();
-                foreach (Word pronoun in pronouns)
-                {
-                    foreach (Word adverb_adverb in adverbs_adverbs)
-                    {
-                        foreach (Word adverb in adverbs)
-                        {
-                            foreach (Word adjective in adjectives)
-                            {
-                                foreach (Word noun in nouns)
-                                {
-                                    terms.Add(pronoun);
-                                    terms.Add(adjective);
-                                    terms.Add(adverb);
-                                    terms.Add(adverb_adverb);
-                                    terms.Add(noun);
-                                }
-                            }
-                        }
-                    }
-                }
-                if (terms.Count > 0)
-                {
-                    lesson.lecture = terms;
-                    lessons.Add(lesson);
-                }
                 return lessons;
             }
             catch (Exception ex)
@@ -1888,132 +1161,119 @@ namespace Letter.Services
             }
         }
 
-        private List<Word> Subject(Dictionary<(string, string), int> word_2_vec, List<Word> seminars)
+        private List<Word> Period(List<Word> seminars)
         {
             try
             {
                 if (this._error_off) throw new InvalidOperationException("Operation subject \"Grammar\" service failed!");
 
-                List<Word> subjects = seminars.FindAll(index => index.sentence == this._subject);
-                List<Word> conjunctions = subjects.FindAll(index => index.kind == this._conjunction);
+                List<Word> terms = new List<Word>();
 
-                List<Lesson> terms = new List<Lesson>();
-                if (conjunctions.Count == 0)
+                int order = seminars.OrderBy(index => index.order).Last().order;
+                for (int quantity = 1; quantity <= order; quantity++)
                 {
-                    terms = Adnominal(subjects);
-                }
-                else
-                {
-                    List<Lesson> firsts = Adnominal(subjects);
-                    List<Lesson> lasts = Adnominal(subjects);
-                    terms = Conjunction(firsts, lasts, conjunctions);
-                }
-
-                List<Word> words = new List<Word>();
-                words = Verify(word_2_vec, terms);
-                return words;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        private List<Word> Predicate(Dictionary<(string, string), int> word_2_vec, List<Word> seminars)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation subject \"Grammar\" service failed!");
-
-                List<Word> predicates = seminars.FindAll(index => index.sentence == this._predicate);
-                List<Word> conjunctions = predicates.FindAll(index => index.kind == this._conjunction);
-
-                List<Lesson> lessons = new List<Lesson>();
-
-                int first = predicates.OrderBy(index => index.order).First().order;
-                int order = predicates.OrderBy(index => index.order).Last().order;
-                for (int quantity = first; quantity <= order; quantity++)
-                {
-                    List<Lesson> terms = new List<Lesson>();
-                    List<Lesson> firsts = new List<Lesson>();
-                    List<Lesson> lasts = new List<Lesson>();
-                    if (conjunctions.Count == 0)
+                    int order_sequence = seminars.FindAll(index => index.order == quantity).Count;
+                    List<Word> sequences = seminars.FindAll(index => index.order == quantity);
+                    for (int flow = 0; flow < order_sequence; flow++)
                     {
-                        terms = Adnominal(predicates);
-                        terms = Adverbial(predicates);
+                        if ((sequences[flow].team == this._adnominal_adjunct) 
+                            && (sequences[flow].kind == this._article)) 
+                            terms.Add(sequences[flow]);
                     }
-                    else
+                    for (int flow = 0; flow < order_sequence; flow++)
                     {
-                        List<Lesson> locals = new List<Lesson>();
-                        locals = Adnominal(predicates);
-                        foreach (Lesson item in locals)
-                        {
-                            firsts.Add(item);
-                        }
-                        locals = Adverbial(predicates);
-                        foreach (Lesson item in locals)
-                        {
-                            firsts.Add(item);
-                        }
-                        locals = Numeral(predicates);
-                        foreach (Lesson item in locals)
-                        {
-                            firsts.Add(item);
-                        }
-                        locals = Adnominal(predicates);
-                        foreach (Lesson item in locals)
-                        {
-                            lasts.Add(item);
-                        }
-                        locals = Adverbial(predicates);
-                        foreach (Lesson item in locals)
-                        {
-                            lasts.Add(item);
-                        }
-                        locals = Numeral(predicates);
-                        foreach (Lesson item in locals)
-                        {
-                            lasts.Add(item);
-                        }
-                        terms = Conjunction(firsts, lasts, conjunctions);
+                        if ((sequences[flow].team == this._adnominal_adjunct)
+                            && (sequences[flow].kind == this._adverb)) 
+                            terms.Add(sequences[flow]);
                     }
-                    foreach (Lesson item in terms)
+                    for (int flow = 0; flow < order_sequence; flow++)
                     {
-                        lessons.Add(item);
+                        if ((sequences[flow].team == this._adnominal_adjunct)
+                            && (sequences[flow].kind == this._adverb_adverb)) 
+                            terms.Add(sequences[flow]);
+                    }
+                    for (int flow = 0; flow < order_sequence; flow++)
+                    {
+                        if ((sequences[flow].team == this._adnominal_adjunct)
+                            && (sequences[flow].kind == this._numeral)) 
+                            terms.Add(sequences[flow]);
+                    }
+                    for (int flow = 0; flow < order_sequence; flow++)
+                    {
+                        if ((sequences[flow].team == this._adnominal_adjunct)
+                            && (sequences[flow].kind == this._demonstrative)) 
+                            terms.Add(sequences[flow]);
+                    }
+                    for (int flow = 0; flow < order_sequence; flow++)
+                    {
+                        if ((sequences[flow].team == this._adnominal_adjunct)
+                            && (sequences[flow].kind == this._possessive_adjective)) 
+                            terms.Add(sequences[flow]);
+                    }
+                    for (int flow = 0; flow < order_sequence; flow++)
+                    {
+                        if ((sequences[flow].team == this._adnominal_adjunct)
+                            && (sequences[flow].kind == this._noun))
+                            terms.Add(sequences[flow]);
+                    }
+                    for (int flow = 0; flow < order_sequence; flow++)
+                    {
+                        if (((sequences[flow].team == this._personal)
+                            || (sequences[flow].team == this._possessive)
+                            || (sequences[flow].team == this._demonstrative))
+                            && (sequences[flow].kind == this._pronoun)) 
+                            terms.Add(sequences[flow]);
+                    }
+                    for (int flow = 0; flow < order_sequence; flow++)
+                    {
+                        if ((sequences[flow].team == this._adverbial_verb)
+                            && (sequences[flow].kind == this._verb))
+                            terms.Add(sequences[flow]);
+                    }
+                    for (int flow = 0; flow < order_sequence; flow++)
+                    {
+                        if ((sequences[flow].team == this._adverbial_verb)
+                            && (sequences[flow].kind == this._adverb)) 
+                            terms.Add(sequences[flow]);
+                    }
+                    for (int flow = 0; flow < order_sequence; flow++)
+                    {
+                        if ((sequences[flow].team == this._adverbial_verb)
+                            && (sequences[flow].kind == this._adverb_adverb)) 
+                            terms.Add(sequences[flow]);
+                    }
+                    for (int flow = 0; flow < order_sequence; flow++)
+                    {
+                        if ((sequences[flow].team == this._adverbial_adjective)
+                            && (sequences[flow].kind == this._adjective))
+                            terms.Add(sequences[flow]);
+                    }
+                    for (int flow = 0; flow < order_sequence; flow++)
+                    {
+                        if ((sequences[flow].team == this._adverbial_adjective)
+                            && (sequences[flow].kind == this._adverb))
+                            terms.Add(sequences[flow]);
+                    }
+                    for (int flow = 0; flow < order_sequence; flow++)
+                    {
+                        if ((sequences[flow].team == this._adverbial_adjective)
+                            && (sequences[flow].kind == this._adverb_adverb))
+                            terms.Add(sequences[flow]);
+                    }
+                    for (int flow = 0; flow < order_sequence; flow++)
+                    {
+                        if ((sequences[flow].team == this._preposition)
+                            && (sequences[flow].kind == this._preposition)) 
+                            terms.Add(sequences[flow]);
+                    }
+                    for (int flow = 0; flow < order_sequence; flow++)
+                    {
+                        if ((sequences[flow].team == this._conjunction)
+                            && (sequences[flow].kind == this._conjunction))
+                            terms.Add(sequences[flow]);
                     }
                 }
-                List<Word> words = new List<Word>();
-                words = Verify(word_2_vec, lessons);
-                return words;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        private List<Word> Oration(Dictionary<(string, string), int> word_2_vec, List<Word> lessons)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation oration \"Grammar\" service failed!");
-
-                List<Word> words = new List<Word>();
-                List<Word> subjects = new List<Word>();
-                List<Word> predicates = new List<Word>();
-                subjects = Subject(word_2_vec, lessons);
-                foreach (Word subject in subjects)
-                {
-                    words.Add(subject);
-                }
-                predicates = Predicate(word_2_vec, lessons);
-                foreach (Word predicate in predicates)
-                {
-                    words.Add(predicate);
-                }
-                return words;
+                return terms;
             }
             catch (Exception ex)
             {
@@ -2030,9 +1290,8 @@ namespace Letter.Services
 
                 string word = string.Empty;
                 if (words.Count == 0) return word;
-                words.OrderBy(index => index.order);
                 List<Word> terms = new List<Word>();
-                terms = words;
+                terms = words.OrderBy(index => index.order).ThenBy(index => index.sequence).ToList();
                 foreach (Word item in terms)
                 {
                     if (word != string.Empty) word += " ";
@@ -2073,62 +1332,10 @@ namespace Letter.Services
                 List<Word> words = new List<Word>();
                 foreach (Lesson guide in guides)
                 {
-                    words = Oration(word_2_vec, guide.lecture);
+                    //words = Oration(word_2_vec, guide.lecture);
+                    words = Period(guide.lecture);
                     if (words.Count() > 0) break;
                 }
-                return words;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        public List<Word> Syntax(string language, List<Word> terms, bool reverse)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation syntax \"Grammar\" service failed!");
-
-                List<Word> words = new List<Word>();
-                List<Lesson> lessons = SelectBook(language).OrderBy(index => index.order).Distinct().ToList();
-
-                List<Sentenca> sentences = SelectSentence(language).Distinct().ToList();
-                HashSet<string> vocabulary = this._wordEmbeddingService.Vocabulary(sentences);
-                Dictionary<(string, string), int> word_2_vec = this._wordEmbeddingService.Word2Vec(sentences);
-
-                if (reverse) lessons.Reverse();
-                bool next = false;
-                int count_foreach = 0;
-                foreach (Lesson lesson in lessons)
-                {
-                    if (!next)
-                    {
-                        string term = Oration(terms);
-                        string word = Oration(lesson.lecture);
-                        if (term == word)
-                            next = true;
-                    }
-                    else
-                    {
-                        words = Oration(word_2_vec, lesson.lecture);
-                        if (words != null)
-                        {
-                            string word = Oration(words);
-                            string term = Oration(terms);
-                            if (term != word)
-                                break;
-                        }
-                    }
-                    count_foreach++;
-                    if (lessons.Count == count_foreach)
-                    {
-                        words = terms;
-                        break;
-                    }
-                }
-                if (reverse) lessons.Reverse();
                 return words;
             }
             catch (Exception ex)
@@ -2186,6 +1393,59 @@ namespace Letter.Services
             }
         }
 
+        public List<Word> Syntax(string language, List<Word> terms, bool reverse)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation syntax \"Grammar\" service failed!");
+
+                List<Word> words = new List<Word>();
+                List<Lesson> lessons = SelectBook(language).OrderBy(index => index.order).Distinct().ToList();
+
+                List<Sentenca> sentences = SelectSentence(language).Distinct().ToList();
+                HashSet<string> vocabulary = this._wordEmbeddingService.Vocabulary(sentences);
+                Dictionary<(string, string), int> word_2_vec = this._wordEmbeddingService.Word2Vec(sentences);
+
+                if (reverse) lessons.Reverse();
+                bool next = false;
+                int count_foreach = 0;
+                foreach (Lesson lesson in lessons)
+                {
+                    if (!next)
+                    {
+                        string term = Oration(terms);
+                        string word = Oration(lesson.lecture);
+                        if (term == word)
+                            next = true;
+                    }
+                    else
+                    {
+                        words = Period(lesson.lecture);
+                        if (words != null)
+                        {
+                            string word = Oration(words);
+                            string term = Oration(terms);
+                            if (term != word)
+                                break;
+                        }
+                    }
+                    count_foreach++;
+                    if (lessons.Count == count_foreach)
+                    {
+                        words = terms;
+                        break;
+                    }
+                }
+                if (reverse) lessons.Reverse();
+                return words;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
         public List<Word> Syntax(string language, Materia lesson, List<Materia> book)
         {
             try
@@ -2204,7 +1464,7 @@ namespace Letter.Services
             }
         }
 
-        private List<Materia> BookLesson(List<Materia>? books)
+        public List<Materia> BookLesson(List<Materia>? books)
         {
             try
             {
@@ -2229,22 +1489,43 @@ namespace Letter.Services
             }
         }
 
+        private List<Materia>? SelectMateria(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation select sentence \"Grammar\" service failed!");
+
+                if (language == this._language_english.Lowercase) return this._settingService.Book_English; 
+                if (language == this._language_deutsch.Lowercase) return this._settingService.Book_Deutsch;
+                if (language == this._language_italiano.Lowercase) return this._settingService.Book_Italiano;
+                if (language == this._language_francais.Lowercase) return this._settingService.Book_Francais;
+                if (language == this._language_espanol.Lowercase) return this._settingService.Book_Espanol;
+                return null;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+        
         public List<string> LoadSyntax(string language, int order)
         {
             try
             {
                 if (this._error_off) throw new InvalidOperationException("Operation syntax \"Grammar\" service failed!");
 
-                List<Sentenca> sentences = SelectSentence(language).Distinct().ToList();
-
-                List<Materia>? book = this._settingService.Book_English;
-                List<Materia> album = BookLesson(book);
                 List<string> lections = new List<string>();
+
+                List<Sentenca> sentences = SelectSentence(language).Distinct().ToList();
+                List<Materia>? book = SelectMateria(language);
+                List<Materia> album = BookLesson(book);
+
                 int line = 0;
-                foreach (Materia lesson in album)
+                foreach (Materia matter in album)
                 {
                     if (!(line < order)) break;
-                    List<Lesson> matters = Morphology(language, sentences, lesson, album);
+                    List<Lesson> matters = Morphology(language, sentences, matter, album);
                     List<string> studies = LoadNovel(language, sentences, matters);
                     studies.ForEach(item => lections.Add(item));
                     line++;
@@ -2291,7 +1572,7 @@ namespace Letter.Services
                 foreach (Lesson guide in seminars)
                 {
                     List<Word> words = new List<Word>();
-                    words = Oration(word_2_vec, guide.lecture);
+                    words = Period(guide.lecture);
                     string word = Oration(words);
                     lections.Add(word);
                     order++;

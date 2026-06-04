@@ -4,7 +4,7 @@ using Letter.ViewModels;
 using Letter.Views;
 using Letter.Data;
 using Microsoft.Extensions.Logging;
-using Letter.Bot;
+using Letter.Bots;
 using Letter.Views.Templates;
 using Letter.Interfaces;
 

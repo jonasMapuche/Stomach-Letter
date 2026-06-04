@@ -17,13 +17,14 @@
             Switch => swt
             Slider => sld
             ToolbarItem => tbi
+            Border => bor
         Home
             ChatHomeBoxViewStyle => boxHomeView
             ChatHomeCollectionViewStyle => colViewHomeView
             NewBotHomeGridStyle => gridHomeView
             elpsBotView => elpsHomeView 
             NewBotHomeImageStyle => imgHomeView
-            ContainerHomeItemGridStyle => colViewHomeItemTemplate
+            ContainerHomeItemGridStyle => gridHomeItemTemplate
             HomeItemEllipseStyle => elpsHomeItemTemplate
             HomeItemImageStyle => imgHomeItemTemplate
             NameHomeItemLabelStyle => lblNameHomeItemTemplate
@@ -53,16 +54,21 @@
             SenderBotItemLabelStyle => lblBotSenderBotItemTemplate
     -->
 
+    <Style x:Key="gridBackgroundHomeView" TargetType="Grid">
+        <Setter Property="BackgroundColor" Value="{StaticResource WhiteColor}" />
+    </Style>
+
     <Style x:Key="boxHomeView" TargetType="BoxView">
         <Setter Property="Color" Value="{StaticResource WhiteColor}" />
         <Setter Property="CornerRadius" Value="18, 18, 0, 0" />
     </Style>
 
     <Style x:Key="colViewHomeView" TargetType="CollectionView">
+        <Setter Property="BackgroundColor" Value="{StaticResource WhiteColor}" />
         <Setter Property="Margin" Value="12, 14, 12, 0" />
     </Style>
 
-    <Style x:Key="gridHomeView" TargetType="Grid">
+    <Style x:Key="gridFabHomeView" TargetType="Grid">
         <Setter Property="HeightRequest" Value="62" />
         <Setter Property="WidthRequest" Value="62" />
         <Setter Property="Margin" Value="0, 0, 0, 0" />
@@ -80,7 +86,22 @@
         <Setter Property="Margin" Value="10" />
     </Style>
 
-    <Style x:Key="colViewHomeItemTemplate" TargetType="CollectionView">
+    <Style x:Key="borHomeItemTemplate" TargetType="Border">
+        <Setter Property="Stroke" Value="{StaticResource ModalColor}" />
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 20, 20, 20, 20" />
+        <Setter Property="BackgroundColor" Value="{StaticResource MessageColor}" />
+    </Style>
+
+    <Style x:Key="gridBoxHomeView" TargetType="Grid">
+        <Setter Property="HeightRequest" Value="100" />
+        <Setter Property="WidthRequest" Value="220" />
+        <Setter Property="Margin" Value="0, 0, 0, 0" />
+        <Setter Property="Shadow" Value="#000000 4 4" />
+        <Setter Property="BackgroundColor" Value="{StaticResource LetterColor}" />
+    </Style>
+
+    <Style x:Key="gridHomeItemTemplate" TargetType="Grid">
         <Setter Property="Margin" Value="12, 0, 12, 0" />
     </Style>
 
@@ -118,6 +139,17 @@
         <Setter Property="WidthRequest" Value="150" />
         <Setter Property="HorizontalOptions" Value="Start" />
         <Setter Property="Margin" Value="20, 37" />
+    </Style>
+
+    <Style x:Key="lblTextSettingView" TargetType="Label">
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="TextColor" Value="{StaticResource BackgroundColor}" />
+        <Setter Property="HorizontalOptions" Value="Start" />
+    </Style>
+
+    <Style x:Key="pckTableSettingView" TargetType="Picker">
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="TextColor" Value="{StaticResource BackgroundColor}" />
     </Style>
 
     <Style x:Key="boxSettingView" TargetType="BoxView">
@@ -247,7 +279,7 @@
         <Setter Property="WidthRequest" Value="28" />
     </Style>
 
-    <Style x:Key="SenderBotItemImageStyle" TargetType="Image">
+    <Style x:Key="imgBotSenderBotItemTemplate" TargetType="Image">
         <Setter Property="HorizontalOptions" Value="Center" />
         <Setter Property="VerticalOptions" Value="Center" />
         <Setter Property="Margin" Value="12" />

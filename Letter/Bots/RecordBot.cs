@@ -1,8 +1,8 @@
-﻿using Letter.Bot.Interface;
+﻿using Letter.Bots.Interface;
 using Letter.Models;
 using Letter.Services;
 
-namespace Letter.Bot
+namespace Letter.Bots
 {
     public class RecordBot : IRecordBot
     {

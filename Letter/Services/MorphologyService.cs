@@ -73,7 +73,7 @@ namespace Letter.Services
                 this._numeral = this._settingService.Numeral;
                 this._preposition = this._settingService.Preposition;
                 this._possessive = this._settingService.Possessive;
-                this._demonstrative = this._settingService.Demostrtive;
+                this._demonstrative = this._settingService.Demonstrative;
                 this._adverb = this._settingService.Adverb;
                 this._adverb_adverb = this._settingService.Adverb_Adverb;
                 this._adjective_noun = this._settingService.Adjective_Noun;

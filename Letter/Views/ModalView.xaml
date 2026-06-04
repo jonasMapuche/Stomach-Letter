@@ -4,6 +4,7 @@
              x:Class="Letter.Views.ModalView"
              Shell.PresentationMode="ModalAnimated"
              Shell.BackgroundColor="{StaticResource LetterColor}"
+             Shell.ForegroundColor="{StaticResource WhiteColor}"
              BackgroundColor="{StaticResource ModalColor}">
     <ContentPage.Content>
         <Grid

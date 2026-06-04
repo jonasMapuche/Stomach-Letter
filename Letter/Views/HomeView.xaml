@@ -19,7 +19,8 @@
     </ContentPage.Behaviors>
     <ContentPage.Content>
         <Grid      
-            RowDefinitions="20, *, 150">
+            RowDefinitions="0, *"
+            Style="{StaticResource gridBackgroundHomeView}">
             <Grid
                 Grid.Row="0"
                 RowDefinitions="Auto, *">
@@ -38,7 +39,56 @@
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                 </CollectionView>
+                <Grid
+                    HorizontalOptions="End"
+                    VerticalOptions="End"
+                    Margin="40, 40">
+                    <Grid.GestureRecognizers>
+                        <TapGestureRecognizer 
+                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:HomeViewModel}}, Path=BotCommand}"/>
+                    </Grid.GestureRecognizers>
+                    <Grid 
+                        Style="{StaticResource gridFabHomeView}">
+                        <Ellipse   
+                            Style="{StaticResource elpsHomeView}"/>
+                        <Image
+                            Style="{StaticResource imgHomeView}"
+                            Source="contacts_product_62dp_white.png"/>
+                    </Grid>
+                </Grid>
+                <Grid
+                    HorizontalOptions="Start"
+                    VerticalOptions="End"
+                    Margin="40, 40">
+                    <Grid 
+                        Style="{StaticResource gridBoxHomeView}">
+                        <BoxView
+                            x:Name="boxDirection">
+                            <BoxView.GestureRecognizers>
+                                <TapGestureRecognizer 
+                                    Command="{Binding SpeakCommand}"/>
+                                <SwipeGestureRecognizer 
+                                    Direction="Up" 
+                                    Command="{Binding SwipedCommand}" 
+                                    CommandParameter="{x:Static SwipeDirection.Up}"/>
+                                <SwipeGestureRecognizer 
+                                    Direction="Right" 
+                                    Command="{Binding SwipedCommand}" 
+                                    CommandParameter="{x:Static SwipeDirection.Right}" />
+                                <SwipeGestureRecognizer 
+                                    Direction="Left" 
+                                    Command="{Binding SwipedCommand}" 
+                                    CommandParameter="{x:Static SwipeDirection.Left}" />
+                                <SwipeGestureRecognizer 
+                                    Direction="Down" 
+                                    Command="{Binding SwipedCommand}" 
+                                    CommandParameter="{x:Static SwipeDirection.Down}" />
+                            </BoxView.GestureRecognizers>
+                        </BoxView>
+                    </Grid>
+                </Grid>
             </Grid>
+<!--
             <Grid 
                 Grid.Row="2">
                 <Grid
@@ -49,7 +99,7 @@
                         <Grid
                             Grid.Column="0"
                             Padding="16, 4, 4, 16"
-                            BackgroundColor="{StaticResource MessageColor}">
+                            BackgroundColor="{StaticResource BackgroundColor}">
                             <BoxView
                                 x:Name="boxDirection">
                                 <BoxView.GestureRecognizers>
@@ -94,6 +144,7 @@
                     </Grid>
                 </Grid>
             </Grid>
-        </Grid>
+-->
+            </Grid>
     </ContentPage.Content>
 </ContentPage>

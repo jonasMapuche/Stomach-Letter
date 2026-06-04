@@ -1,0 +1,81 @@
+        private bool VerifyCompoundConjunction(List<Instruction> conjunctions, List<Instruction> firsts, List<Instruction> lasts, Dictionary<(byte[], byte[]), int> word_2_vec, Level level, Seat seat, int order)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify verb compound subject \"Syntax\" service failed!");
+
+                byte[]? conjunction = null;
+                byte[]? adnominal = null;
+                byte[]? adnominal_second = null;
+
+                conjunction = VerifyConjunction(conjunctions, order, level, seat);
+                adnominal = VerifyNoun(firsts, order, level, Rotate.Front, seat);
+                adnominal_second = VerifyNoun(lasts, order, level, Rotate.Rear, seat);
+
+                bool similarity = false;
+                similarity = this._wordEmbeddingService.Similarity(word_2_vec, adnominal, conjunction);
+                if (similarity) similarity = this._wordEmbeddingService.Similarity(word_2_vec, conjunction, adnominal_second);
+                if (similarity) return true;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private bool VerifyCompoundConjunction(List<Word> firsts, List<Word> conjunctions, List<Word> lasts, Dictionary<(string, string), int> word_2_vec, Level level, Seat seat, int order_first, int order_middle, int order_last)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify verb compound subject \"Syntax\" service failed!");
+
+                string conjunction = string.Empty;
+                string adnominal = string.Empty;
+                string adnominal_second = string.Empty;
+
+                conjunction = VerifyConjunction(conjunctions, order_middle, level, seat);
+                adnominal = VerifyNoun(firsts, order_first, level, Rotate.Front, seat);
+                adnominal_second = VerifyNoun(lasts, order_last, level, Rotate.Rear, seat);
+
+                bool similarity = false;
+                similarity = this._wordEmbeddingService.Similarity(word_2_vec, adnominal, conjunction);
+                if (similarity) similarity = this._wordEmbeddingService.Similarity(word_2_vec, conjunction, adnominal_second);
+                if (similarity) return true;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private bool VerifyCompoundConjunction(List<Guidance> conjunctions, List<Guidance> firsts, List<Guidance> lasts, Dictionary<(int, int), int> word_2_vec, Level level, Seat seat, int order)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation verify verb compound subject \"Syntax\" service failed!");
+
+                int conjunction = -1;
+                int adnominal = -1;
+                int adnominal_second = -1;
+
+                conjunction = VerifyConjunction(conjunctions, order, level, seat);
+                adnominal = VerifyNoun(firsts, order, level, Rotate.Front, seat);
+                adnominal_second = VerifyNoun(lasts, order, level, Rotate.Rear, seat);
+
+                bool similarity = false;
+                similarity = this._wordEmbeddingService.Similarity(word_2_vec, adnominal, conjunction);
+                if (similarity) similarity = this._wordEmbeddingService.Similarity(word_2_vec, conjunction, adnominal_second);
+                if (similarity) return true;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+                        

@@ -702,31 +702,6 @@ namespace Letter.ViewModels
             }
         }
 
-        private List<Materia> BookLesson(List<Materia>? books)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation book lesson \"Home\" view model failed!");
-
-                HashSet<string> lecture = new HashSet<string>(this._language_lesson);
-                List<Materia> lessons = new List<Materia>();
-                lessons = books.OrderBy(index => index.ordem).ToList();
-
-                List<Materia> edition = new List<Materia>();
-                lessons.ForEach(index =>
-                {
-                    if (Array.IndexOf(lecture.ToArray(), index.titulo) != -1)
-                        edition.Add(index);
-                });
-                return edition;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
         private void Next(List<Materia>? books, Materia? lesson, string? language)
         {
             try
@@ -734,7 +709,7 @@ namespace Letter.ViewModels
                 if (this._error_off) throw new InvalidOperationException("Operation next \"Home\" view model failed!");
 
                 List<Materia> editions = new List<Materia>();
-                editions = BookLesson(books);
+                editions = this._grammarService.BookLesson(books);
 
                 int value = editions.IndexOf(lesson) + 1;
                 if (value == editions.Count) value = editions.IndexOf(lesson);
@@ -778,7 +753,7 @@ namespace Letter.ViewModels
                 if (this._error_off) throw new InvalidOperationException("Operation move \"Home\" view model failed!");
 
                 List<Materia> editions = new List<Materia>();
-                editions = BookLesson(books);
+                editions = this._grammarService.BookLesson(books);
 
                 List<Word> words = this._grammarService.Syntax(language, lesson, editions);
                 Oration(words, language);
@@ -881,7 +856,7 @@ namespace Letter.ViewModels
                 if (this._error_off) throw new InvalidOperationException("Operation previous \"Home\" view model failed!");
 
                 List<Materia> editions = new List<Materia>();
-                editions = BookLesson(books);
+                editions = this._grammarService.BookLesson(books);
 
                 int value = editions.IndexOf(lesson) - 1;
                 if (value == -1) value = 0;

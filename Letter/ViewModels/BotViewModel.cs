@@ -2,6 +2,7 @@
 using CommunityToolkit.Maui.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Letter.Enums;
 using Letter.Models;
 using Letter.Services;
 using Letter.Services.Interfaces;
@@ -36,12 +37,14 @@ namespace Letter.ViewModels
         private string _noun;
         private string _adjective;
         private string _predicate;
+        private string _subject;
         private string _numeral;
         private string _especial;
         private string _preposition;
 
         private Language _language_portugues;
         private Language _language_english;
+        private Language _language_deutsch;
 
         private Dictionary<string, string> _load_camera;
         private Dictionary<string, string> _execute;
@@ -94,6 +97,14 @@ namespace Letter.ViewModels
         private Dictionary<string, string> _charge;
         private Dictionary<string, string> _raspberry;
         private Dictionary<string, string> _letter;
+        private Dictionary<string, string> _interrogative;
+        private Dictionary<string, string> _informative;
+        private Dictionary<string, string> _imperative;
+        private Dictionary<string, string> _sample;
+        private Dictionary<string, string> _compound;
+        private Dictionary<string, string> _hidden;
+        private Dictionary<string, string> _subordinate;
+        private Dictionary<string, string> _coordinative;
 
         private Dictionary<string, string> _with;
         private Dictionary<string, string> _in;
@@ -122,6 +133,8 @@ namespace Letter.ViewModels
         private Dictionary<string, string> _unknow;
         private Dictionary<string, string> _init;
         private Dictionary<string, string> _dont_language;
+
+        private bool _mode_bot;
 
         private ICameraProvider _cameraProvider;
         private IHttpService _httpService;
@@ -159,12 +172,14 @@ namespace Letter.ViewModels
                 this._noun = this._settingService.Noun;
                 this._adjective = this._settingService.Adjective;
                 this._predicate = this._settingService.Predicate;
+                this._subject = this._settingService.Suject;
                 this._numeral = this._settingService.Numeral;
                 this._especial = this._settingService.Especial;
                 this._preposition = this._settingService.Preposition;
 
                 this._language_portugues = this._settingService.Portugues;
                 this._language_english = this._settingService.English;
+                this._language_deutsch = this._settingService.Deutsch;
 
                 this._load_camera = this._settingService.Load_Camera;
                 this._execute = this._settingService.Execute;
@@ -218,6 +233,15 @@ namespace Letter.ViewModels
                 this._raspberry = this._settingService.Raspberry;
                 this._letter = this._settingService.Letter;
 
+                this._interrogative = this._settingService.Inquisitive;
+                this._informative = this._settingService.Informative;
+                this._imperative = this._settingService.Immediate;
+                this._sample = this._settingService.Sample;
+                this._compound = this._settingService.Compound;
+                this._hidden = this._settingService.Hidden;
+                this._subordinate = this._settingService.Subordinative;
+                this._coordinative = this._settingService.Coordenative;
+
                 this._with = this._settingService.With;
                 this._in = this._settingService.In;
                 this._off = this._settingService.Off;
@@ -245,6 +269,8 @@ namespace Letter.ViewModels
 
                 this._init = this._settingService.Init;
                 this._dont_language = this._settingService.Dont_Language;
+
+                this._mode_bot = this._settingService.ModeBot;
 
                 this.BackCommand = new AsyncRelayCommand(OnBackCommand);
                 this.SendCommand = new AsyncRelayCommand<object>(OnSendCommand);
@@ -360,36 +386,41 @@ namespace Letter.ViewModels
 
                 Token = agent.Token;
 
+                User user = Username;
+                string language = this._messageService.GetLanguage(user);
+
                 HashSet<string> dont_languages = this._dont_language
-                    .Where(index => index.Value.Contains(this._language_english.Lowercase))
+                    .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
                 string dont_language = dont_languages.ToArray()[0];
 
-                string language = Username.Name;
-                User user = Username;
+                if (!(language == this._language_english.Lowercase
+                    || language == this._language_deutsch.Lowercase))
+                {
+                    Messages = ChargeMessage(Username, dont_language, language);
+                    return;
+                }
+
+                if ((report == null) || (report == string.Empty))
+                    return;
+
                 Messages = ChargeMessage(null, report, language);
                 TextInput = string.Empty;
 
-                if (language != this._language_english.Uppercase)
-                    Messages = ChargeMessage(Username, dont_language, language);
+                if (SettingService.Instance.ModeBot)
+                {
+                    this._messageService.Bots(null, report, language);
+                    string response = string.Empty;
+                    response = await OnSendBot(report, user, language);
+                }
                 else
                 {
-                    language = this._language_english.Lowercase;
+                    string response = string.Empty;
+                    response = await OnSendButton(report, user, language);
+                    if (response != string.Empty)
+                        Messages = ChargeMessage(Username, response, language);
                     if (SettingService.Instance.ModeBot)
-                    {
-                        this._messageService.Bots(null, report, language);
-                        string response = string.Empty;
-                        response = await OnSendBot(report, user, language);
-                    }
-                    else
-                    {
-                        string response = string.Empty;
-                        response = await OnSendButton(report, user, language);
-                        if (response != string.Empty)
-                            Messages = ChargeMessage(Username, response, language);
-                        if (SettingService.Instance.ModeBot)
-                            this._messageService.Bots(Username, response, Username.Name);
-                    }
+                        this._messageService.Bots(Username, response, Username.Name);
                 }
             }
             catch (Exception ex)
@@ -650,6 +681,197 @@ namespace Letter.ViewModels
             }
         }
 
+        private async Task<string> BotDecision(string language, User user, List<Locution> locutions, List<Message> messages)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation bot decision \"Bot\" view model failed!");
+
+                HashSet<string> declaratives = this._imperative
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                HashSet<string> compounds = this._compound
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                HashSet<string> hiddens = this._hidden
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                HashSet<string> samples = this._sample
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                HashSet<string> subordinatives = this._subordinate
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                HashSet<string> coordenatives = this._coordinative
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                string result = string.Empty;
+
+                string declarative = declaratives.ToArray()[0];
+                string compound = compounds.ToArray()[0];
+                string hidden = hiddens.ToArray()[0];
+                string sample = samples.ToArray()[0];
+                string subordinative = subordinatives.ToArray()[0];
+                string coordenative = coordenatives.ToArray()[0];
+                Edict edict = Edict.Nothing;
+                string kind_subject = hidden;
+                string kind_period = sample;
+                string kind_sentence = declarative;
+
+                string subject = string.Empty;
+                string period = string.Empty;
+
+                List<Message> parameters = new List<Message>();
+
+                bool terminate = false;
+                do 
+                {
+                    string sentence = string.Empty;
+                    
+                    if (!this._mode_bot)
+                    {
+                        sentence = await this._botService.DecisionTree(language);
+                        if (!sentence.Contains(declarative))
+                            terminate = false;
+                        this._mode_bot = true;
+
+                        Message parameter = new Message();
+                        parameter.Sender = user;
+                        parameter.Text = sentence;
+                        parameters.Add(parameter);
+
+                        edict = Edict.Sentence;
+                        continue;
+                    }
+
+                    if (kind_subject.IndexOf(compound) != -1)
+                        terminate = true;
+
+                    if ((kind_subject.IndexOf(hidden) != -1) && (language == this._language_deutsch.Lowercase))
+                        terminate = true;
+
+                    if ((kind_period.IndexOf(subordinative) != -1))
+                        terminate = true;
+
+                    if (edict == Edict.Sentence)
+                    {
+                        List<string> subjects = await this._botService.DecisionTree(language, kind_sentence, messages);
+                        foreach (string item in subjects)
+                        {
+                            Message note = new Message();
+                            note.Sender = user;
+                            note.Text = item;
+                            parameters.Add(note);
+                        }
+
+                        subject = await this._botService.DecisionTree(language, parameters);
+                        Message parameter = new Message();
+                        parameter.Sender = user;
+                        parameter.Text = subject;
+                        parameters.Add(parameter);
+
+                        edict = Edict.Subject;
+                    }
+                    if (edict == Edict.Subject)
+                    {
+                        List<string> periods = await this._botService.DecisionTree(language, kind_subject, messages);
+                        foreach (string item in periods)
+                        {
+                            Message note = new Message();
+                            note.Sender = user;
+                            note.Text = item;
+                            parameters.Add(note);
+                        }
+
+                        period = await this._botService.DecisionTree(language, parameters);
+                        Message parameter = new Message();
+                        parameter.Sender = user;
+                        parameter.Text = period;
+                        parameters.Add(parameter);
+
+                        edict = Edict.Period;
+                        terminate = true;
+                    }
+                } while (terminate);
+
+                if ((subject != string.Empty) 
+                    && (period != string.Empty))
+                {
+                    if (period == coordenative)
+                    {
+                        Locution period1 = new Locution();
+                        Locution period2 = new Locution();
+                        int quantity = 0;
+                        locutions.ForEach(index =>
+                        {
+                            if (quantity == 0) period1 = index;
+                            if (quantity == 1) period2 = index;
+                            quantity++;
+                        });
+
+                        List<Vocable> verb = period1.Word.FindAll(index => index.Class == this._verb);
+                        List<Vocable> noun_subject = period1.Word.FindAll(index => index.Sentence == this._subject && index.Class == this._noun);
+                        List<Vocable> noun_predicate = period1.Word.FindAll(index => index.Sentence == this._predicate && index.Class == this._noun);
+
+                        List<Vocable> noun = new List<Vocable>();
+                        if (language == this._language_deutsch.Lowercase) noun = noun_subject;
+                        else
+                        {
+                            if (noun_subject.Count > 0) noun = noun_subject;
+                            if (noun_predicate.Count > 0) noun = noun_predicate;
+                        }
+
+                        string phrase = string.Empty;
+                        if (locutions.Count > 1) phrase = await LocutionText(period2);
+
+                        result = await OnCommandButton(language, verb.ToArray()[0].Term, noun_subject.ToArray()[0].Term, string.Empty, -1, string.Empty, phrase);
+                    }
+
+                    if (period == sample)
+                    {
+                        Locution period1 = new Locution();
+                        locutions.ForEach(index => period1 = index);
+
+                        List<Vocable> verb = period1.Word.FindAll(index => index.Class == this._verb);
+                        List<Vocable> noun_subject = period1.Word.FindAll(index => index.Sentence == this._subject && index.Class == this._noun);
+                        List<Vocable> noun_predicate = period1.Word.FindAll(index => index.Sentence == this._predicate && index.Class == this._noun);
+                        List<Vocable> adjective_subject = period1.Word.FindAll(index => index.Sentence == this._subject && index.Class == this._adjective);
+                        List<Vocable> adjective_predicate = period1.Word.FindAll(index => index.Sentence == this._predicate && index.Class == this._adjective);
+                        List<Vocable> preposition_subject = period1.Word.FindAll(index => index.Sentence == this._subject && index.Class == this._preposition);
+                        List<Vocable> preposition_predicate = period1.Word.FindAll(index => index.Sentence == this._predicate && index.Class == this._preposition);
+
+                        List<Vocable> noun = new List<Vocable>();
+                        List<Vocable> adjective = new List<Vocable>();
+                        List<Vocable> preposition = new List<Vocable>();
+
+                        if (noun_subject.Count > 0) noun = noun_subject;
+                        else if (noun_predicate.Count > 0) noun = noun_predicate;
+
+                        if (adjective_subject.Count > 0) adjective = adjective_subject;
+                        else if (adjective_predicate.Count > 0) adjective = adjective_predicate;
+
+                        if (preposition.Count > 0) preposition = preposition_subject;
+                        else if (preposition_predicate.Count > 0) preposition = preposition_predicate;
+
+                        result = await OnCommandButton(language, verb.ToArray()[0].Term, noun_subject.ToArray()[0].Term, adjective.ToArray()[0].Term, -1, preposition.ToArray()[0].Term, string.Empty);
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
         private async Task<string> DecisionMessage(string language, List<Locution> locutions)
         {
             try
@@ -698,10 +920,19 @@ namespace Letter.ViewModels
                     string noun = string.Empty;
                     foreach (Vocable item in period1.Word)
                     {
-                        if ((item.Sentence == this._predicate) && (item.Class == this._noun))
+                        if (((item.Sentence == this._predicate) && (item.Class == this._noun))
+                            && (language != this._language_deutsch.Lowercase))
                         {
                             if (Array.IndexOf(nouns.ToArray(), item.Term) != -1)
                                 noun = item.Term;
+                        }
+                        if (language == this._language_deutsch.Lowercase)
+                        {
+                            if ((item.Sentence == this._subject) && (item.Class == this._noun))
+                            {
+                                if (Array.IndexOf(nouns.ToArray(), item.Term) != -1)
+                                    noun = item.Term;
+                            }
                         }
                     }
                     string adjective = string.Empty;

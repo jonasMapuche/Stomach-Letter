@@ -1,6 +1,6 @@
 ﻿using Letter.Models;
 
-namespace Letter.Bot.Interface
+namespace Letter.Bots.Interface
 {
     public interface ICaptureBot
     {

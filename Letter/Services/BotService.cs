@@ -1,5 +1,5 @@
-﻿using Letter.Bot;
-using Letter.Bot.Interface;
+﻿using Letter.Bots;
+using Letter.Bots.Interface;
 using Letter.Models;
 using Letter.Services.Interfaces;
 
@@ -31,6 +31,7 @@ namespace Letter.Services
         private ICaptureBot _captureBot;
         private IRecordBot _recordBot;
         private IShareBot _shareBot;
+        private IDecisionTreeBot _decisionTreeBot;
 
         private SettingService _settingService;
         #endregion
@@ -49,11 +50,10 @@ namespace Letter.Services
                 this._bot = this._settingService.Bot;
 
                 this._captureBot = new CaptureBot();
-                this._captureBot.OnError += OnError;
                 this._recordBot = new RecordBot();
-                this._recordBot.OnError += OnError;
                 this._shareBot = new ShareBot();
-                this._shareBot.OnError += OnError;
+                this._decisionTreeBot = new DecisionTreeBot();
+
             }
             catch (Exception ex)
             {
@@ -338,6 +338,56 @@ namespace Letter.Services
                 throw new InvalidOperationException(this.error_message);
             }
         }
+
+        public async Task<string> DecisionTree(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation decision tree \"Bot\" service failed!");
+
+                string response = await this._decisionTreeBot.Sentence(language);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<List<string>> DecisionTree(string language, string parameter, List<Message> messages)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation decision tree \"Bot\" service failed!");
+
+                List<string> response = new List<string>();
+                response = await this._decisionTreeBot.Load(language, parameter, messages);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<string> DecisionTree(string language, List<Message> messages)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation decision tree \"Bot\" service failed!");
+
+                string response = await this._decisionTreeBot.Choose(language, messages);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
         #endregion
     }
 }

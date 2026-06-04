@@ -19,5 +19,8 @@ namespace Letter.Services.Interfaces
         Task<List<string>> Terminate(string language, List<Message> messages);
         Task<bool> DeviceShare(string language, List<Message> messages, string device);
         Task<string> DeviceShare();
+        Task<string> DecisionTree(string language);
+        Task<List<string>> DecisionTree(string language, string parameter, List<Message> messages);
+        Task<string> DecisionTree(string language, List<Message> messages);
     }
 }

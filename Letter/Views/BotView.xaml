@@ -5,6 +5,8 @@
              xmlns:viewmodels="clr-namespace:Letter.ViewModels"
              xmlns:templates="clr-namespace:Letter.Views.Templates"
              xmlns:controls="clr-namespace:Letter.Controls"
+             Shell.BackgroundColor="{StaticResource LetterColor}"
+             Shell.ForegroundColor="{StaticResource WhiteColor}"
              x:Class="Letter.Views.BotView">
     <Shell.BackButtonBehavior>
         <BackButtonBehavior Command="{Binding BackCommand}"/>

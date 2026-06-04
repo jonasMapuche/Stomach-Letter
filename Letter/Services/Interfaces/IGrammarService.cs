@@ -17,5 +17,6 @@ namespace Letter.Services.Interfaces
         List<Word> Syntax(string language, List<Word> terms, bool reverse);
         string Oration(List<Word> words);
         List<string> LoadSyntax(string language, int order);
+        List<Materia> BookLesson(List<Materia>? books);
     }
 }
