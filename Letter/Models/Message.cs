@@ -7,5 +7,6 @@
         public string Time { get; set; }
         public string Speak { get; set; }
         public string Move { get; set; }
+        public string? Implied { get; set; }
     } 
 }

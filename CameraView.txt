@@ -1,0 +1,59 @@
+#01574f
+
+<!-- Sua Página XAML -->
+<ContentPage xmlns="http://microsoft.com"
+             xmlns:x="http://microsoft.com"
+             x:Class="SeuApp.CameraPage">
+    
+    <Grid x:Name="CameraContainer" Padding="20">
+        <Button Text="Carregar Câmera" 
+                Command="{Binding CarregarCameraCommand}" 
+                VerticalOptions="Center" HorizontalOptions="Center"/>
+    </Grid>
+</ContentPage>
+
+using System.Windows.Input;
+using CommunityToolkit.Maui.Views;
+using Microsoft.Maui.Controls;
+
+namespace SeuApp.ViewModels
+{
+    public class CameraViewModel : BindableObject
+    {
+        public ICommand CarregarCameraCommand { get; }
+
+        public CameraViewModel()
+        {
+            CarregarCameraCommand = new Command(OnCarregarCamera);
+        }
+
+        private async void OnCarregarCamera()
+        {
+            // 1. Pega a referência do Grid principal da View (assumindo que foi passado via Messenger ou navegação)
+            // Aqui estamos simulando a adição ao container da página atual.
+            var page = Application.Current.MainPage as ContentPage;
+            if (page?.FindByName<Grid>("CameraContainer") is Grid container)
+            {
+                container.Children.Clear(); // Remove o botão ou componentes anteriores
+
+                // 2. Instancia o CameraView dinamicamente
+                CameraView cameraView = new CameraView
+                {
+                    HorizontalOptions = LayoutOptions.Fill,
+                    VerticalOptions = LayoutOptions.Fill,
+                    // É recomendado travar a resolução inicial para evitar sobrecargas
+                    CaptureResolution = new Size(1920, 1080) 
+                };
+
+                // 3. Adiciona a câmera instanciada ao layout
+                container.Children.Add(cameraView);
+
+                // 4. Inicia a pré-visualização da câmera (Start Preview)
+                await cameraView.StartPreviewAsync();
+                
+                // Nota MVVM: Se precisar capturar a mídia sob demanda via MVVM, 
+                // você pode disparar o comando: await cameraView.CaptureImageCommand.ExecuteAsync(null);
+            }
+        }
+    }
+}

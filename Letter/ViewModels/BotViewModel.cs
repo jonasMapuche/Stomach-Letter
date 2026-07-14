@@ -146,7 +146,7 @@ namespace Letter.ViewModels
 
         private CameraView? _viewCamera;
 
-        private ImageSource _image_source;
+        private ImageSource? _image_source;
         #endregion
 
         #region CONSTRUCTOR
@@ -279,6 +279,8 @@ namespace Letter.ViewModels
                 this.ShowCamera = true;
                 this.ShowPhoto = false;
 
+                Permission();
+
                 InitMessage();
             }
             catch (Exception ex)
@@ -389,14 +391,14 @@ namespace Letter.ViewModels
                 User user = Username;
                 string language = this._messageService.GetLanguage(user);
 
-                HashSet<string> dont_languages = this._dont_language
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                string dont_language = dont_languages.ToArray()[0];
-
                 if (!(language == this._language_english.Lowercase
                     || language == this._language_deutsch.Lowercase))
                 {
+                    HashSet<string> dont_languages = this._dont_language
+                        .Where(index => index.Value.Contains(language))
+                        .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                    string dont_language = dont_languages.ToArray()[0];
+
                     Messages = ChargeMessage(Username, dont_language, language);
                     return;
                 }
@@ -453,7 +455,7 @@ namespace Letter.ViewModels
         public ICommand BackCommand { get; set; }
         public ICommand SendCommand { get; set; }
         public ICommand MediaCapturedCommand { get; set; }
-        public IAsyncRelayCommand LoadCommand { get; }
+        public IAsyncRelayCommand? LoadCommand { get; }
 
         [ObservableProperty]
         public User? username;
@@ -1585,7 +1587,7 @@ namespace Letter.ViewModels
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string response = string.Empty;
-                PermissionStatus permission_status = await RequestandCheckPermission();
+                PermissionStatus permission_status = await Permission();
                 if (permission_status == PermissionStatus.Granted)
                 {
                     if (kind == mp3.ToArray()[0])
@@ -1634,7 +1636,7 @@ namespace Letter.ViewModels
             }
         }
 
-        public async Task<PermissionStatus> RequestandCheckPermission()
+        public async Task<PermissionStatus> Permission()
         {
             try
             {
@@ -1652,15 +1654,36 @@ namespace Letter.ViewModels
                 PermissionStatus statusCamera = await Permissions.CheckStatusAsync<Permissions.Camera>();
                 if (statusCamera != PermissionStatus.Granted)
                     await Permissions.RequestAsync<Permissions.Camera>();
+                PermissionStatus statusPhone = await Permissions.CheckStatusAsync<Permissions.Phone>();
+                if (statusPhone != PermissionStatus.Granted)
+                    await Permissions.RequestAsync<Permissions.Phone>();
+                PermissionStatus statusSMS = await Permissions.CheckStatusAsync<Permissions.Sms>();
+                if (statusSMS != PermissionStatus.Granted)
+                    await Permissions.RequestAsync<Permissions.Sms>();
+                PermissionStatus statusBluetooth = await Permissions.CheckStatusAsync<Permissions.Bluetooth>();
+                if (statusBluetooth != PermissionStatus.Granted)
+                    await Permissions.RequestAsync<Permissions.Bluetooth>();
+                PermissionStatus statusLocation = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+                if (statusLocation != PermissionStatus.Granted)
+                    await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
 
                 PermissionStatus storagePermission = await Permissions.CheckStatusAsync<Permissions.StorageWrite>();
                 PermissionStatus readPermission = await Permissions.CheckStatusAsync<Permissions.StorageRead>();
                 PermissionStatus microPhonePermission = await Permissions.CheckStatusAsync<Permissions.Microphone>();
                 PermissionStatus cameraPermission = await Permissions.RequestAsync<Permissions.Camera>();
+                PermissionStatus phonePermission = await Permissions.RequestAsync<Permissions.Phone>();
+                PermissionStatus smsPermission = await Permissions.RequestAsync<Permissions.Sms>();
+                PermissionStatus bluetoothPermission = await Permissions.RequestAsync<Permissions.Bluetooth>();
+                PermissionStatus locationPermission = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+
                 if (storagePermission == PermissionStatus.Granted
                     && microPhonePermission == PermissionStatus.Granted
                     && cameraPermission == PermissionStatus.Granted 
-                    && readPermission == PermissionStatus.Granted)
+                    && readPermission == PermissionStatus.Granted
+                    && bluetoothPermission == PermissionStatus.Granted
+                    && smsPermission == PermissionStatus.Granted
+                    && phonePermission == PermissionStatus.Granted
+                    && locationPermission == PermissionStatus.Granted)
                 {
                     return PermissionStatus.Granted;
                 }
@@ -1727,7 +1750,7 @@ namespace Letter.ViewModels
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
-                await RequestandCheckPermission();
+                await Permission();
 
                 this._perceptionService.StopAudio();
                 string file_path = this._perceptionService.ReceiveRecording();
@@ -1809,7 +1832,7 @@ namespace Letter.ViewModels
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
-                await RequestandCheckPermission();
+                await Permission();
 
                 string response = string.Empty;
                 if (this._cameraProvider.AvailableCameras is not null)
@@ -1857,7 +1880,7 @@ namespace Letter.ViewModels
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
-                await RequestandCheckPermission();
+                await Permission();
 
                 string response = string.Empty;
                 if (this._cameraProvider.AvailableCameras is not null)
@@ -1900,7 +1923,7 @@ namespace Letter.ViewModels
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
-                await RequestandCheckPermission();
+                await Permission();
 
                 string response = string.Empty;
                 this._viewCamera.StopCameraPreview();
@@ -1930,7 +1953,7 @@ namespace Letter.ViewModels
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
-                await RequestandCheckPermission();
+                await Permission();
 
                 string response = string.Empty;
                 this.ShowCamera = false;
@@ -2036,7 +2059,7 @@ namespace Letter.ViewModels
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
-                await RequestandCheckPermission();
+                await Permission();
 
                 string response = string.Empty;
                 await this._perceptionService.UploadRaspberry();
@@ -2066,7 +2089,7 @@ namespace Letter.ViewModels
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
-                await RequestandCheckPermission();
+                await Permission();
 
                 string response = string.Empty;
                 string file_name = await this._perceptionService.DownloadRaspberry();
@@ -2469,7 +2492,7 @@ namespace Letter.ViewModels
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
-                await RequestandCheckPermission();
+                await Permission();
 
                 string response = string.Empty;
                 string file_path = this._perceptionService.FileText(locution);
@@ -2497,7 +2520,7 @@ namespace Letter.ViewModels
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
-                await RequestandCheckPermission();
+                await Permission();
 
                 string response = string.Empty;
                 List<string> grammars = this._grammarService.LoadSyntax(language, 1); 

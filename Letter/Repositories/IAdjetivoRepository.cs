@@ -5,6 +5,7 @@ namespace Letter.Repositories
     public interface IAdjetivoRepository
     {
         Task<List<Adjetivo>> GetAll();
+        Task<List<Adjetivo>> GetSQLAll();
         Task<int> Add(List<Adjetivo> adjective);
         void CreateTable();
         Task<int> DeleteAll();

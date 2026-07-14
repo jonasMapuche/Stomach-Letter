@@ -66,6 +66,23 @@ namespace Letter.Repositories.SQLites
             }
         }
 
+        public async Task<List<Sentencas>> GetSQLAll()
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation get sql all \"Ditado\" repository failed!");
+
+                string sql = "SELECT id, impulse, language, rest FROM Sentencas";
+                List<Sentencas> result = await this._database.QueryAsync<Sentencas>(sql);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
         public async Task<int> Add(List<Sentencas> sentenca)
         {
             try

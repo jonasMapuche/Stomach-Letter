@@ -32,11 +32,14 @@ namespace Letter.Services
         private IRecordService _recordService;
         private ITextSpeakService _textSpeakService;
         private IHttpService _httpService;
-        private IAdapter? _adapterBluetooth;
+        private IBluetoothService _bluetoothService;
+        private IWiFiService _wiFiService;
+        private IVPNClientService _vPNClientService;
+        private ISMSService _sMSService;
         #endregion
 
         #region CONSTRUCTOR
-        public PerceptionService(IRecordService recordService, IAudioService audioService, ITextSpeakService textSpeakService, HttpService httpService)
+        public PerceptionService(IRecordService recordService, IAudioService audioService, ITextSpeakService textSpeakService, HttpService httpService, IBluetoothService bluetoothService, IWiFiService wiFiService, IVPNClientService vPNClientService, ISMSService sMSService)
         {
             try
             {
@@ -50,6 +53,10 @@ namespace Letter.Services
                 this._recordService = recordService;
                 this._audioService = audioService;
                 this._textSpeakService = textSpeakService;
+                this._bluetoothService = bluetoothService;
+                this._wiFiService = wiFiService;
+                this._vPNClientService = vPNClientService;
+                this._sMSService = sMSService;
             }
             catch (Exception ex)
             {
@@ -140,7 +147,7 @@ namespace Letter.Services
             }
         }
 
-
+        /*
         public async Task<string> UploadFile()
         {
             try
@@ -169,6 +176,7 @@ namespace Letter.Services
                 throw new InvalidOperationException(this.error_message);
             }
         }
+        */
 
         public async Task SendRecording(string file_path)
         {

@@ -66,6 +66,23 @@ namespace Letter.Repositories.SQLites
             }
         }
 
+        public async Task<List<Preposicoes>> GetSQLAll()
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation get sql all \"Preposicao\" repository failed!");
+
+                string sql = "SELECT id, name, language, type FROM Preposicoes";
+                List<Preposicoes> result = await this._database.QueryAsync<Preposicoes>(sql);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
         public async Task<int> Add(List<Preposicoes> preposition)
         {
             try

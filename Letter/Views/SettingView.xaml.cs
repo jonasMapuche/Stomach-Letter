@@ -1,4 +1,3 @@
-using CommunityToolkit.Maui.Extensions;
 using Letter.Enums;
 using Letter.Models;
 using Letter.Services;

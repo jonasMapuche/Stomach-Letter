@@ -66,6 +66,23 @@ namespace Letter.Repositories.SQLites
             }
         }
 
+        public async Task<List<Numerais>> GetSQLAll()
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation get sql all \"Numeral\" repository failed!");
+
+                string sql = "SELECT id, name, language, initial, type FROM Numerais";
+                List<Numerais> result = await this._database.QueryAsync<Numerais>(sql);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
         public async Task<int> Add(List<Numerais> numeral)
         {
             try

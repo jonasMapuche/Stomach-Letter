@@ -31,7 +31,7 @@ namespace Letter.ViewModels
         #endregion
 
         #region VARIABLE
-        private bool _update_view = true;
+        private bool _update_view = false;
         private List<Materia>? _book_english;
         private List<Materia>? _book_deutsch;
         private List<Materia>? _book_italiano;

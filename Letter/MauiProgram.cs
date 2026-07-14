@@ -35,6 +35,10 @@ namespace Letter
             builder.Services.AddTransient<IAudioService, AudioService>();
             builder.Services.AddTransient<IRecordService, RecordService>();
             builder.Services.AddTransient<ITextSpeakService, TextSpeakService>();
+            builder.Services.AddTransient<ISMSService, SMSService>();
+            builder.Services.AddTransient<IBluetoothService, BluetoothService>();
+            builder.Services.AddTransient<IWiFiService, WiFiService>();
+            builder.Services.AddTransient<IVPNClientService, VPNClientService>();
 #endif
 
             builder.Services.AddSingleton<AlgarismoContext>();

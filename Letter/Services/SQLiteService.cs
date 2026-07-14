@@ -601,7 +601,7 @@ namespace Letter.Services
                 if (this._error_off) throw new InvalidOperationException("Operation get circunstancia \"SQLite\" service failed!");
 
                 List<Adverbios> adverb = new List<Adverbios>();
-                adverb = await this._adverbioRepository.GetAll();
+                adverb = await this._adverbioRepository.GetSQLAll();
                 List<Circunstancia> circunstancias = new List<Circunstancia>();
                 circunstancias = await this._modelService.LoadAdverb(adverb);
                 return circunstancias;
@@ -637,7 +637,7 @@ namespace Letter.Services
                 if (this._error_off) throw new InvalidOperationException("Operation get estoutro \"SQLite\" service failed!");
 
                 List<Pronomes> pronoun = new List<Pronomes>();
-                pronoun = await this._pronomeRepository.GetAll();
+                pronoun = await this._pronomeRepository.GetSQLAll();
                 List<Estoutro> estoutros = new List<Estoutro>();
                 estoutros = await this._modelService.LoadPronoun(pronoun);
                 return estoutros;
@@ -673,7 +673,7 @@ namespace Letter.Services
                 if (this._error_off) throw new InvalidOperationException("Operation get preceito \"SQLite\" service failed!");
 
                 List<Artigos> article = new List<Artigos>();
-                article = await this._artigoRepository.GetAll();
+                article = await this._artigoRepository.GetSQLAll();
                 List<Preceito> preceitos = new List<Preceito>();
                 preceitos = await this._modelService.LoadArticle(article);
                 return preceitos;
@@ -709,7 +709,7 @@ namespace Letter.Services
                 if (this._error_off) throw new InvalidOperationException("Operation get algarismo \"SQLite\" service failed!");
 
                 List<Numerais> numeral = new List<Numerais>();
-                numeral = await this._numeroRepository.GetAll();
+                numeral = await this._numeroRepository.GetSQLAll();
                 List<Algarismo> algarismos = new List<Algarismo>();
                 algarismos = await this._modelService.LoadNumeral(numeral);
                 return algarismos;
@@ -745,7 +745,7 @@ namespace Letter.Services
                 if (this._error_off) throw new InvalidOperationException("Operation get juncao \"SQLite\" service failed!");
 
                 List<Preposicoes> preposition = new List<Preposicoes>();
-                preposition = await this._preposicaoRepository.GetAll();
+                preposition = await this._preposicaoRepository.GetSQLAll();
                 List<Juncao> juncoes = new List<Juncao>();
                 juncoes = await this._modelService.LoadPreposition(preposition);
                 return juncoes;
@@ -785,11 +785,11 @@ namespace Letter.Services
                 if (this._error_off) throw new InvalidOperationException("Operation get materia \"SQLite\" service failed!");
 
                 List<Substantivo> noun = new List<Substantivo>();
-                noun = await this._substantivoRepository.GetAll();
+                noun = await this._substantivoRepository.GetSQLAll();
                 List<Adjetivo> adjective = new List<Adjetivo>();
-                adjective = await this._adjetivoRepository.GetAll();
+                adjective = await this._adjetivoRepository.GetSQLAll();
                 List<Model> model = new List<Model>();
-                model = await this._modelRepository.GetAll();
+                model = await this._modelRepository.GetSQLAll();
                 List<Materia> materias = new List<Materia>();
                 materias = await this._modelService.LoadMateria(noun, adjective, model);
                 return materias;
@@ -825,7 +825,7 @@ namespace Letter.Services
                 if (this._error_off) throw new InvalidOperationException("Operation get elocucao \"SQLite\" service failed!");
 
                 List<Verbos> verb = new List<Verbos>();
-                verb = await this._verboRepository.GetAll();
+                verb = await this._verboRepository.GetSQLAll();
                 List<Elocucao> elocucoes = new List<Elocucao>();
                 elocucoes = await this._modelService.LoadElocucao(verb);
                 return elocucoes;
@@ -861,7 +861,7 @@ namespace Letter.Services
                 if (this._error_off) throw new InvalidOperationException("Operation get sentenca \"SQLite\" service failed!");
 
                 List<Sentencas> sentence = new List<Sentencas>();
-                sentence = await this._ditadoRepository.GetAll();
+                sentence = await this._ditadoRepository.GetSQLAll();
                 List<Sentenca> sentencas = new List<Sentenca>();
                 sentencas = await this._modelService.LoadSentenca(sentence);
                 return sentencas;
@@ -897,7 +897,7 @@ namespace Letter.Services
                 if (this._error_off) throw new InvalidOperationException("Operation get ligacao \"SQLite\" service failed!");
 
                 List<Conjuncoes> conjunction = new List<Conjuncoes>();
-                conjunction = await this._conjuncaoRepository.GetAll();
+                conjunction = await this._conjuncaoRepository.GetSQLAll();
                 List<Ligacao> ligacoes = new List<Ligacao>();
                 ligacoes = await this._modelService.LoadLigacao(conjunction);
                 return ligacoes;

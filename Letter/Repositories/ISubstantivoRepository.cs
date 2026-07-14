@@ -5,6 +5,7 @@ namespace Letter.Repositories
     public interface ISubstantivoRepository
     {
         Task<List<Substantivo>> GetAll();
+        Task<List<Substantivo>> GetSQLAll();
         Task<int> Add(List<Substantivo> noun);
         void CreateTable();
         Task<int> DeleteAll();

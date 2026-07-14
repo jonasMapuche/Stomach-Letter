@@ -66,6 +66,23 @@ namespace Letter.Repositories.SQLites
             }
         }
 
+        public async Task<List<Adverbios>> GetSQLAll()
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation get sql all \"Adverbio\" repository failed!");
+
+                string sql = "SELECT id, name, language, type FROM Adverbios";
+                List<Adverbios> result = await this._database.QueryAsync<Adverbios>(sql);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
         public async Task<int> Add(List<Adverbios> adverb)
         {
             try
