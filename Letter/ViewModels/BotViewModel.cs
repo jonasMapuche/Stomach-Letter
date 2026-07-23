@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Letter.Enums;
-using Letter.Models;
+using Letter.Models; 
 using Letter.Services;
 using Letter.Services.Interfaces;
 using System.Collections.ObjectModel;
@@ -174,7 +174,7 @@ namespace Letter.ViewModels
         {
             try
             {
-                if (this._error_off) throw new InvalidOperationException("Operation contructor \"Bot\" view model failed!");
+                if (this._error_off) throw new InvalidOperationException("Operation constructor \"Bot\" view model failed!");
                 else this.error_message = string.Empty;
 
                 this._perceptionService = perceptionService;
