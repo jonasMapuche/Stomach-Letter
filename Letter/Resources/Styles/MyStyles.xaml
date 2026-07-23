@@ -251,6 +251,7 @@
 
     <Style x:Key="colViewMessageBotView" TargetType="CollectionView">
         <Setter Property="Margin" Value="18, 50, 18, 0" />
+        <Setter Property="ItemsUpdatingScrollMode" Value="KeepLastItemInView" />
     </Style>
 
     <Style x:Key="boxReceiverBotItemTemplate" TargetType="BoxView">

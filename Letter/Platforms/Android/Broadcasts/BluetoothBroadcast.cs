@@ -25,7 +25,7 @@ namespace Letter.Platforms.Android.Broadcasts
         #endregion
 
         #region VARIABLE
-        public List<Message> Receiver { get; set; }
+        public List<Mechanism> Receiver { get; set; }
         #endregion
 
         #region CONSTRUCTOR
@@ -36,7 +36,7 @@ namespace Letter.Platforms.Android.Broadcasts
                 if (this._error_off) throw new InvalidOperationException("Operation constructor \"Bluetooth\" broadcast failed!");
                 else this.error_message = string.Empty;
 
-                this.Receiver = new List<Message>();
+                this.Receiver = new List<Mechanism>();
             }
             catch (Exception ex)
             {
@@ -61,10 +61,10 @@ namespace Letter.Platforms.Android.Broadcasts
                 {
                     BluetoothDevice device = (BluetoothDevice)intent.GetParcelableExtra(BluetoothDevice.ExtraDevice);
                     string appliance = $"{device.Name} - {device.Address}";
-                    Message memo = new Message();
-                    memo.Text = appliance;
-                    memo.Implied = device.Address;
-                    Receiver.Add(memo);
+                    Mechanism mechanism = new Mechanism();
+                    mechanism.name = appliance;
+                    mechanism.implied = device.Address;
+                    Receiver.Add(mechanism);
                 }
             }
             catch (Exception ex)

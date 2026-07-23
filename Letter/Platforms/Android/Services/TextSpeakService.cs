@@ -36,7 +36,7 @@ namespace Letter.Platforms.Android.Services
         {
             try
             {
-                if (this._error_off) throw new InvalidOperationException("Operation contructor \"Text Speak\" service failed!");
+                if (this._error_off) throw new InvalidOperationException("Operation constructor \"Text Speak\" service failed!");
                 else this.error_message = string.Empty;
 
                 this._textToSpeech = new TextToSpeech(Platform.AppContext, this);

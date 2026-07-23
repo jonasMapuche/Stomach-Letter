@@ -4,9 +4,9 @@ namespace Letter.Interfaces
 {
     public interface IWiFiService
     {
-        List<Message> Receiver { get; set; }
+        List<Mechanism> Receiver { get; set; }
         void SetUp();
         void Scan();
-        Task<List<string>> Ping();
+        Task<List<string>> Ping(string subnet);
     }
 }

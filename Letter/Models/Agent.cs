@@ -6,6 +6,5 @@ namespace Letter.Models
     {
         public string Message { get; set; }
         public CancellationToken Token { get; set; }
-        public CameraView ViewCamera { get; set; }
     }
 }

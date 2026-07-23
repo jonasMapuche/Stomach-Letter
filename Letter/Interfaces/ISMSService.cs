@@ -4,10 +4,10 @@ namespace Letter.Interfaces
 {
     public interface ISMSService
     {
-        List<Message> Receiver { get; set; }
+        List<Mechanism> Receiver { get; set; }
         void Send(string destino, string text);
-        List<Message> NetworkActive();
-        Message NetworkCurrent();
+        List<Mechanism> NetworkActive();
+        Mechanism NetworkCurrent();
         void Scan();
     }
 }

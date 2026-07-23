@@ -2,11 +2,19 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:models="clr-namespace:Letter.Models"
+             xmlns:viewmodels="clr-namespace:Letter.ViewModels"
+             xmlns:controls="clr-namespace:Letter.Controls"
              x:Class="Letter.Views.Templates.SenderBotItemTemplate">
     <ContentView.Content>
         <Grid
             ColumnDefinitions="Auto, *, Auto"
             Style="{StaticResource gridSenderBotItemTemplate}">
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer 
+                    x:DataType="models:Message"
+                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:BotViewModel}}, Path=BotCommand}"      
+                    CommandParameter="{Binding .}"/>
+            </Grid.GestureRecognizers>
             <Grid
                 Grid.Column="0"
                 Style="{StaticResource gridBotSenderBotItemTemplate}">
@@ -24,6 +32,7 @@
                 <BoxView
                     Style="{StaticResource boxBotSenderBotItemTemplate}" />
                 <Label 
+                    x:Name="lblSend"
                     Text="{Binding Text}"
                     Style="{StaticResource lblBotSenderBotItemTemplate}"/>
             </Grid>

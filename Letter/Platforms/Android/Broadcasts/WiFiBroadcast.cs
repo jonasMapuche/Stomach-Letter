@@ -25,7 +25,7 @@ namespace Letter.Platforms.Android.Broadcasts
         #endregion
 
         #region VARIABLE
-        public List<Message> Receiver { get; set; }
+        public List<Mechanism> Receiver { get; set; }
         #endregion
 
         #region CONSTRUCTOR
@@ -36,7 +36,7 @@ namespace Letter.Platforms.Android.Broadcasts
                 if (this._error_off) throw new InvalidOperationException("Operation constructor \"WiFi\" broadcast failed!");
                 else this.error_message = string.Empty;
 
-                this.Receiver = new List<Message>();
+                this.Receiver = new List<Mechanism>();
             }
             catch (Exception ex)
             {
@@ -63,10 +63,10 @@ namespace Letter.Platforms.Android.Broadcasts
                     foreach (ScanResult result in results)
                     {
                         string appliance = $"SSID: {result.Ssid} | BSSID: {result.Bssid} | RSSI: {result.Level} dBm";
-                        Message memo = new Message();
-                        memo.Text = appliance;
-                        memo.Implied = result.Bssid;
-                        Receiver.Add(memo);
+                        Mechanism mechanism = new Mechanism();
+                        mechanism.name = appliance;
+                        mechanism.implied = result.Bssid;
+                        Receiver.Add(mechanism);
                     }
                 }
             }

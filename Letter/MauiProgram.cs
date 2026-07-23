@@ -39,6 +39,7 @@ namespace Letter
             builder.Services.AddTransient<IBluetoothService, BluetoothService>();
             builder.Services.AddTransient<IWiFiService, WiFiService>();
             builder.Services.AddTransient<IVPNClientService, VPNClientService>();
+            builder.Services.AddTransient<IPhoneService, PhoneService>();
 #endif
 
             builder.Services.AddSingleton<AlgarismoContext>();

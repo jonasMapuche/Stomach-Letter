@@ -27,7 +27,7 @@ namespace Letter.Platforms.Android.Services
         #endregion
 
         #region VARIABLE
-        public List<Message> Receiver { get; set; }
+        public List<Mechanism> Receiver { get; set; }
         #endregion
 
         #region CONSTRUCTOR
@@ -38,7 +38,7 @@ namespace Letter.Platforms.Android.Services
                 if (this._error_off) throw new InvalidOperationException("Operation constructor \"SMS\" service failed!");
                 else this.error_message = string.Empty;
 
-                this.Receiver = new List<Message>();
+                this.Receiver = new List<Mechanism>();
             }
             catch (Exception ex)
             {
@@ -93,13 +93,13 @@ namespace Letter.Platforms.Android.Services
             }
         }
 
-        public List<Message> NetworkActive()
+        public List<Mechanism> NetworkActive()
         {
             try
             {
                 if (this._error_off) throw new InvalidOperationException("Operation network active \"SMS\" service failed!");
 
-                List<Message> networks = new List<Message>();
+                List<Mechanism> mechanisms = new List<Mechanism>();
                 SubscriptionManager? subscription = (SubscriptionManager)Platform.AppContext.GetSystemService(Context.TelephonySubscriptionService);
                 if (subscription != null)
                 {
@@ -110,14 +110,14 @@ namespace Letter.Platforms.Android.Services
                         {
                             int id = info.SubscriptionId;
                             string name = info.CarrierName;
-                            Message memo = new Message();
-                            memo.Text = $"CARRIER {name} | SUBSCRIPTION: {id}";
-                            memo.Implied = id.ToString();
-                            networks.Add(memo);
+                            Mechanism mechanism = new Mechanism();
+                            mechanism.name = $"CARRIER {name} | SUBSCRIPTION: {id}";
+                            mechanism.implied = id.ToString();
+                            mechanisms.Add(mechanism);
                         }
                     }
                 }
-                return networks;
+                return mechanisms;
             }
             catch (Exception ex)
             {
@@ -126,7 +126,7 @@ namespace Letter.Platforms.Android.Services
             }
         }
 
-        public Message NetworkCurrent()
+        public Mechanism NetworkCurrent()
         {
             try
             {
@@ -135,10 +135,10 @@ namespace Letter.Platforms.Android.Services
                 TelephonyManager? telephony = (TelephonyManager)Platform.CurrentActivity.GetSystemService(Context.TelephonyService);
                 int id = telephony.SubscriptionId;
                 string name = telephony.SimCarrierIdName;
-                Message memo = new Message();
-                memo.Text = $"CARRIER {name} | SUBSCRIPTION: {id}";
-                memo.Implied = id.ToString();
-                return memo;
+                Mechanism mechanism = new Mechanism();
+                mechanism.name = $"CARRIER {name} | SUBSCRIPTION: {id}";
+                mechanism.implied = id.ToString();
+                return mechanism;
             }
             catch (Exception ex)
             {

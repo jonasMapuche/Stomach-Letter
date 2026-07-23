@@ -20,6 +20,7 @@ namespace Letter.Services.Interfaces
         Task<List<Conjuncoes>> HttpConjunction();
         Task<List<Auxiliares>> HttpAuxiliary();
         Task<List<Locution>> HttpGo(GoMessage message);
+        Task<List<Recite>> HttpSyntax(GoMessage message);
         event EventHandler<string> OnError;
     }
 }

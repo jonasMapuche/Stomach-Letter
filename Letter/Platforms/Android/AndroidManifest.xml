@@ -8,6 +8,28 @@
 				<action android:name="android.net.VpnService" />
 			</intent-filter>
 		</service>
+		<!--
+		<service android:name=".Connections.PhoneConnection"
+			 android:permission="android.permission.BIND_INCALL_SERVICE"
+			 android:exported="true">
+			<intent-filter>
+				<action android:name="android.telecom.ConnectionService" />
+			</intent-filter>
+		</service>
+		-->
+		<receiver
+			android:name="com.google.firebase.iid.FirebaseInstanceIdInternalReceiver"
+			android:exported="false" />
+		<receiver
+			android:name="com.google.firebase.iid.FirebaseInstanceIdReceiver"
+			android:exported="true"
+			android:permission="com.google.android.c2dm.permission.SEND">
+			<intent-filter>
+				<action android:name="com.google.android.c2dm.intent.RECEIVE" />
+				<action android:name="com.google.android.c2dm.intent.REGISTRATION" />
+				<category android:name="${applicationId}" />
+			</intent-filter>
+		</receiver>
 	</application>
 
 	<uses-permission android:name="android.permission.SEND_SMS" />

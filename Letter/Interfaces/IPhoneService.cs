@@ -2,11 +2,11 @@
 
 namespace Letter.Interfaces
 {
-    public interface IBluetoothService
+    public interface IPhoneService
     {
-        void SetUp();
+        void Call(string number);
+        void Call(string numero, string caminhoAudio);
         void Scan();
         List<Mechanism> Receiver { get; set; }
-        void Connect(string address, string file_path);
     }
 }

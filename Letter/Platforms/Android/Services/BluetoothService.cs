@@ -29,7 +29,7 @@ namespace Letter.Platforms.Android.Services
 
         #region VARIABLE
         private BluetoothAdapter? _bluetoothAdapter;
-        public List<Message> Receiver { get; set; }
+        public List<Mechanism> Receiver { get; set; }
         private BluetoothSocket? _socket;
         private static readonly UUID? MY_UUID = UUID.FromString("00001101-0000-1000-8000-00805F9B34FB");
         #endregion
@@ -42,7 +42,7 @@ namespace Letter.Platforms.Android.Services
                 if (this._error_off) throw new InvalidOperationException("Operation constructor \"Bluetooth\" service failed!");
                 else this.error_message = string.Empty;
 
-                this.Receiver = new List<Message>();
+                this.Receiver = new List<Mechanism>();
             }
             catch (Exception ex)
             {

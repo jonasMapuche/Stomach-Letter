@@ -53,7 +53,6 @@ namespace Letter.Services
                 this._recordBot = new RecordBot();
                 this._shareBot = new ShareBot();
                 this._decisionTreeBot = new DecisionTreeBot();
-
             }
             catch (Exception ex)
             {
@@ -86,6 +85,23 @@ namespace Letter.Services
             }
         }
 
+        public async Task<List<string>> LoadCamera(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation load camera \"Bot\" service failed!");
+
+                List<string> response = new List<string>();
+                response = await this._captureBot.SelectRotate(language);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
         public async Task<string> RecordAudio(string language)
         {
             try
@@ -93,6 +109,23 @@ namespace Letter.Services
                 if (this._error_off) throw new InvalidOperationException("Operation record audio \"Bot\" service failed!");
 
                 string response = await this._recordBot.Audio(language);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<List<string>> LoadAudio(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation load audio \"Bot\" service failed!");
+
+                List<string> response = new List<string>();
+                response = await this._recordBot.SelectAudio(language);
                 return response;
             }
             catch (Exception ex)
@@ -118,6 +151,23 @@ namespace Letter.Services
             }
         }
 
+        public async Task<List<string>> LoadShare(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation load share \"Bot\" service failed!");
+
+                List<string> response = new List<string>();
+                response = await this._shareBot.SelectShare(language);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
         public async Task<string> CaptureCamera(string language, List<Message> messages)
         {
             try
@@ -125,6 +175,23 @@ namespace Letter.Services
                 if (this._error_off) throw new InvalidOperationException("Operation capture camera \"Bot\" service failed!");
 
                 string response = await this._captureBot.Choose(language, messages);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<List<string>> CameraChoose(string language, List<Message> messages)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation camera choose \"Bot\" service failed!");
+
+                List<string> response = new List<string>();
+                response = await this._captureBot.Select(language, messages);
                 return response;
             }
             catch (Exception ex)
@@ -150,6 +217,23 @@ namespace Letter.Services
             }
         }
 
+        public async Task<List<string>> RecordChoose(string language, List<Message> messages)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation record choose \"Bot\" service failed!");
+
+                List<string> response = new List<string>();
+                response = await this._recordBot.Select(language, messages);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
         public async Task<string> ShareFile(string language, List<Message> messages)
         {
             try
@@ -157,6 +241,23 @@ namespace Letter.Services
                 if (this._error_off) throw new InvalidOperationException("Operation share file \"Bot\" service failed!");
 
                 string response = await this._shareBot.Choose(language, messages);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<List<string>> ShareChoose(string language, List<Message> messages)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation share choose \"Bot\" service failed!");
+
+                List<string> response = new List<string>();
+                response = await this._shareBot.Select(language, messages);
                 return response;
             }
             catch (Exception ex)
@@ -274,71 +375,6 @@ namespace Letter.Services
             }
         }
 
-        public async Task ShareScan(List<string> scan)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation share scan \"Bot\" service failed!");
-                this._shareBot.ShareScan = scan;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        public async Task<List<string>> ShareScan()
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation share scan \"Bot\" service failed!");
-
-                return this._shareBot.ShareScan;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        public async Task<bool> DeviceShare(string language, List<Message> messages, string device)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation device share \"Bot\" service failed!");
-
-                string result = string.Empty;
-                result = await this._shareBot.FindDevice(language, messages, device);
-
-                return result != string.Empty ? true : false;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        public async Task<string> DeviceShare()
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation device share \"Bot\" service failed!");
-
-                string result = string.Empty;
-                result = this._shareBot.ShareDevice;
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
         public async Task<string> DecisionTree(string language)
         {
             try
@@ -387,7 +423,6 @@ namespace Letter.Services
                 throw new InvalidOperationException(this.error_message);
             }
         }
-
         #endregion
     }
 }

@@ -3,7 +3,8 @@ using Letter.Helpers;
 using Letter.Interfaces;
 using Letter.Models;
 using Letter.Services.Interfaces;
-using Plugin.BLE.Abstractions.Contracts;
+using Plugin.Firebase.CloudMessaging;
+using Audio = Letter.Models.Audio;
 
 namespace Letter.Services
 {
@@ -28,6 +29,8 @@ namespace Letter.Services
 
         #region VARIABLE
         public List<Audio> _audios;
+        public List<string> _phones;
+
         private IAudioService _audioService;
         private IRecordService _recordService;
         private ITextSpeakService _textSpeakService;
@@ -36,10 +39,11 @@ namespace Letter.Services
         private IWiFiService _wiFiService;
         private IVPNClientService _vPNClientService;
         private ISMSService _sMSService;
+        private IPhoneService _phoneService;
         #endregion
 
         #region CONSTRUCTOR
-        public PerceptionService(IRecordService recordService, IAudioService audioService, ITextSpeakService textSpeakService, HttpService httpService, IBluetoothService bluetoothService, IWiFiService wiFiService, IVPNClientService vPNClientService, ISMSService sMSService)
+        public PerceptionService(IRecordService recordService, IAudioService audioService, ITextSpeakService textSpeakService, HttpService httpService, IBluetoothService bluetoothService, IWiFiService wiFiService, IVPNClientService vPNClientService, ISMSService sMSService, IPhoneService phoneService)
         {
             try
             {
@@ -47,6 +51,7 @@ namespace Letter.Services
                 else this.error_message = string.Empty;
 
                 this._audios = new List<Audio>();
+                this._phones = new List<string>();
                 this._httpService = httpService;
                 FilePath.MountPath();
 
@@ -57,6 +62,7 @@ namespace Letter.Services
                 this._wiFiService = wiFiService;
                 this._vPNClientService = vPNClientService;
                 this._sMSService = sMSService;
+                this._phoneService = phoneService;
             }
             catch (Exception ex)
             {
@@ -120,64 +126,6 @@ namespace Letter.Services
             }
         }
 
-        public async Task<string> CreateFileUTF8(string text)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation save file \"Text Speak\" service failed!");
-
-                string file_name = FilePath.MountFileName("mp3");
-                string file_path = FilePath.MountFilePath(file_name);
-
-                FileStream fs = new(file_path, FileMode.OpenOrCreate);
-                if (text != string.Empty)
-                {
-                    StreamWriter sw = new StreamWriter(fs, System.Text.Encoding.UTF8);
-                    await sw.WriteAsync(text);
-                    sw.Close();
-                }
-                fs.Close();
-
-                return file_path;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        /*
-        public async Task<string> UploadFile()
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation upload file \"Perception\" service failed!");
-
-                FileResult? result = await FilePicker.Default.PickAsync();
-                if (result != null)
-                {
-                    Stream sourceStream = await result.OpenReadAsync();
-                    string name_file = result.FileName;
-                    string[] file_names = name_file.Split('.');
-                    if (!(file_names.Length == 2)) return null;
-                    string output_path = FilePath.MountFileName(name_file);
-                    using (FileStream destinationStream = File.Create(output_path))
-                    {
-                        await sourceStream.CopyToAsync(destinationStream);
-                    }
-                    return output_path;
-                }
-                return string.Empty;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-        */
-
         public async Task SendRecording(string file_path)
         {
             try
@@ -189,7 +137,6 @@ namespace Letter.Services
                 audio.name = Path.GetFileName(file_path);
                 audio.url = file_path;
                 this._audios.Add(audio);
-
             }
             catch (Exception ex)
             {
@@ -202,7 +149,7 @@ namespace Letter.Services
         {
             try
             {
-                if (this._error_off) throw new InvalidOperationException("Operation send recording \"Perception\" service failed!");
+                if (this._error_off) throw new InvalidOperationException("Operation clear recording \"Perception\" service failed!");
 
                 this._audios = new List<Audio>();
             }
@@ -247,6 +194,32 @@ namespace Letter.Services
                 FileSaverResult file_result = await this._httpService.HttpDownload(path, file_name);
                 file_result.EnsureSuccess();
                 return file_result.FilePath;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<string> DownloadFile()
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation download file \"Perception\" service failed!");
+
+                string file_name = string.Empty;
+                string file_path = string.Empty;
+                if (this._audios.Count == 0) return file_path;
+                Audio audio = this._audios.First();
+                file_name = audio.name;
+                file_path = audio.url;
+                FileStream fs = new FileStream(file_path, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, true);
+                MemoryStream memory_stream = new MemoryStream();
+                await fs.CopyToAsync(memory_stream);
+                Stream stream = memory_stream;
+                FileSaverResult file_save = await FileSaver.Default.SaveAsync(file_name, stream, CancellationToken.None);
+                return file_path;
             }
             catch (Exception ex)
             {
@@ -349,13 +322,14 @@ namespace Letter.Services
             }
         }
 
-        public async Task<List<string>> ScanBluetooth3()
+        public async Task SetupBluetooth3()
         {
             try
             {
-                if (this._error_off) throw new InvalidOperationException("Operation scan bluetooth 3 \"Perception\" service failed!");
+                if (this._error_off) throw new InvalidOperationException("Operation setup bluetooth 3 \"Perception\" service failed!");
 
-                return new List<string>();
+                this._bluetoothService.SetUp();
+                this._bluetoothService.Scan();
             }
             catch (Exception ex)
             {
@@ -364,19 +338,55 @@ namespace Letter.Services
             }
         }
 
-        public async Task<List<string>> ScanBluetooth4()
+        public async Task SetupWiFi()
         {
             try
             {
-                if (this._error_off) throw new InvalidOperationException("Operation scan bluetooth 4 \"Perception\" service failed!");
+                if (this._error_off) throw new InvalidOperationException("Operation setup wifi \"Perception\" service failed!");
 
-                return new List<string>();
+                this._wiFiService.SetUp();
+                this._wiFiService.Scan();
             }
             catch (Exception ex)
             {
                 this.error_message = ex.Message;
-                this.OnError?.Invoke(this, this.error_message);
-                return new List<string>();
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<List<Mechanism>> ScanWiFi()
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation scan wifi \"Perception\" service failed!");
+
+                List<Mechanism> mechanisms = new List<Mechanism>();
+                mechanisms = this._wiFiService.Receiver;
+                this._wiFiService.Scan();
+                return mechanisms;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<List<Mechanism>> ScanBluetooth3()
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation scan bluetooth 3 \"Perception\" service failed!");
+
+                List<Mechanism> mechanisms = new List<Mechanism>();
+                mechanisms = this._bluetoothService.Receiver;
+                this._bluetoothService.Scan();
+                return mechanisms;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
             }
         }
 
@@ -386,91 +396,15 @@ namespace Letter.Services
             {
                 if (this._error_off) throw new InvalidOperationException("Operation connect bluetooth 3 \"Perception\" service failed!");
 
+                Audio audio = this._audios.First();
+                string file_name = audio.name;
+                this._bluetoothService.Connect(device, file_name);
                 return string.Empty;
             }
             catch (Exception ex)
             {
                 this.error_message = ex.Message;
                 throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        public async Task<string> ConnectBluetooth4(string device)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation connect bluetooth 4 \"Perception\" service failed!");
-
-                return string.Empty;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                this.OnError?.Invoke(this, this.error_message);
-                return string.Empty;
-            }
-        }
-
-        public async Task DisconnectBluetooth3()
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation disconnect bluetooth 3 \"Perception\" service failed!");
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        public async Task DisconnectBluetooth4()
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation disconnect bluetooth 4 \"Perception\" service failed!");
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                this.OnError?.Invoke(this, this.error_message);
-            }
-        }
-
-        public async Task<string> SendBluetooth3()
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation send bluetooth 3 \"Perception\" service failed!");
-
-                Audio audios = this._audios.First();
-                string file_path = audios.url;
-
-                return string.Empty;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        public async Task<string> SendBluetooth4()
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation send bluetooth 4 \"Perception\" service failed!");
-
-                Audio audios = this._audios.First();
-                string file_path = audios.url;
-
-                return string.Empty;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                this.OnError?.Invoke(this, this.error_message);
-                return string.Empty;
             }
         }
 
@@ -612,6 +546,123 @@ namespace Letter.Services
             }
         }
 
+        public async Task SetupSMS(string phone)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation setup sms \"Perception\" service failed!");
+
+                await ClearPhone();
+                this._phones.Add(phone);
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task ClearPhone()
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation clear phone \"Perception\" service failed!");
+
+                this._phones = new List<string>();
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public void SendSMS(string text)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation send sms \"Perception\" service failed!");
+
+                string phone = this._phones.First(); 
+                this._sMSService.Send(phone, text);
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<List<Mechanism>> ScanSMS()
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation scan sms \"Perception\" service failed!");
+
+                List<Mechanism> mechanisms = new List<Mechanism>();
+                mechanisms = this._sMSService.Receiver;
+                this._sMSService.Scan();
+                return mechanisms;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public void CallPhone(string phone)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation call phone \"Perception\" service failed!");
+
+                this._phoneService.Call(phone);
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<List<Mechanism>> ScanPhone()
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation scan phone \"Perception\" service failed!");
+
+                List<Mechanism> mechanisms = new List<Mechanism>();
+                mechanisms = this._phoneService.Receiver;
+                this._phoneService.Scan();
+                return mechanisms;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<Mechanism> TokenPush()
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation token push \"Perception\" service failed!");
+
+                await CrossFirebaseCloudMessaging.Current.CheckIfValidAsync();
+                string token = await CrossFirebaseCloudMessaging.Current.GetTokenAsync();
+                Mechanism mechanism = new Mechanism();
+                mechanism.name = token;
+                mechanism.implied = token;
+                return mechanism;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
         #endregion
     }
 }

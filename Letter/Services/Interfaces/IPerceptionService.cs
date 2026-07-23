@@ -1,11 +1,13 @@
-﻿namespace Letter.Services.Interfaces
+﻿using Letter.Models;
+
+namespace Letter.Services.Interfaces
 {
     public interface IPerceptionService
     {
         Task<string> SaveImage(byte[] bytes);
         Task<string> SaveLetter(List<string> grammar);
-        //Task<string> UploadFile();
         Task<string> DownloadRaspberry();
+        Task<string> DownloadFile();
         Task SendRecording(string file_path);
         Task UploadRaspberry();
         Task<Location> GetCurrentLocation();
@@ -14,23 +16,26 @@
         BatteryState GetState();
         BatteryPowerSource GetSource();
         void SetVibration(int time);
-        Task<List<string>> ScanBluetooth3();
-        Task<List<string>> ScanBluetooth4();
+        Task SetupBluetooth3();
+        Task<List<Mechanism>> ScanBluetooth3();
         Task<string> ConnectBluetooth3(string device);
-        Task<string> ConnectBluetooth4(string device);
-        Task DisconnectBluetooth3();
-        Task DisconnectBluetooth4();
-        Task<string> SendBluetooth3();
-        Task<string> SendBluetooth4();
         void SpeakText(string text);
         string FileText(string text);
         void StartRecordMP3();
         void StartRecordWav();
         string StopRecordMP3();
         string StopRecordWav();
-        public void StopAudio();
+        void StopAudio();
         string ReceiveRecording();
         void PlayAudio(string file_path);
         Task ClearRecording();
+        Task SetupWiFi();
+        Task<List<Mechanism>> ScanWiFi();
+        Task SetupSMS(string phone);
+        void SendSMS(string text);
+        Task<List<Mechanism>> ScanSMS();
+        void CallPhone(string phone);
+        Task<List<Mechanism>> ScanPhone();
+        Task<Mechanism> TokenPush();
     }
 }

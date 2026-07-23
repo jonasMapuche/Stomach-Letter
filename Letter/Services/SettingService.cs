@@ -56,6 +56,11 @@ namespace Letter.Services
         private static readonly string demonstrative_portugues = "demonstrativo";
         private static readonly string possessive_adjective_portugues = "possessivo adjetivo";
 
+        private static readonly string direct_object_portugues = "objeto direto";
+        private static readonly string indirect_object_portugues = "objeto indireto";
+        private static readonly string predicative_portugues = "predicativo";
+        private static readonly string explanatory_portugues = "explilcativo";
+
         public static readonly string especial_portugues = "especial";
 
         public static readonly string single_portugues = "singular";
@@ -93,6 +98,9 @@ namespace Letter.Services
 
         private static readonly string load_english = "load";
         private static readonly string load_deutsch = "laden";
+        private static readonly string load_italiano = "caricare";
+        private static readonly string load_francais = "charger";
+        private static readonly string load_espanol = "cargar";
         private static readonly string execute_english = "execute";
         private static readonly string see_english = "see";
         private static readonly string view_english = "view";
@@ -127,7 +135,12 @@ namespace Letter.Services
         private static readonly string dont_work_english = "do not work";
         private static readonly string disconnect_english = "disconnect";
         private static readonly string connected_english = "connected";
-        private static readonly string clear_english = "clear";
+        private static readonly string clean_up_english = "clean up";
+        private static readonly string setup_english = "setup";
+        private static readonly string select_english = "select";
+        private static readonly string listen_english = "listen";
+        private static readonly string call_english = "call";
+        private static readonly string push_english = "push";
 
         private static readonly string gps_english = "gps";
         private static readonly string bluetooth_english = "bluetooth";
@@ -156,9 +169,16 @@ namespace Letter.Services
         private static readonly string unknow_english = "unknow";
         private static readonly string letter_english = "letter";
         private static readonly string letter_deutsch = "brief";
+        private static readonly string letter_italiano = "lettera";
+        private static readonly string letter_francais = "lettre";
+        private static readonly string letter_espanol = "carta";
         private static readonly string sample_english = "sample";
         private static readonly string compound_english = "compound";
         private static readonly string hidden_english = "hidden";
+        private static readonly string wifi_english = "wifi";
+        private static readonly string message_english = "message";
+        private static readonly string token_english = "token";
+        private static readonly string message_copy_english = "Copy message!";
 
         private static readonly string on_english = "on";
         private static readonly string off_english = "off";
@@ -181,6 +201,15 @@ namespace Letter.Services
         private static readonly string init_english = "What can I do for you?";
         private static readonly string dont_language_english = "Language not work yet.";
         private static readonly string dont_language_deutsch = "Die sprache arbeiten nicht noch.";
+        private static readonly string dont_language_italiano = "La lingua non funziona ancora.";
+        private static readonly string dont_language_francais = "Le langage ne fonctionne pas encore.";
+        private static readonly string dont_language_espanol = "El idioma aún no funciona.";
+
+        private static readonly string dont_understand_english = "I do not understand.";
+        private static readonly string dont_understand_deutsch = "Ich verstehe das nicht.";
+        private static readonly string dont_understand_italiano = "Non capisco.";
+        private static readonly string dont_understand_francais = "Je ne comprends pas.";
+        private static readonly string dont_understand_espanol = "No entiendo.";
         #endregion
 
         #region CONSTRUCTOR
@@ -332,6 +361,12 @@ namespace Letter.Services
         public readonly string Demonstrative = demonstrative_portugues;
         public readonly string Possessive_Adjective = possessive_adjective_portugues;
 
+        public readonly string Direct_Object = direct_object_portugues;
+        public readonly string Indirect_Object = indirect_object_portugues;
+        public readonly string Predicative = predicative_portugues;
+        public readonly string Explanatory = explanatory_portugues;
+        public readonly string Subject_Hidden = hidden_portugues;
+
         public readonly string Especial = especial_portugues;
 
         public readonly string Single = single_portugues;
@@ -388,6 +423,7 @@ namespace Letter.Services
         {
             { load_english, _english},
             { load_deutsch, _deutsch},
+            { load_italiano, _italiano },
             { execute_english, _english},
             { see_english, _english },
             { click_english, _english },
@@ -411,7 +447,7 @@ namespace Letter.Services
             { scan_english, _english },
             { connect_english, _english },
             { send_english, _english },
-            { clear_english, _english }
+            { clean_up_english, _english }
         };
 
         public Dictionary<string, string> Load_Camera = new Dictionary<string, string>()
@@ -497,7 +533,8 @@ namespace Letter.Services
             { text_english, _english },
             { raspberry_english, _english },
             { letter_english, _english },
-            { letter_deutsch, _deutsch }
+            { letter_deutsch, _deutsch },
+            { letter_italiano, _italiano }
         };
 
         public Dictionary<string, string> Feature = new Dictionary<string, string>()
@@ -921,7 +958,10 @@ namespace Letter.Services
         public Dictionary<string, string> Dont_Language = new Dictionary<string, string>()
         {
             { dont_language_english, _english },
-            { dont_language_deutsch, _deutsch }
+            { dont_language_deutsch, _deutsch },
+            { dont_language_italiano, _italiano },
+            { dont_language_francais, _francais },
+            { dont_language_espanol, _espanol }
         };
 
         public Dictionary<string, string> Charge = new Dictionary<string, string>()
@@ -934,9 +974,9 @@ namespace Letter.Services
             { unknow_english, _english }
         };
 
-        public Dictionary<string, string> Clear = new Dictionary<string, string>()
+        public Dictionary<string, string> Clean_Up = new Dictionary<string, string>()
         {
-            { clear_english, _english }
+            { clean_up_english, _english }
         };
 
         public Dictionary<string, string> Load = new Dictionary<string, string>()
@@ -984,7 +1024,8 @@ namespace Letter.Services
 
         public Dictionary<string, string> Hidden = new Dictionary<string, string>()
         {
-            { hidden_english, _english }
+            { hidden_english, _english },
+            { hidden_portugues, _portugues }
         };
 
         public Dictionary<string, string> Subordinative = new Dictionary<string, string>()
@@ -1018,6 +1059,66 @@ namespace Letter.Services
             { subordinate_english, _english}
         };
 
+        public Dictionary<string, string> Dont_Undestand = new Dictionary<string, string>()
+        {
+            { dont_understand_english, _english },
+            { dont_understand_deutsch, _deutsch },
+            { dont_understand_italiano, _italiano },
+            { dont_understand_francais, _francais },
+            { dont_understand_espanol, _espanol }
+        };
+
+        public Dictionary<string, string> Kind_Subject = new Dictionary<string, string>()
+        {
+            { hidden_portugues, _portugues },
+            { sample_portugues, _portugues },
+            { compound_portugues, _portugues }
+        };
+
+        public Dictionary<string, string> Setup = new Dictionary<string, string>()
+        {
+            { setup_english, _english }
+        };
+
+        public Dictionary<string, string> WiFi = new Dictionary<string, string>()
+        {
+            { wifi_english, _english }
+        };
+
+        public Dictionary<string, string> Select = new Dictionary<string, string>()
+        {
+            { select_english, _english }
+        };
+
+        public Dictionary<string, string> Message = new Dictionary<string, string>()
+        {
+            { message_english, _english }
+        };
+
+        public Dictionary<string, string> Listen = new Dictionary<string, string>()
+        {
+            { listen_english, _english }
+        };
+
+        public Dictionary<string, string> Call = new Dictionary<string, string>()
+        {
+            { call_english, _english }
+        };
+
+        public Dictionary<string, string> Push = new Dictionary<string, string>()
+        {
+            { push_english, _english }
+        };
+
+        public Dictionary<string, string> Token = new Dictionary<string, string>()
+        {
+            { token_english, _english }
+        };
+
+        public Dictionary<string, string> Message_Copy = new Dictionary<string, string>()
+        {
+            { message_copy_english, _english }
+        };
         #endregion
     }
 }

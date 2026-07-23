@@ -31,6 +31,8 @@ namespace Letter.Bots
         private Dictionary<string, string> _camera;
         private Dictionary<string, string> _terminate;
         private Dictionary<string, string> _bot;
+        private Dictionary<string, string> _choose;
+        private Dictionary<string, string> _options;
 
         private Dictionary<string, string> _front;
         private Dictionary<string, string> _rear;
@@ -70,6 +72,8 @@ namespace Letter.Bots
                 this._camera = this._settingService.Camera;
                 this._terminate = this._settingService.Terminate;
                 this._bot = this._settingService.Bot;
+                this._choose = this._settingService.Choose;
+                this._options = this._settingService.Options;
 
                 this._front = this._settingService.Front;
                 this._rear = this._settingService.Rear;
@@ -113,16 +117,62 @@ namespace Letter.Bots
                 HashSet<string> front = this._front
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> rear = this._rear
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> terminate = this._terminate
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> choose = this._choose
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> options = this._options
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string ask = $"Choose options: \"{front.ToArray()[0]}\" or \"{rear.ToArray()[0]}\" or \"{terminate.ToArray()[0]}\".";
+                return ask;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<List<string>> SelectRotate(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation select rotate \"Capture\" bot failed!");
+
+                HashSet<string> front = this._front
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> rear = this._rear
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> terminate = this._terminate
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> choose = this._choose
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> options = this._options
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                string term = string.Empty;
+                List<string> ask = new List<string>();
+
+                term = $"{choose.ToArray()[0]} {options.ToArray()[0]}: ";
+                ask.Add(term);
+                term = $"{front.ToArray()[0]}";
+                ask.Add(term);
+                term = $"{rear.ToArray()[0]}";
+                ask.Add(term);
+                term = $"{terminate.ToArray()[0]}";
+                ask.Add(term);
                 return ask;
             }
             catch (Exception ex)
@@ -141,20 +191,70 @@ namespace Letter.Bots
                 HashSet<string> on = this._on
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> off = this._off
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> auto = this._auto
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> terminate = this._terminate
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> choose = this._choose
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> options = this._options
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string ask = $"Choose options: \"{on.ToArray()[0]}\" or \"{off.ToArray()[0]}\" or \"{auto.ToArray()[0]}\" or \"{terminate.ToArray()[0]}\".";
+                return ask;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<List<string>> SelectFlash(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation select flash \"Capture\" bot failed!");
+
+                HashSet<string> on = this._on
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> off = this._off
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> auto = this._auto
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> terminate = this._terminate
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> choose = this._choose
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> options = this._options
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                string term = string.Empty;
+                List<string> ask = new List<string>();
+
+                term = $"{choose.ToArray()[0]} {options.ToArray()[0]}: ";
+                ask.Add(term);
+                term = $"{on.ToArray()[0]}";
+                ask.Add(term);
+                term = $"{off.ToArray()[0]}";
+                ask.Add(term);
+                term = $"{auto.ToArray()[0]}";
+                ask.Add(term);
+                term = $"{terminate.ToArray()[0]}";
+                ask.Add(term);
                 return ask;
             }
             catch (Exception ex)
@@ -173,12 +273,54 @@ namespace Letter.Bots
                 HashSet<string> capture = this._shoot
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> terminate = this._terminate
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> choose = this._choose
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> options = this._options
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string ask = $"Choose options: \"{capture.ToArray()[0]}\" or \"{terminate.ToArray()[0]}\".";
+                return ask;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<List<string>> SelectCapture(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation select capture \"Capture\" bot failed!");
+
+                HashSet<string> capture = this._shoot
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> terminate = this._terminate
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> choose = this._choose
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> options = this._options
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                string term = string.Empty;
+                List<string> ask = new List<string>();
+
+                term = $"{choose.ToArray()[0]} {options.ToArray()[0]}: ";
+                ask.Add(term);
+                term = $"{capture.ToArray()[0]}";
+                ask.Add(term);
+                term = $"{terminate.ToArray()[0]}";
+                ask.Add(term);
                 return ask;
             }
             catch (Exception ex)
@@ -197,8 +339,13 @@ namespace Letter.Bots
                 HashSet<string> save = this._save
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> terminate = this._terminate
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> choose = this._choose
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> options = this._options
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
@@ -212,6 +359,44 @@ namespace Letter.Bots
             }
         }
 
+        public async Task<List<string>> SelectSave(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation select save \"Capture\" bot failed!");
+
+                HashSet<string> save = this._save
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> terminate = this._terminate
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> choose = this._choose
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> options = this._options
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                string term = string.Empty;
+                List<string> ask = new List<string>();
+
+                term = $"{choose.ToArray()[0]} {options.ToArray()[0]}: ";
+                ask.Add(term);
+                term = $"{save.ToArray()[0]}";
+                ask.Add(term);
+                term = $"{terminate.ToArray()[0]}";
+                ask.Add(term);
+                return ask;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+
         private async Task<string> Flash(string language, string parameter)
         {
             try
@@ -221,23 +406,18 @@ namespace Letter.Bots
                 HashSet<string> turn_on = this._turn_on
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> on = this._on
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> off = this._off
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> auto = this._auto
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> turn = this._turn
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> flash = this._flash
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
@@ -264,15 +444,12 @@ namespace Letter.Bots
                 HashSet<string> front = this._front
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> rear = this._rear
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> rotate = _rotate
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> camera = this._camera
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
@@ -298,7 +475,6 @@ namespace Letter.Bots
                 HashSet<string> capture = this._shoot
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> camera = this._camera
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
@@ -323,7 +499,6 @@ namespace Letter.Bots
                 HashSet<string> save = this._save
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> camera = this._camera
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
@@ -348,7 +523,6 @@ namespace Letter.Bots
                 HashSet<string> start = this._start
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> camera = this._camera
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
@@ -373,7 +547,6 @@ namespace Letter.Bots
                 HashSet<string> stop = this._stop
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> camera = this._camera
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
@@ -398,11 +571,9 @@ namespace Letter.Bots
                 HashSet<string> flashs = this._catch_flash
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> rotates = this._catch_rotate
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> captures = this._catch_capture
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
@@ -436,6 +607,51 @@ namespace Letter.Bots
             }
         }
 
+        public async Task<List<string>> Select(string language, List<Message> messages)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation select \"Capture\" bot failed!");
+
+                HashSet<string> flashs = this._catch_flash
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> rotates = this._catch_rotate
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> captures = this._catch_capture
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                bool flash = false;
+                bool rotate = false;
+                bool capture = false;
+
+                List<Message> memos = new List<Message>();
+                memos = messages.FindAll(index => index.Sender == null);
+
+                foreach (Message memo in memos)
+                {
+                    if (Array.IndexOf(flashs.ToArray(), memo.Text) != -1) flash = true;
+                    if (Array.IndexOf(rotates.ToArray(), memo.Text) != -1) rotate = true;
+                    if (Array.IndexOf(captures.ToArray(), memo.Text) != -1) capture = true;
+                }
+
+                List<string> response = new List<string>();
+
+                if ((rotate) && (!flash)) response = await SelectFlash(language);
+                if (flash && rotate && !capture) response = await SelectCapture(language);
+                if (flash && rotate && capture) response = await SelectSave(language);
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
         public async Task<List<string>> Load(string language, string parameter, List<Message> messages)
         {
             try
@@ -445,23 +661,18 @@ namespace Letter.Bots
                 HashSet<string> flashs = this._catch_flash
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> rotates = this._catch_rotate
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> captures = this._catch_capture
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> starts = this._start
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> stops = this._stop
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> saves = this._save
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
@@ -512,7 +723,6 @@ namespace Letter.Bots
                 HashSet<string> terminate = this._terminate
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
                 HashSet<string> bot = this._bot
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();

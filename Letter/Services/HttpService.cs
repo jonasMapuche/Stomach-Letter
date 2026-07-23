@@ -26,8 +26,8 @@ namespace Letter.Services
         #endregion
 
         #region VARIABLE
-        //private string _url = "http://192.168.0.3:8885/";
-        private string _url = "http://api.stomach.com.br:8885/";
+        private string _url = "http://192.168.0.3:8885/";
+        //private string _url = "http://api.stomach.com.br:8885/";
 
         private HttpClient _httpClient;
         #endregion
@@ -109,6 +109,29 @@ namespace Letter.Services
                 string result = await response.Content.ReadAsStringAsync();
                 List<Locution>? request = new List<Locution>();
                 request = JsonConvert.DeserializeObject<List<Locution>>(result);
+                return request;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<List<Recite>> HttpSyntax(GoMessage message)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation http syntax \"Http\" service failed!");
+
+                string path = "Syntax";
+                string uri = this._url + path;
+                string json = JsonConvert.SerializeObject(message);
+                var data = new StringContent(json, Encoding.UTF8, "application/json");
+                using HttpResponseMessage response = await this._httpClient.PostAsync(uri, data);
+                string result = await response.Content.ReadAsStringAsync();
+                List<Recite>? request = new List<Recite>();
+                request = JsonConvert.DeserializeObject<List<Recite>>(result);
                 return request;
             }
             catch (Exception ex)

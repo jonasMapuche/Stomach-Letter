@@ -70,23 +70,9 @@
                         </Grid>
                     </Grid>
                     <Grid
+                        x:Name="gridCamera"
                         Grid.Column="1"
                         Style="{StaticResource gridCameraBotView}">
-                        <toolkit:CameraView 
-                            x:Name="Camera"
-                            x:DataType="viewmodels:BotViewModel"
-                            CameraFlashMode="{Binding FlashMode}"
-                            IsVisible="{Binding ShowCamera}"
-                            MediaCaptured="OnMediaCaptured"
-                            SelectedCamera="{Binding SelectedCamera}">
-                            <toolkit:CameraView.Behaviors>
-                                <toolkit:EventToCommandBehavior 
-                                    EventName="MediaCaptured"
-                                    Command="{Binding MediaCapturedCommand}"
-                                    BindingContext="{Binding BindingContext, Source={x:Reference Camera}}"
-                                    CommandParameter="{Binding .}"/>
-                            </toolkit:CameraView.Behaviors>
-                        </toolkit:CameraView>
                         <Image
                             x:Name="imgCamera"
                             x:DataType="viewmodels:BotViewModel"
@@ -105,6 +91,7 @@
                     <Grid
                         Grid.Row="0">
                         <CollectionView 
+                            x:Name="colViewBot"
                             x:DataType="viewmodels:BotViewModel"
                             ItemsSource="{Binding Messages}"
                             ItemTemplate="{StaticResource BotDataTemplateSelector}"
@@ -133,7 +120,6 @@
                                                     <MultiBinding.Bindings>
                                                         <Binding Path="Text" Source="{x:Reference ctrMessage}" />
                                                         <Binding Path="Token" />
-                                                        <Binding Source="{x:Reference Camera}"/>
                                                     </MultiBinding.Bindings>
                                                 </MultiBinding>
                                             </TapGestureRecognizer.CommandParameter>

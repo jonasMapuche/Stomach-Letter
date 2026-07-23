@@ -1,0 +1,191 @@
+        private async Task<string> BotDecision(string language, User user, List<Locution> locutions, List<Message> messages)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation bot decision \"Bot\" view model failed!");
+
+                HashSet<string> declaratives = this._imperative
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                HashSet<string> compounds = this._compound
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                HashSet<string> hiddens = this._hidden
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                HashSet<string> samples = this._sample
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                HashSet<string> subordinatives = this._subordinate
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                HashSet<string> coordenatives = this._coordinative
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                string result = string.Empty;
+
+                string declarative = declaratives.ToArray()[0];
+                string compound = compounds.ToArray()[0];
+                string hidden = hiddens.ToArray()[0];
+                string sample = samples.ToArray()[0];
+                string subordinative = subordinatives.ToArray()[0];
+                string coordenative = coordenatives.ToArray()[0];
+                Edict edict = Edict.Nothing;
+                string kind_subject = hidden;
+                string kind_period = sample;
+                string kind_sentence = declarative;
+
+                string subject = string.Empty;
+                string period = string.Empty;
+
+                List<Message> parameters = new List<Message>();
+
+                bool terminate = false;
+                do 
+                {
+                    string sentence = string.Empty;
+                    
+                    if (!this._mode_bot)
+                    {
+                        sentence = await this._botService.DecisionTree(language);
+                        if (!sentence.Contains(declarative))
+                            terminate = false;
+                        this._mode_bot = true;
+
+                        Message parameter = new Message();
+                        parameter.Sender = user;
+                        parameter.Text = sentence;
+                        parameters.Add(parameter);
+
+                        edict = Edict.Sentence;
+                        continue;
+                    }
+
+                    if (kind_subject.IndexOf(compound) != -1)
+                        terminate = true;
+
+                    if ((kind_subject.IndexOf(hidden) != -1) && (language == this._language_deutsch.Lowercase))
+                        terminate = true;
+
+                    if ((kind_period.IndexOf(subordinative) != -1))
+                        terminate = true;
+
+                    if (edict == Edict.Sentence)
+                    {
+                        List<string> subjects = await this._botService.DecisionTree(language, kind_sentence, messages);
+                        foreach (string item in subjects)
+                        {
+                            Message note = new Message();
+                            note.Sender = user;
+                            note.Text = item;
+                            parameters.Add(note);
+                        }
+
+                        subject = await this._botService.DecisionTree(language, parameters);
+                        Message parameter = new Message();
+                        parameter.Sender = user;
+                        parameter.Text = subject;
+                        parameters.Add(parameter);
+
+                        edict = Edict.Subject;
+                    }
+                    if (edict == Edict.Subject)
+                    {
+                        List<string> periods = await this._botService.DecisionTree(language, kind_subject, messages);
+                        foreach (string item in periods)
+                        {
+                            Message note = new Message();
+                            note.Sender = user;
+                            note.Text = item;
+                            parameters.Add(note);
+                        }
+
+                        period = await this._botService.DecisionTree(language, parameters);
+                        Message parameter = new Message();
+                        parameter.Sender = user;
+                        parameter.Text = period;
+                        parameters.Add(parameter);
+
+                        edict = Edict.Period;
+                        terminate = true;
+                    }
+                } while (terminate);
+
+                if ((subject != string.Empty) 
+                    && (period != string.Empty))
+                {
+                    if (period == coordenative)
+                    {
+                        Locution period1 = new Locution();
+                        Locution period2 = new Locution();
+                        int quantity = 0;
+                        locutions.ForEach(index =>
+                        {
+                            if (quantity == 0) period1 = index;
+                            if (quantity == 1) period2 = index;
+                            quantity++;
+                        });
+
+                        List<Vocable> verb = period1.Word.FindAll(index => index.Class == this._verb);
+                        List<Vocable> noun_subject = period1.Word.FindAll(index => index.Sentence == this._subject && index.Class == this._noun);
+                        List<Vocable> noun_predicate = period1.Word.FindAll(index => index.Sentence == this._predicate && index.Class == this._noun);
+
+                        List<Vocable> noun = new List<Vocable>();
+                        if (language == this._language_deutsch.Lowercase) noun = noun_subject;
+                        else
+                        {
+                            if (noun_subject.Count > 0) noun = noun_subject;
+                            if (noun_predicate.Count > 0) noun = noun_predicate;
+                        }
+
+                        string phrase = string.Empty;
+                        if (locutions.Count > 1) phrase = await LocutionText(period2);
+
+                        result = await OnCommandButton(language, verb.ToArray()[0].Term, noun_subject.ToArray()[0].Term, string.Empty, -1, string.Empty, phrase);
+                    }
+
+                    if (period == sample)
+                    {
+                        Locution period1 = new Locution();
+                        locutions.ForEach(index => period1 = index);
+
+                        List<Vocable> verb = period1.Word.FindAll(index => index.Class == this._verb);
+                        List<Vocable> noun_subject = period1.Word.FindAll(index => index.Sentence == this._subject && index.Class == this._noun);
+                        List<Vocable> noun_predicate = period1.Word.FindAll(index => index.Sentence == this._predicate && index.Class == this._noun);
+                        List<Vocable> adjective_subject = period1.Word.FindAll(index => index.Sentence == this._subject && index.Class == this._adjective);
+                        List<Vocable> adjective_predicate = period1.Word.FindAll(index => index.Sentence == this._predicate && index.Class == this._adjective);
+                        List<Vocable> preposition_subject = period1.Word.FindAll(index => index.Sentence == this._subject && index.Class == this._preposition);
+                        List<Vocable> preposition_predicate = period1.Word.FindAll(index => index.Sentence == this._predicate && index.Class == this._preposition);
+
+                        List<Vocable> noun = new List<Vocable>();
+                        List<Vocable> adjective = new List<Vocable>();
+                        List<Vocable> preposition = new List<Vocable>();
+
+                        if (noun_subject.Count > 0) noun = noun_subject;
+                        else if (noun_predicate.Count > 0) noun = noun_predicate;
+
+                        if (adjective_subject.Count > 0) adjective = adjective_subject;
+                        else if (adjective_predicate.Count > 0) adjective = adjective_predicate;
+
+                        if (preposition.Count > 0) preposition = preposition_subject;
+                        else if (preposition_predicate.Count > 0) preposition = preposition_predicate;
+
+                        result = await OnCommandButton(language, verb.ToArray()[0].Term, noun_subject.ToArray()[0].Term, adjective.ToArray()[0].Term, -1, preposition.ToArray()[0].Term, string.Empty);
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+

@@ -1,5 +1,7 @@
-﻿using Letter.Services.Interfaces;
+﻿using Letter.Enums;
 using Letter.Models;
+using Letter.Services.Interfaces;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Letter.Services
 {
@@ -48,6 +50,12 @@ namespace Letter.Services
         private string? _image_speak_off;
         private string? _image_move_on;
         private string? _image_move_off;
+
+        private readonly string _message1 = "Can I call you back later?, I\'m in a meeting.";
+        private readonly string _message3 = "Yeah. Do you have any good song to recommend?";
+        private readonly string _message2 = "Hi! I went shopping today and found a nice t-shirt.";
+        private readonly string _message4 = "I passed you on the ride to work today, see you later.";
+        private readonly string _message6 = "Hey there! What\'s up? Is everything ok?";
 
         private SettingService? _settingService;
         #endregion
@@ -265,6 +273,8 @@ namespace Letter.Services
                 Message message = new Message();
                 message.Sender = sender;
                 message.Text = text;
+                message.Implied = text;
+                message.Kind = (int)Tacit.Copy;
                 if ((language == this._language_english.Uppercase) || (language == this._language_english.Lowercase))
                 {
                     this._messages_english.Add(message);
@@ -291,6 +301,95 @@ namespace Letter.Services
                     return this._messages_espanol;
                 }
                 this._messages_portugues.Add(message);
+                return this._messages_portugues;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public List<Message> Messages(User? sender, List<Mechanism> mechanisms, string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation messages \"Message\" service failed!");
+
+                if ((language == this._language_english.Uppercase) || (language == this._language_english.Lowercase))
+                {
+                    foreach (Mechanism mechanism in mechanisms)
+                    {
+                        Message message = new Message();
+                        message.Sender = sender;
+                        message.Text = mechanism.name;
+                        message.Implied = mechanism.implied;
+                        message.Kind = mechanism.tacit;
+                        this._messages_english.Add(message);
+                    }
+                    return this._messages_english;
+                }
+                if ((language == this._language_deutsch.Uppercase) || (language == this._language_deutsch.Lowercase))
+                {
+                    foreach (Mechanism mechanism in mechanisms)
+                    {
+                        Message message = new Message();
+                        message.Sender = sender;
+                        message.Text = mechanism.name;
+                        message.Implied = mechanism.implied;
+                        message.Kind = mechanism.tacit;
+                        this._messages_deutsch.Add(message);
+                    }
+                    return this._messages_deutsch;
+                }
+                if ((language == this._language_italiano.Uppercase) || (language == this._language_italiano.Lowercase))
+                {
+                    foreach (Mechanism mechanism in mechanisms)
+                    {
+                        Message message = new Message();
+                        message.Sender = sender;
+                        message.Text = mechanism.name;
+                        message.Implied = mechanism.implied;
+                        message.Kind = mechanism.tacit;
+                        this._messages_italiano.Add(message);
+                    }
+                    return this._messages_italiano;
+                }
+                if ((language == this._language_francais.Uppercase) || (language == this._language_francais.Lowercase))
+                {
+                    foreach (Mechanism mechanism in mechanisms)
+                    {
+                        Message message = new Message();
+                        message.Sender = sender;
+                        message.Text = mechanism.name;
+                        message.Implied = mechanism.implied;
+                        message.Kind = mechanism.tacit;
+                        this._messages_francais.Add(message);
+                    }
+                    return this._messages_francais;
+                }
+                if ((language == this._language_espanol.Uppercase) || (language == this._language_espanol.Lowercase))
+                {
+                    foreach (Mechanism mechanism in mechanisms)
+                    {
+                        Message message = new Message();
+                        message.Sender = sender;
+                        message.Text = mechanism.name;
+                        message.Implied = mechanism.implied;
+                        message.Kind = mechanism.tacit;
+                        this._messages_espanol.Add(message);
+                    }
+                    return this._messages_espanol;
+                }
+                foreach (Mechanism mechanism in mechanisms)
+                {
+                    Message message = new Message();
+                    message.Sender = sender;
+                    message.Text = mechanism.name;
+                    message.Implied = mechanism.implied;
+                    message.Kind = mechanism.tacit;
+                    this._messages_portugues.Add(message);
+                }
                 return this._messages_portugues;
             }
             catch (Exception ex)
@@ -360,6 +459,8 @@ namespace Letter.Services
                 Message message = new Message();
                 message.Sender = sender;
                 message.Text = text;
+                message.Implied = text;
+                message.Kind = (int)Tacit.Copy;
                 if ((language == this._language_english.Uppercase) || (language == this._language_english.Lowercase))
                 {
                     this._bots_english.Add(message);
@@ -386,6 +487,95 @@ namespace Letter.Services
                     return this._bots_espanol;
                 }
                 this._bots_portugues.Add(message);
+                return this._bots_portugues;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public List<Message> Bots(User? sender, List<Mechanism> mechanisms, string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation bots \"Message\" service failed!");
+
+                if ((language == this._language_english.Uppercase) || (language == this._language_english.Lowercase))
+                {
+                    foreach (Mechanism mechanism in mechanisms)
+                    {
+                        Message message = new Message();
+                        message.Sender = sender;
+                        message.Text = mechanism.name;
+                        message.Implied = mechanism.implied;
+                        message.Kind = mechanism.tacit;
+                        this._bots_english.Add(message);
+                    }
+                    return this._bots_english;
+                }
+                if ((language == this._language_deutsch.Uppercase) || (language == this._language_deutsch.Lowercase))
+                {
+                    foreach (Mechanism mechanism in mechanisms)
+                    {
+                        Message message = new Message();
+                        message.Sender = sender;
+                        message.Text = mechanism.name;
+                        message.Implied = mechanism.implied;
+                        message.Kind = mechanism.tacit;
+                        this._bots_deutsch.Add(message);
+                    }
+                    return this._bots_deutsch;
+                }
+                if ((language == this._language_italiano.Uppercase) || (language == this._language_italiano.Lowercase))
+                {
+                    foreach (Mechanism mechanism in mechanisms)
+                    {
+                        Message message = new Message();
+                        message.Sender = sender;
+                        message.Text = mechanism.name;
+                        message.Implied = mechanism.implied;
+                        message.Kind = mechanism.tacit;
+                        this._bots_italiano.Add(message);
+                    }
+                    return this._bots_italiano;
+                }
+                if ((language == this._language_francais.Uppercase) || (language == this._language_francais.Lowercase))
+                {
+                    foreach (Mechanism mechanism in mechanisms)
+                    {
+                        Message message = new Message();
+                        message.Sender = sender;
+                        message.Text = mechanism.name;
+                        message.Implied = mechanism.implied;
+                        message.Kind = mechanism.tacit;
+                        this._bots_francais.Add(message);
+                    }
+                    return this._bots_francais;
+                }
+                if ((language == this._language_espanol.Uppercase) || (language == this._language_espanol.Lowercase))
+                {
+                    foreach (Mechanism mechanism in mechanisms)
+                    {
+                        Message message = new Message();
+                        message.Sender = sender;
+                        message.Text = mechanism.name;
+                        message.Implied = mechanism.implied;
+                        message.Kind = mechanism.tacit;
+                        this._bots_espanol.Add(message);
+                    }
+                    return this._bots_espanol;
+                }
+                foreach (Mechanism mechanism in mechanisms)
+                {
+                    Message message = new Message();
+                    message.Sender = sender;
+                    message.Text = mechanism.name;
+                    message.Implied = mechanism.implied;
+                    message.Kind = mechanism.tacit;
+                    this._bots_portugues.Add(message);
+                }
                 return this._bots_portugues;
             }
             catch (Exception ex)
@@ -458,41 +648,51 @@ namespace Letter.Services
                     {
                         Sender = user6,
                         Time = "18:32",
-                        Text = "Hey there! What\'s up? Is everything ok?",
+                        Text = this._message6,
                         Speak = this._image_speak_off,
-                        Move = this._image_move_on
+                        Move = this._image_move_on,
+                        Implied = this._message6,
+                        Kind = (int)Tacit.Copy
                     },
                     new Message
                     {
                         Sender = user1,
                         Time = "14:05",
-                        Text = "Can I call you back later?, I\'m in a meeting.",
+                        Text = this._message1,
                         Speak = this._image_speak_off,
-                        Move = this._image_move_on
+                        Move = this._image_move_on,
+                        Implied = this._message1,
+                        Kind = (int)Tacit.Copy
                     },
                     new Message
                     {
                         Sender = user3,
                         Time = "14:00",
-                        Text = "Yeah. Do you have any good song to recommend?",
+                        Text = this._message3,
                         Speak = this._image_speak_off,
-                        Move = this._image_move_on
+                        Move = this._image_move_on,
+                        Implied = this._message3,
+                        Kind = (int)Tacit.Copy
                     },
                     new Message
                     {
                         Sender = user2,
                         Time = "13:35",
-                        Text = "Hi! I went shopping today and found a nice t-shirt.",
+                        Text = this._message2,
                         Speak = this._image_speak_off,
-                        Move = this._image_move_on
+                        Move = this._image_move_on,
+                        Implied = this._message2,
+                        Kind = (int)Tacit.Copy
                     },
                     new Message
                     {
                         Sender = user4,
                         Time = "12:11",
-                        Text = "I passed you on the ride to work today, see you later.",
+                        Text = this._message4,
                         Speak = this._image_speak_off,
-                        Move = this._image_move_on
+                        Move = this._image_move_on,
+                        Implied = this._message4,
+                        Kind = (int)Tacit.Copy
                     }
                 };
             }
@@ -507,7 +707,7 @@ namespace Letter.Services
         {
             try
             {
-                if (this._error_off) throw new InvalidOperationException("Operation get chats \"Message\" service failed!");
+                if (this._error_off) throw new InvalidOperationException("Operation get chats clear \"Message\" service failed!");
 
                 return new List<Message>
                 {
@@ -515,98 +715,51 @@ namespace Letter.Services
                     {
                         Sender = user6,
                         Time = "18:32",
-                        Text = "",
+                        Text = string.Empty,
                         Speak = this._image_speak_off,
-                        Move = this._image_move_on
+                        Move = this._image_move_on,
+                        Implied = string.Empty,
+                        Kind = (int)Tacit.Unknown
                     },
                     new Message
                     {
                         Sender = user1,
                         Time = "14:05",
-                        Text = "",
+                        Text = string.Empty,
                         Speak = this._image_speak_off,
-                        Move = this._image_move_on
+                        Move = this._image_move_on,
+                        Implied = string.Empty,
+                        Kind = (int)Tacit.Unknown
                     },
                     new Message
                     {
                         Sender = user3,
                         Time = "14:00",
-                        Text = "",
+                        Text = string.Empty,
                         Speak = this._image_speak_off,
-                        Move = this._image_move_on
+                        Move = this._image_move_on,
+                        Implied = string.Empty,
+                        Kind = (int)Tacit.Unknown
                     },
                     new Message
                     {
                         Sender = user2,
                         Time = "13:35",
-                        Text = "",
+                        Text = string.Empty,
                         Speak = this._image_speak_off,
-                        Move = this._image_move_on
+                        Move = this._image_move_on,
+                        Implied = string.Empty,
+                        Kind = (int)Tacit.Unknown
                     },
                     new Message
                     {
                         Sender = user4,
                         Time = "12:11",
-                        Text = "",
+                        Text = string.Empty,
                         Speak = this._image_speak_off,
-                        Move = this._image_move_on
-                    }
-                };
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        public List<Message> GetChatsSQLite()
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation get chats sqlite \"Message\" service failed!");
-
-                return new List<Message>
-                {
-                    new Message
-                    {
-                        Sender = user6,
-                        Time = "18:32",
-                        Text = "Hey there! What\'s up?",
-                        Speak = this._image_speak_off,
-                        Move = this._image_move_on
-                    },
-                    new Message
-                    {
-                        Sender = user1,
-                        Time = "14:05",
-                        Text = "Can I call you back later?, I\'m in a meeting.",
-                        Speak = this._image_speak_off,
-                        Move = this._image_move_on
-                    },
-                    new Message
-                    {
-                        Sender = user3,
-                        Time = "14:00",
-                        Text = "Yeah. Do you have any good song to recommend?",
-                        Speak = this._image_speak_off,
-                        Move = this._image_move_on
-                    },
-                    new Message
-                    {
-                        Sender = user2,
-                        Time = "13:35",
-                        Text = "Hi! I went laundry today and found t-shirt.",
-                        Speak = this._image_speak_off,
-                        Move = this._image_move_on
-                    },
-                    new Message
-                    {
-                        Sender = user4,
-                        Time = "12:11",
-                        Text = "I passed you on the ride to work shopping, see you later.",
-                        Speak = this._image_speak_off,
-                        Move = this._image_move_on
+                        Move = this._image_move_on,
+                        Implied = string.Empty,
+                        Kind = (int)Tacit.Unknown
                     }
                 };
             }

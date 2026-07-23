@@ -26,7 +26,7 @@ namespace Letter.Platforms.Android.Broadcasts
         #endregion
 
         #region VARIABLE
-        public List<Message> Receiver { get; set; }
+        public List<Mechanism> Receiver { get; set; }
         #endregion
 
         #region CONSTRUCTOR
@@ -37,7 +37,7 @@ namespace Letter.Platforms.Android.Broadcasts
                 if (this._error_off) throw new InvalidOperationException("Operation constructor \"SMS\" broadcast failed!");
                 else this.error_message = string.Empty;
 
-                this.Receiver = new List<Message>();
+                this.Receiver = new List<Mechanism>();
             }
             catch (Exception ex)
             {
@@ -64,10 +64,10 @@ namespace Letter.Platforms.Android.Broadcasts
                 {
                     string sender = note.OriginatingAddress;
                     string body = note.MessageBody;
-                    Message memo = new Message();
-                    memo.Text = $"SENDER: {sender} | BODY: {body}";
-                    memo.Implied = $"{sender}; {body}";
-                    this.Receiver.Add(memo);
+                    Mechanism mechanism = new Mechanism();
+                    mechanism.name = $"SENDER: {sender} | BODY: {body}";
+                    mechanism.implied = $"{sender}; {body}";
+                    this.Receiver.Add(mechanism);
                 }
             }
             catch (Exception ex)

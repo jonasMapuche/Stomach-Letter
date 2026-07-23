@@ -31,7 +31,7 @@ namespace Letter.Platforms.Android.Services
 
         #region VARIABLE
         private WifiManager _wifiManager;
-        public List<Message> Receiver { get; set; }
+        public List<Mechanism> Receiver { get; set; }
         #endregion
 
         #region CONSTRUCTOR
@@ -42,7 +42,7 @@ namespace Letter.Platforms.Android.Services
                 if (this._error_off) throw new InvalidOperationException("Operation constructor \"WiFi\" service failed!");
                 else this.error_message = string.Empty;
 
-                this.Receiver = new List<Message>();
+                this.Receiver = new List<Mechanism>();
             }
             catch (Exception ex)
             {
@@ -101,7 +101,7 @@ namespace Letter.Platforms.Android.Services
             }
         }
 
-        public async Task<List<string>> Ping()
+        public async Task<List<string>> Ping(string subnet)
         {
             try
             {
@@ -109,6 +109,7 @@ namespace Letter.Platforms.Android.Services
 
                 List<string> server_active = new List<string>();
                 string subnet_base = "192.168.0.";
+                if (subnet != string.Empty) subnet_base = subnet;
                 List<Task> tarefa_ping = new List<Task>();
                 for (int i = 1; i < 255; i++)
                 {

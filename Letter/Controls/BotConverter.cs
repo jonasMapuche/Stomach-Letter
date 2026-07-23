@@ -9,23 +9,19 @@ namespace Letter.Controls
         {
             try
             {
-                if (values[0] != null && values[1] != null && values[2] != null && values.Length == 3)
+                if (values[0] != null && values[1] != null && values.Length == 2)
                 {
-                    //return values.Clone();
-
                     string report = values[0].ToString();
                     CancellationToken token = (CancellationToken)values[1];
-                    CameraView cameraView = (CameraView)values[2];
 
-                    return new Agent { Message = report, Token = token, ViewCamera = cameraView };
+                    return new Agent { Message = report, Token = token };
                 }
-                if (values[0] != null && values.Length == 3)
+                if (values[0] != null && values.Length == 2)
                 {
                     string report = values[0].ToString();
                     CancellationToken token = CancellationToken.None;
-                    CameraView cameraView = (CameraView)values[2];
 
-                    return new Agent { Message = report, Token = token, ViewCamera = cameraView };
+                    return new Agent { Message = report, Token = token};
                 }
                 return null;
             }
