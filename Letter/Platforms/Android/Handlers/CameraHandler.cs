@@ -1,5 +1,6 @@
 ﻿using Android.Views;
 using Letter.Controls;
+using Letter.Enums;
 using Letter.Platforms.Android.Services;
 using Microsoft.Maui.Handlers;
 
@@ -20,12 +21,10 @@ namespace Letter.Platforms.Android.Handlers
                 _error_message = value;
             }
         }
-
-        public event EventHandler<string>? OnError;
         #endregion
 
         #region VARIABLE
-        private CameraService _cameraService;
+        private CameraService? _cameraService;
         #endregion
 
         #region CONSTRUCTOR
@@ -39,7 +38,11 @@ namespace Letter.Platforms.Android.Handlers
         public static IPropertyMapper<CameraPreview, CameraHandler> Mapper = new PropertyMapper<CameraPreview, CameraHandler>(ViewHandler.ViewMapper)
         {
             [nameof(CameraPreview.IsCapture)] = MapIsCapture,
-            [nameof(CameraPreview.IsStop)] = MapIsStop
+            [nameof(CameraPreview.IsStop)] = MapIsStop,
+            [nameof(CameraPreview.IsRecord)] = MapIsRecord,
+            [nameof(CameraPreview.IsStopRecord)] = MapIsStopRecord,
+            [nameof(CameraPreview.SetRotate)] = MapSetRotate,
+            [nameof(CameraPreview.SetFlash)] = MapSetFlash
         };
 
         protected override TextureView CreatePlatformView()
@@ -62,39 +65,193 @@ namespace Letter.Platforms.Android.Handlers
         #endregion
 
         #region FUNCTION
-        private static void MapIsCapture(CameraHandler handler, CameraPreview view)
+        private static async void MapIsCapture(CameraHandler handler, CameraPreview preview)
         {
             try
             {
-                //if (this._error_off) throw new InvalidOperationException("Operation map is capture \"Camera\" handler failed!");
+                if (handler._error_off) throw new InvalidOperationException("Operation map is capture \"Camera\" handler failed!");
 
-                if (view.IsCapture)
+                if (preview.IsCapture)
                 {
-                    handler.CapturePhoto();
-                    view.IsCapture = false;
+                    //handler.CapturePhoto();
+                    byte[] data = preview.ImageBytes;
+                    if (data == null || data.Length == 0)
+                    {
+                        data = await handler.CapturePhotoAsync();
+                        MainThread.BeginInvokeOnMainThread(() => {
+                            preview.ImageBytes = data;
+                            preview.InvokeImageBytes();
+                        });
+                    }
+                    preview.IsCapture = false;
                 }
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException(ex.Message);
+                handler.error_message = ex.Message;
+                throw new InvalidOperationException(handler.error_message);
             }
         }
 
-        private static void MapIsStop(CameraHandler handler, CameraPreview view)
+        private static void MapIsStop(CameraHandler handler, CameraPreview preview)
         {
             try
             {
-                //if (this._error_off) throw new InvalidOperationException("Operation map is stop \"Camera\" handler failed!");
+               if (handler._error_off) throw new InvalidOperationException("Operation map is stop \"Camera\" handler failed!");
 
-                if (view.IsStop)
+                if (preview.IsStop)
                 {
                     handler.StopControl();
-                    view.IsStop = false;
+                    preview.IsStop = false;
                 }
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException(ex.Message);
+                handler.error_message = ex.Message;
+                throw new InvalidOperationException(handler.error_message);
+            }
+        }
+
+        private static void MapIsRecord(CameraHandler handler, CameraPreview preview)
+        {
+            try
+            {
+                if (handler._error_off) throw new InvalidOperationException("Operation map is record \"Camera\" handler failed!");
+
+                if (preview.IsRecord)
+                {
+                    handler.RecordCamera();
+                    preview.IsRecord = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                handler.error_message = ex.Message;
+                throw new InvalidOperationException(handler.error_message);
+            }
+        }
+
+        private static void MapIsStopRecord(CameraHandler handler, CameraPreview preview)
+        {
+            try
+            {
+                if (handler._error_off) throw new InvalidOperationException("Operation map is stop record \"Camera\" handler failed!");
+
+                if (preview.IsStopRecord)
+                {
+                    handler.StopRecord();
+                    preview.IsStopRecord = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                handler.error_message = ex.Message;
+                throw new InvalidOperationException(handler.error_message);
+            }
+        }
+
+        private static void MapSetFlash(CameraHandler handler, CameraPreview preview)
+        {
+            try
+            {
+                if (handler._error_off) throw new InvalidOperationException("Operation map set flash \"Camera\" handler failed!");
+
+                if (preview.SetFlash != Flash.Unknown)
+                {
+                    handler.FlashCamera(preview.SetFlash);
+                    preview.SetFlash = Flash.Unknown;
+                }
+            }
+            catch (Exception ex)
+            {
+                handler.error_message = ex.Message;
+                throw new InvalidOperationException(handler.error_message);
+            }
+        }
+
+        private static void MapSetRotate(CameraHandler handler, CameraPreview preview)
+        {
+            try
+            {
+                if (handler._error_off) throw new InvalidOperationException("Operation map set rotate \"Camera\" handler failed!");
+
+                if ((preview.SetRotate != Rotate.Unknown))
+                {
+                    handler.RotateCamera(preview.SetRotate);
+                    preview.SetRotate = Rotate.Unknown;
+                }
+            }
+            catch (Exception ex)
+            {
+                handler.error_message = ex.Message;
+                throw new InvalidOperationException(handler.error_message);
+            }
+        }
+
+        private static async void MapImageBytes(CameraHandler handler, CameraPreview preview)
+        {
+            try
+            {
+                if (handler._error_off) throw new InvalidOperationException("Operation map image bytes \"Camera\" handler failed!");
+
+                byte[] data = preview.ImageBytes;
+                if (data == null || data.Length == 0)
+                {
+                    data = await handler.CapturePhotoAsync();
+                    MainThread.BeginInvokeOnMainThread(() => {
+                        preview.ImageBytes = data;
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                handler.error_message = ex.Message;
+                throw new InvalidOperationException(handler.error_message);
+            }
+        }
+
+        private void RotateCamera(Rotate rotate)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation rotate camera \"Camera\" handler failed!");
+
+                this._cameraService?.RotateCamera(rotate);
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private void FlashCamera(Flash flash)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation flash camera \"Camera\" handler failed!");
+
+                this._cameraService?.FlashCamera(flash);
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<byte[]> CapturePhotoAsync()
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation capture photo \"Camera\" handler failed!");
+
+                return await this._cameraService.CaptureCamera();
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
             }
         }
 
@@ -120,6 +277,38 @@ namespace Letter.Platforms.Android.Handlers
                 if (this._error_off) throw new InvalidOperationException("Operation stop control \"Camera\" handler failed!");
 
                 this._cameraService.StopPreview();
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private void RecordCamera()
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation record camera \"Camera\" handler failed!");
+
+                string output = string.Empty;
+                this._cameraService.StartRecord(output);
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private void StopRecord()
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation stop record \"Camera\" handler failed!");
+
+                string output = string.Empty;
+                this._cameraService.StopRecord();
             }
             catch (Exception ex)
             {

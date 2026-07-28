@@ -2,9 +2,9 @@
 
 namespace Letter.Bots.Interface
 {
-    public interface IRecordBot
+    public interface ICameraBot
     {
-        Task<List<string>> SelectAudio(string language);
+        Task<List<string>> SelectPreview(string language);
         Task<List<string>> Select(string language, List<Message> messages);
         Task<List<string>> Load(string language, string parameter, List<Message> messages);
     }

@@ -22,12 +22,12 @@ public partial class BotView : ContentPage
         }
     }
 
-    private async void OnError(object sender, string error_message)
+    private async void OnError(object? sender, string? error_message)
     {
         await DisplayAlertAsync("Error", error_message, "OK");
     }
 
-    private async void OnError(string error_message)
+    private async void OnError(string? error_message)
     {
         await DisplayAlertAsync("Error", error_message, "OK");
         await Shell.Current.GoToAsync("..");
@@ -36,6 +36,7 @@ public partial class BotView : ContentPage
 
     #region VARIABLE
     private BotViewModel? _botViewModel;
+
     private CameraPreview? _cameraPreview;
 
     private int _line = 0;
@@ -58,8 +59,8 @@ public partial class BotView : ContentPage
             {
                 string value = message.Value;
                 if (value == "scroll") ScrollLastPosition();
-                if (value == "start") StartCameraPreview(this._line, this._column);
-                if (value == "start") StopCameraPreview();
+                if (value == "preview") StartCameraPreview(this._line, this._column);
+                if (value == "stop") StopCameraPreview();
             });
         }
         catch (Exception ex)
@@ -83,6 +84,7 @@ public partial class BotView : ContentPage
             base.OnDisappearing();
             this.Handler?.DisconnectHandler();
             WeakReferenceMessenger.Default.Unregister<NoticeService>(this);
+            StopCameraPreview();
         }
         catch (Exception ex)
         {
@@ -116,7 +118,7 @@ public partial class BotView : ContentPage
 
             MainThread.BeginInvokeOnMainThread(() =>
             {
-                Message? last = this._botViewModel.Messages.LastOrDefault();
+                Message? last = this._botViewModel?.Messages?.LastOrDefault();
                 if (last != null)
                 {
                     colViewBot.ScrollTo(last, position: ScrollToPosition.End, animate: false);
@@ -134,12 +136,16 @@ public partial class BotView : ContentPage
     {
         try
         {
+            if (this._error_off) throw new InvalidOperationException("Operation start camera preview \"Bot\" view failed!!");
+
+            if (this._cameraPreview != null) return;
             CameraPreview cameraPreview = new CameraPreview
             {
                 HorizontalOptions = LayoutOptions.Fill,
                 VerticalOptions = LayoutOptions.Fill
             };
             this._cameraPreview = cameraPreview;
+            this._botViewModel?.CameraPreview = this._cameraPreview;
             Grid.SetRow(cameraPreview, line);
             Grid.SetColumn(cameraPreview, column);
             MainThread.BeginInvokeOnMainThread(() =>
@@ -149,7 +155,8 @@ public partial class BotView : ContentPage
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException(ex.Message);
+            this.error_message = ex.Message;
+            throw new InvalidOperationException(this.error_message);
         }
     }
 
@@ -157,14 +164,18 @@ public partial class BotView : ContentPage
     {
         try
         {
+            if (this._error_off) throw new InvalidOperationException("Operation stop camera preview \"Bot\" view failed!!");
+
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 gridCamera.Children.Remove(this._cameraPreview);
+                this._cameraPreview = null;
             });
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException(ex.Message);
+            this.error_message = ex.Message;
+            throw new InvalidOperationException(this.error_message);
         }
     }
     #endregion

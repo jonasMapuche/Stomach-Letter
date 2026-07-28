@@ -6,6 +6,7 @@ using Android.Media;
 using Android.OS;
 using Android.Views;
 using Java.Lang;
+using Letter.Enums;
 using Letter.Interfaces;
 using Letter.Platforms.Android.Sessions;
 using Letter.Platforms.Android.States;
@@ -39,7 +40,8 @@ namespace Letter.Platforms.Android.Services
         private readonly TextureView _textureView;
 
         private CameraDevice _cameraDevice;
-        private MediaRecorder _mediaRecorder;
+        private string[] _list_camera;
+        private string _camera_id;
 
         public CameraCaptureSession CameraSession;
 
@@ -136,6 +138,7 @@ namespace Letter.Platforms.Android.Services
                 if (this._error_off) throw new InvalidOperationException("Operation capture camera \"Camera\" service failed!");
 
                 this._photo = new TaskCompletionSource<byte[]>();
+                StopPreview();
                 ListenCamera();
                 return this._photo.Task;
             }
@@ -153,8 +156,7 @@ namespace Letter.Platforms.Android.Services
                 if (this._error_off) throw new InvalidOperationException("Operation listen camera \"Camera\" service failed!");
 
                 CameraManager? manager = (CameraManager)this._context.GetSystemService(Context.CameraService);
-                string camera_id = manager.GetCameraIdList()[0];
-
+                string camera_id = this._camera_id;
                 HandlerThread thread = new HandlerThread("CameraBackground");
                 thread.Start();
                 Handler handler = new Handler(thread.Looper);
@@ -197,13 +199,19 @@ namespace Letter.Platforms.Android.Services
             }
         }
 
-        public void StartPreview(int width, int height)
+        public int ListCamera()
         {
             try
             {
-                if (this._error_off) throw new InvalidOperationException("Operation start preview \"Camera\" service failed!");
+                if (this._error_off) throw new InvalidOperationException("Operation list camera \"Camera\" service failed!");
 
-                ListenPreview(width, height);
+                int quantity = 0; 
+                CameraManager? manager = (CameraManager)this._context.GetSystemService(Context.CameraService);
+                if (manager == null) return quantity;
+                this._list_camera = manager.GetCameraIdList();
+                if (this._list_camera.Count() == 0) return quantity;
+                this._camera_id = manager.GetCameraIdList()[0];
+                return this._list_camera.Count();
             }
             catch (Exception ex)
             {
@@ -212,27 +220,55 @@ namespace Letter.Platforms.Android.Services
             }
         }
 
-        private void ListenPreview(int width, int height)
+
+        public void StartPreview(int width, int height)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation start preview \"Camera\" service failed!");
+                
+                int quantity = 0;
+                quantity = ListCamera();
+                if (quantity == 0) return;
+                ListenPreview();
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        // Nota: O CameraManager genérico só liga/desliga a lanterna (Torch):
+        // cameraManager.SetTorchMode(cameraId, true); 
+
+        // Para o modo AUTO, é necessário abrir o dispositivo da câmera (OpenCamera)
+        // e configurar o Builder do CaptureRequest:
+        // builder.Set(CaptureRequest.ControlAeMode, (int)ControlAeMode.OnAutoFlash);
+        // builder.Set(CaptureRequest.ControlAeMode, (int)ControlAEMode.OnAutoFlash);
+        // builder.Set(CaptureRequest.FlashMode, (int) FlashMode.Single);
+        // Desliga o modo de flash automático/ativo no builder
+        // builder.Set(CaptureRequest.FlashMode, (int) FlashMode.Off);
+        // Opcional, mas recomendado para garantir que o controle automático de exposição (AE) não force o flash
+        // builder.Set(CaptureRequest.ControlAeMode, (int) ControlAEMode.On);
+
+        private void ListenPreview()
         {
             try
             {
                 if (this._error_off) throw new InvalidOperationException("Operation listen preview \"Camera\" service failed!");
 
-                CameraManager manager = (CameraManager)this._context.GetSystemService(Context.CameraService);
-                string camera_id = manager.GetCameraIdList()[0];
-                CameraCharacteristics characteristics = manager.GetCameraCharacteristics(camera_id);
+                CameraManager? manager = (CameraManager)this._context.GetSystemService(Context.CameraService);
+                if (manager == null) return;
+                CameraCharacteristics characteristics = manager.GetCameraCharacteristics(this._camera_id);
                 StreamConfigurationMap? map = (StreamConfigurationMap)characteristics.Get(CameraCharacteristics.ScalerStreamConfigurationMap);
-
-                global::Android.Util.Size[]? sizes = map.GetOutputSizes(Class.FromType(typeof(SurfaceTexture)));
-                if (sizes != null && sizes.Length > 0)
-                {
+                global::Android.Util.Size[]? sizes = map?.GetOutputSizes(Class.FromType(typeof(SurfaceTexture)));
+                if (sizes != null && sizes.Length > 0) 
                     this._size = sizes[0];
-                }
                 HandlerThread thread = new HandlerThread("PreviewBackground");
                 thread.Start();
                 Handler handler = new Handler(thread.Looper);
-
-                manager.OpenCamera(camera_id, new PreviewState(this), handler);
+                manager.OpenCamera(this._camera_id, new PreviewState(this), handler);
             }
             catch (Exception ex)
             {
@@ -248,14 +284,12 @@ namespace Letter.Platforms.Android.Services
                 if (this._error_off) throw new InvalidOperationException("Operation preview session \"Camera\" service failed!");
 
                 SurfaceTexture? texture = this._textureView.SurfaceTexture;
-                texture.SetDefaultBufferSize(this._size.Width, this._size.Height);
+                if (this._size == null) return;
+                texture?.SetDefaultBufferSize(this._size.Width, this._size.Height);
                 Surface surface = new Surface(texture);
-
                 CaptureRequest.Builder builder = cameraDevice.CreateCaptureRequest(CameraTemplate.Preview);
                 builder.AddTarget(surface);
-
                 this._cameraDevice = cameraDevice;
-
                 cameraDevice.CreateCaptureSession(new[] { surface }, new PreviewSession(this, cameraDevice, builder), null);
             }
             catch (Exception ex)
@@ -288,13 +322,11 @@ namespace Letter.Platforms.Android.Services
                 if (this._error_off) throw new InvalidOperationException("Operation listen record \"Camera\" service failed!");
 
                 CameraManager manager = (CameraManager)this._context.GetSystemService(Context.CameraService);
-                string camera_id = manager.GetCameraIdList()[0];
-
+                if (manager == null) return;
                 HandlerThread thread = new HandlerThread("RecordBackground");
                 thread.Start();
                 Handler handler = new Handler(thread.Looper);
-
-                manager.OpenCamera(camera_id, new RecordState(this), handler);
+                manager.OpenCamera(this._camera_id, new RecordState(this), handler);
             }
             catch (Exception ex)
             {
@@ -311,13 +343,9 @@ namespace Letter.Platforms.Android.Services
 
                 MediaRecorder mediaRecorder = SetupRecord(this._output);
                 Surface? surface = mediaRecorder.Surface;
-
                 CaptureRequest.Builder builder = cameraDevice.CreateCaptureRequest(CameraTemplate.Record);
                 builder.AddTarget(surface);
-
-                this._mediaRecorder = mediaRecorder;
                 this._cameraDevice = cameraDevice;
-
                 List<Surface> surfaces = new System.Collections.Generic.List<Surface> { surface };
                 cameraDevice.CreateCaptureSession(surfaces, new RecordSession(cameraDevice, builder, mediaRecorder), null);
             }
@@ -330,12 +358,99 @@ namespace Letter.Platforms.Android.Services
 
         public void StopPreview()
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation stop preview \"Camera\" service failed!");
+
+                if (this.CameraSession != null)
+                {
+                    this.CameraSession?.StopRepeating();
+                    this.CameraSession?.AbortCaptures();
+                    this.CameraSession?.Close();
+                    this.CameraSession?.Dispose();
+                    this.CameraSession = null;
+                }
+                if (this._cameraDevice != null)
+                {
+                    this._cameraDevice?.Close();
+                    this._cameraDevice?.Dispose();
+                    this._cameraDevice = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
         }
 
         public string StopRecord()
         {
-            throw new NotImplementedException();
+            try
+            {
+                return string.Empty;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+        
+        public void RotateCamera(Rotate rotate)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation rotate camera \"Camera\" service failed!");
+
+                int quantity = 0;
+                quantity = ListCamera();
+                if (quantity == 1) return;
+                if (rotate == Rotate.Front) 
+                {
+                    if (quantity > 1)
+                    {
+                        StopPreview();
+                        this._camera_id = this._list_camera[1];
+                        ListenPreview();
+                        return;
+                    }
+                    if ((quantity > 0) && (this._camera_id != this._list_camera[0]))
+                    {
+                        StopPreview();
+                        this._camera_id = this._list_camera[0];
+                        ListenPreview();
+                        return;
+                    }
+                }
+                if (rotate == Rotate.Rear)
+                {
+                    if ((quantity > 0) && (this._camera_id != this._list_camera[0]))
+                    {
+                        StopPreview();
+                        this._camera_id = this._list_camera[0];
+                        ListenPreview();
+                        return;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public void FlashCamera(Flash flash)
+        {
+            try
+            {
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
         }
 
         private MediaRecorder SetupRecord(string output)

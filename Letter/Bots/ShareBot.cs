@@ -96,45 +96,6 @@ namespace Letter.Bots
         #endregion
 
         #region FUNCTION
-        public List<string> ShareScan { get => _shareScan; set => _shareScan = value; }
-
-        public string ShareDevice { get => _device; set => _device = value; }
-
-        public async Task<string> Share(string language)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation share \"Share\" bot failed!");
-
-                HashSet<string> raspberry = this._raspberry
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> download = this._download
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> choose = this._choose
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> or = this._or
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> options = this._options
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> terminate = this._terminate
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
-                string ask = $"{choose.ToArray()[0]} {options.ToArray()[0]}: \"{raspberry.ToArray()[0]}\" {or.ToArray()[0]} \"{download.ToArray()[0]}\" {or.ToArray()[0]} \"{terminate.ToArray()[0]}\".";
-                return ask;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
         public async Task<List<string>> SelectShare(string language)
         {
             try
@@ -171,38 +132,6 @@ namespace Letter.Bots
                 ask.Add(term);
                 term = $"{terminate.ToArray()[0]}";
                 ask.Add(term);
-                return ask;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        public async Task<string> DownloadFile(string language)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation download file \"Share\" bot failed!");
-
-                HashSet<string> download = this._download
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> choose = this._choose
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> or = this._or
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> options = this._options
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> terminate = this._terminate
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
-                string ask = $"{choose.ToArray()[0]} {options.ToArray()[0]}: \"{download.ToArray()[0]}\" {or.ToArray()[0]} \"{terminate.ToArray()[0]}\".";
                 return ask;
             }
             catch (Exception ex)
@@ -316,34 +245,6 @@ namespace Letter.Bots
                 string ask = string.Empty;
                 if (Array.IndexOf(download.ToArray(), parameter) != -1) ask = $"{download.ToArray()[0]} {file.ToArray()[0]}.";
                 return ask;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        public async Task<string> Choose(string language, List<Message> messages)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation choose \"Share\" bot failed!");
-
-                HashSet<string> downloads = this._download
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
-                bool download = false;
-                List<Message> memos = new List<Message>();
-                memos = messages.FindAll(index => index.Sender == null);
-                foreach (Message memo in memos)
-                {
-                    if (Array.IndexOf(downloads.ToArray(), memo.Text) != -1) download = true;
-                }
-                string response = string.Empty;
-                if (download) response = await DownloadFile(language);
-                return response;
             }
             catch (Exception ex)
             {

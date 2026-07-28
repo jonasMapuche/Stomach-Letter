@@ -1,9 +1,8 @@
-﻿using CommunityToolkit.Maui.Alerts;
+using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using Letter.Controls;
 using Letter.Enums;
 using Letter.Models;
 using Letter.Services;
@@ -94,7 +93,6 @@ namespace Letter.ViewModels
         private Dictionary<string, string> _listen;
         private Dictionary<string, string> _call;
         private Dictionary<string, string> _push;
-        private Dictionary<string, string> _preview;
 
         private Dictionary<string, string> _gps;
         private Dictionary<string, string> _bluetooth;
@@ -135,24 +133,34 @@ namespace Letter.ViewModels
         private Dictionary<string, string> _off;
         private Dictionary<string, string> _auto;
         private Dictionary<string, string> _on;
-        private Dictionary<string, string> _open;
         private Dictionary<string, string> _to;
-        private Dictionary<string, string> _front;
-        private Dictionary<string, string> _rear;
 
         private Dictionary<string, string> _and;
 
-        private Dictionary<string, string> _through;
-        private Dictionary<string, string> _unknow;
+        private Dictionary<string, string> _front;
+        private Dictionary<string, string> _rear;
 
+        private Dictionary<string, string> _through;
+
+        private Dictionary<string, string> _catch;
+        private Dictionary<string, string> _catch_camera;
+        private Dictionary<string, string> _catch_record;
+        private Dictionary<string, string> _catch_share;
+
+        private HashSet<int> _algarismo;
+
+        private HashSet<int> _three;
+        private HashSet<int> _four;
+
+        private Dictionary<string, string> _unknow;
         private Dictionary<string, string> _init;
         private Dictionary<string, string> _dont_language;
         private Dictionary<string, string> _dont_undestand;
         private Dictionary<string, string> _kind_subject;
 
         private bool _mode_bot;
-        private Automaton _kind_bot;
         private List<string> _flam;
+        private bool _implied;
 
         private IHttpService _httpService;
         private IPerceptionService? _perceptionService;
@@ -167,7 +175,7 @@ namespace Letter.ViewModels
         {
             try
             {
-                if (this._error_off) throw new InvalidOperationException("Operation constructor \"Bot\" view model failed!");
+                if (this._error_off) throw new InvalidOperationException("Operation contructor \"Bot\" view model failed!");
                 else this.error_message = string.Empty;
 
                 this._perceptionService = perceptionService;
@@ -240,7 +248,6 @@ namespace Letter.ViewModels
                 this._listen = this._settingService.Listen;
                 this._call = this._settingService.Call;
                 this._push = this._settingService.Push;
-                this._preview = this._settingService.Preview;
 
                 this._gps = this._settingService.GPS;
                 this._bluetooth = this._settingService.Bluetooth;
@@ -283,13 +290,22 @@ namespace Letter.ViewModels
                 this._auto = this._settingService.Auto;
                 this._on = this._settingService.On;
                 this._to = this._settingService.To;
-                this._open = this._settingService.Open;
 
                 this._and = this._settingService.And;
 
                 this._front = this._settingService.Front;
                 this._rear = this._settingService.Rear;
                 this._through = this._settingService.Through;
+
+                this._catch = this._settingService.Catch;
+                this._catch_camera = this._settingService.Catch_Camera;
+                this._catch_record = this._settingService.Catch_Record;
+                this._catch_share = this._settingService.Catch_Share;
+
+                this._algarismo = this._settingService.Algarismo;
+
+                this._three = this._settingService.Three;
+                this._four = this._settingService.Four;
 
                 this._unknow = this._settingService.Unknow;
 
@@ -299,10 +315,9 @@ namespace Letter.ViewModels
                 this._kind_subject = this._settingService.Kind_Subject;
 
                 this._mode_bot = this._settingService.ModeBot;
-                this._kind_bot = this._settingService.KindBot;
 
                 this.BackCommand = new AsyncRelayCommand(OnBackCommand);
-                this.SendCommand = new AsyncRelayCommand<object>(OnSendCommand);
+                this.SendCommand = new AsyncRelayCommand<object>(OnSendCommand2);
                 this.BotCommand = new AsyncRelayCommand<object>(OnBotCommand);
 
                 Permission();
@@ -359,6 +374,68 @@ namespace Letter.ViewModels
         {
             try
             {
+                if (this._error_off) throw new InvalidOperationException("Operation on send command \"Bot\" view model failed!");
+
+                string report = string.Empty;
+                object? item = null;
+
+                Agent agent = (Agent)parameter;
+                report = agent.Message;
+                item = agent.Token;
+
+                Token = agent.Token;
+
+                User user = Username;
+                string language = this._messageService.GetLanguage(user);
+
+                if (!(language == this._language_english.Lowercase
+                    || language == this._language_deutsch.Lowercase)
+                    || language == this._language_italiano.Lowercase)
+                {
+                    HashSet<string> dont_languages = this._dont_language
+                        .Where(index => index.Value.Contains(language))
+                        .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                    string dont_language = dont_languages.ToArray()[0];
+
+                    Messages = ChargeMessage(Username, dont_language, language);
+                    WeakReferenceMessenger.Default.Send(new NoticeService("scroll"));
+                    TextInput = string.Empty;
+                    return;
+                }
+
+                if ((report == null) || (report == string.Empty))
+                    return;
+
+                Messages = ChargeMessage(null, report, language);
+                TextInput = string.Empty;
+
+                if (SettingService.Instance.ModeBot)
+                {
+                    this._messageService.Bots(null, report, language);
+                    string response = string.Empty;
+                    response = await OnSendBot(report, user, language);
+                }
+                else
+                {
+                    string response = string.Empty;
+                    response = await OnSendButton(report, user, language);
+                    if (response != string.Empty)
+                        Messages = ChargeMessage(Username, response, language);
+                    if (SettingService.Instance.ModeBot)
+                        this._messageService.Bots(Username, response, Username.Name);
+                }
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                this.OnError?.Invoke(this, this.error_message);
+            }
+        }
+
+        private async Task OnSendCommand2(object? parameter)
+        {
+            try
+            {
                 if (this._error_off) throw new InvalidOperationException("Operation on send command 2 \"Bot\" view model failed!");
 
                 string report = string.Empty;
@@ -381,6 +458,7 @@ namespace Letter.ViewModels
                     string dont_language = string.Empty;
                     dont_language = LanguageMessage(language); 
                     Messages = ChargeMessage(Username, dont_language, language);
+                    WeakReferenceMessenger.Default.Send(new NoticeService("scroll"));
                     TextInput = string.Empty;
                     return;
                 }
@@ -405,7 +483,42 @@ namespace Letter.ViewModels
                     if (this._mode_bot)
                         this._messageService.Bots(user, mechanisms, language);
                 }
-                WeakReferenceMessenger.Default.Send(new NoticeService("scroll"));
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                this.OnError?.Invoke(this, this.error_message);
+            }
+        }
+
+        private async Task PushCopy()
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation push copy \"Bot\" view model failed!");
+
+                HashSet<string> copies = this._message_copy
+                    .Where(index => index.Value.Contains(this._language_english.Lowercase))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                string copy = copies.ToArray()[0];
+                string action = "Ok";
+                ToastDuration duration = ToastDuration.Short;
+
+                Color text = Application.Current.Resources["WhiteColor"] as Color;
+                Color background = Application.Current.Resources["BackgroundColor"] as Color;
+                Color button = Application.Current.Resources["LetterColor"] as Color;
+
+                SnackbarOptions options = new SnackbarOptions
+                {
+                    BackgroundColor = background,
+                    TextColor = text,
+                    ActionButtonTextColor = button,
+                    CornerRadius = new CornerRadius(10),
+                    Font = Font.SystemFontOfSize(14),
+                };
+                ISnackbar snackbar = Snackbar.Make(copy, null, action, TimeSpan.FromSeconds(3), options);
+                CancellationToken cancellation = CancellationToken.None;
+                await snackbar.Show(cancellation);
             }
             catch (Exception ex)
             {
@@ -459,7 +572,6 @@ namespace Letter.ViewModels
                     if (this._mode_bot)
                         this._messageService.Bots(user, mechanisms, language);
                 }
-                WeakReferenceMessenger.Default.Send(new NoticeService("scroll"));
             }
             catch (Exception ex)
             {
@@ -517,45 +629,7 @@ namespace Letter.ViewModels
         [ObservableProperty]
         public string? textInput;
 
-        public CameraPreview? CameraPreview { get; set; }
-
         public CancellationToken Token { get; set; }
-
-        private async Task PushCopy()
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation push copy \"Bot\" view model failed!");
-
-                HashSet<string> copies = this._message_copy
-                    .Where(index => index.Value.Contains(this._language_english.Lowercase))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                string copy = copies.ToArray()[0];
-                string action = "Ok";
-                ToastDuration duration = ToastDuration.Short;
-
-                Color text = Application.Current.Resources["WhiteColor"] as Color;
-                Color background = Application.Current.Resources["BackgroundColor"] as Color;
-                Color button = Application.Current.Resources["LetterColor"] as Color;
-
-                SnackbarOptions options = new SnackbarOptions
-                {
-                    BackgroundColor = background,
-                    TextColor = text,
-                    ActionButtonTextColor = button,
-                    CornerRadius = new CornerRadius(10),
-                    Font = Font.SystemFontOfSize(14),
-                };
-                ISnackbar snackbar = Snackbar.Make(copy, null, action, TimeSpan.FromSeconds(3), options);
-                CancellationToken cancellation = CancellationToken.None;
-                await snackbar.Show(cancellation);
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                this.OnError?.Invoke(this, this.error_message);
-            }
-        }
 
         private void InitMessage()
         {
@@ -593,7 +667,6 @@ namespace Letter.ViewModels
                 List<Message> memos = new List<Message>();
                 memos = this._messageService.Messages(user, text, language);
                 result = new ObservableCollection<Message>(memos);
-                WeakReferenceMessenger.Default.Send(new NoticeService("scroll"));
 
                 return result;
             }
@@ -614,7 +687,6 @@ namespace Letter.ViewModels
                 List<Message> memos = new List<Message>();
                 memos = this._messageService.Messages(user, mechanisms, language);
                 result = new ObservableCollection<Message>(memos);
-                WeakReferenceMessenger.Default.Send(new NoticeService("scroll"));
 
                 return result;
             }
@@ -625,6 +697,768 @@ namespace Letter.ViewModels
             }
         }
 
+        //----------------------------
+        private async Task<string> OnSendBot(string parameter, User user, string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation send bot \"Bot\" view model failed!");
+
+                HashSet<string> catchs = this._catch
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                List<Message> reports = new List<Message>();
+                reports = this._messageService.Bots(language);
+
+                string result = string.Empty;
+                if (Array.IndexOf(catchs.ToArray(), parameter) != -1)
+                {
+                    List<Message> notes = new List<Message>();
+                    notes = await LoadCommmand(parameter, user, language, reports);
+
+                    result = await ChooseCommmand(parameter, language, notes);
+                    if ((result != string.Empty) && (notes.Count > 0))
+                    {
+                        this._messageService.Bots(user, result, language);
+                        Messages = ChargeMessage(user, result, language);
+                    }
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<List<Message>> LoadCommmand(string parameter, User user, string language, List<Message> messages)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation load command \"Bot\" view model failed!");
+
+                HashSet<string> cameras = this._catch_camera
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> records = this._catch_record
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> shares = this._catch_share
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> terminates = this._terminate
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                List<Message> notes = new List<Message>();
+                if (Array.IndexOf(terminates.ToArray(), parameter) != -1)
+                {
+                    List<string> share = new List<string>();
+                    share = await this._botService.Terminate(language, messages);
+                    notes = await LoopCommmand(share, user, language);
+                }
+                if (Array.IndexOf(cameras.ToArray(), parameter) != -1)
+                {
+                    List<string> share = new List<string>();
+                    share = await this._botService.CaptureCamera(language, parameter, messages);
+                    notes = await LoopCommmand(share, user, language);
+                }
+                if (Array.IndexOf(records.ToArray(), parameter) != -1)
+                {
+                    List<string> share = new List<string>();
+                    share = await this._botService.RecordAudio(language, parameter, messages);
+                    notes = await LoopCommmand(share, user, language);
+                }
+                if (Array.IndexOf(shares.ToArray(), parameter) != -1)
+                {
+                    List<string> share = new List<string>();
+                    share = await this._botService.ShareFile(language, parameter, messages);
+                    notes = await LoopCommmand(share, user, language);
+                }
+                return notes;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<List<Message>> LoopCommmand(List<string> share, User user, string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation loop command \"Bot\" view model failed!");
+
+                List<Message> reports = new List<Message>();
+                foreach (string item in share)
+                {
+                    if (SettingService.Instance.ModeBot)
+                        reports = this._messageService.Bots(user, item, language);
+                    Messages = ChargeMessage(user, item, language);
+
+                    string response = string.Empty;
+                    if (item != string.Empty)
+                        response = await OnSendButton(item, user, language);
+                    if (response != string.Empty)
+                    {
+                        if (SettingService.Instance.ModeBot)
+                            reports = this._messageService.Bots(user, response, language);
+                        Messages = ChargeMessage(user, response, language);
+                    }
+                }
+                return reports;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<string> OnSendButton(string parameter, User user, string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation send button \"Bot\" view model failed!");
+
+                List<Locution> locutions = new List<Locution>();
+                locutions = await GoMessage(parameter, user, language);
+                string result = string.Empty;
+                result = await DecisionMessage(language, locutions);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<List<Locution>> GoMessage(string parameter, User user, string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation go message \"Bot\" view model failed!");
+
+                List<Locution> locutions = new List<Locution>();
+
+                GoMessage goMessage = new GoMessage();
+                User bot = new User();
+                bot = new User
+                {
+                    Name = user.Name,
+                    Image = user.Image
+                };
+                goMessage.sender = bot;
+                goMessage.language = language;
+                goMessage.message = parameter;
+                locutions = await this._httpService.HttpGo(goMessage);
+                return locutions;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<string> DecisionMessage(string language, List<Locution> locutions)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation decision message \"Bot\" view model failed!");
+
+                HashSet<string> verbs = this._execute
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> nouns = this._activity
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> adjectives = this._feature
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> prepositions = this._juncao
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<int> numerals = this._algarismo;
+
+                Locution period1 = new Locution();
+                Locution period2 = new Locution();
+                int quantity = 0;
+                locutions.ForEach(index =>
+                {
+                    if (quantity == 0) period1 = index;
+                    if (quantity == 1) period2 = index;
+                    quantity++;
+                });
+
+                string phrase = string.Empty;
+                if (locutions.Count > 1) phrase = await LocutionText(period2);
+
+                string result = string.Empty;
+                if ((period1 != null) && (period1.Kind == this._declarative))
+                {
+                    string verb = string.Empty;
+                    foreach (Vocable item in period1.Word)
+                    {
+                        if (item.Class == this._verb)
+                        {
+                            if (Array.IndexOf(verbs.ToArray(), item.Term) != -1)
+                                verb = item.Term;
+                        }
+                    }
+                    string noun = string.Empty;
+                    foreach (Vocable item in period1.Word)
+                    {
+                        if (((item.Sentence == this._predicate) && (item.Class == this._noun))
+                            && (language != this._language_deutsch.Lowercase))
+                        {
+                            if (Array.IndexOf(nouns.ToArray(), item.Term) != -1)
+                                noun = item.Term;
+                        }
+                        if (language == this._language_deutsch.Lowercase)
+                        {
+                            if ((item.Sentence == this._subject) && (item.Class == this._noun))
+                            {
+                                if (Array.IndexOf(nouns.ToArray(), item.Term) != -1)
+                                    noun = item.Term;
+                            }
+                        }
+                    }
+                    string adjective = string.Empty;
+                    foreach (Vocable item in period1.Word)
+                    {
+                        if ((item.Sentence == this._predicate) && (item.Class == this._adjective))
+                        {
+                            if (Array.IndexOf(adjectives.ToArray(), item.Term) != -1)
+                                adjective = item.Term;
+                        }
+                    }
+                    string preposition = string.Empty;
+                    foreach (Vocable item in period1.Word)
+                    {
+                        if ((item.Sentence == this._predicate) && (item.Class == this._preposition))
+                        {
+                            if (Array.IndexOf(prepositions.ToArray(), item.Term) != -1)
+                                preposition = item.Term;
+                        }
+                    }
+                    int numeral = -1;
+                    foreach (Vocable item in period1.Word)
+                    {
+                        if ((item.Sentence == this._predicate) && (item.Class == this._numeral))
+                        {
+                            if (Array.IndexOf(numerals.ToArray(), int.Parse(item.Term)) != -1)
+                                numeral = int.Parse(item.Term);
+                        }
+                    }
+                    if ((verb != string.Empty) && (noun != string.Empty))
+                        result = await OnCommandButton(language, verb, noun, adjective, numeral, preposition, phrase);
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<string> LocutionText(Locution locution)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation locution text \"Bot\" view model failed!");
+
+                string result = string.Empty;
+                List<Vocable> vocables = new List<Vocable>();
+                vocables = locution.Word;
+                vocables.ForEach(index =>
+                {
+                    if (index.Class != this._especial)
+                    {
+                        if (result == string.Empty) result = index.Term;
+                        else
+                            result += " " + index.Term;
+                    }
+                });
+                return result;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<string> ChooseCommmand(string parameter, string language, List<Message> reports)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation choose command \"Bot\" view model failed!");
+
+                HashSet<string> cameras = this._catch_camera
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> records = this._catch_record
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> shares = this._catch_share
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> terminates = this._terminate
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                string result = string.Empty;
+                if (reports.Count > 0)
+                {
+                    if (Array.IndexOf(cameras.ToArray(), parameter) != -1)
+                        result = await this._botService.CaptureCamera(language, reports);
+                    if (Array.IndexOf(records.ToArray(), parameter) != -1)
+                        result = await this._botService.RecordAudio(language, reports);
+                    if (Array.IndexOf(shares.ToArray(), parameter) != -1)
+                        result = await this._botService.ShareFile(language, reports);
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<string> OnCommandButton(string language, string verb, string noun, string adjective, int numeral, string preposition, string text)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation command button \"Bot\" view model failed!");
+
+                HashSet<string> verbs_load_camera = new HashSet<string>();
+                verbs_load_camera = this._load_camera.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> verbs_view = new HashSet<string>();
+                verbs_view = this._view.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> verbs_play = new HashSet<string>();
+                verbs_play = this._play.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> verbs_record = new HashSet<string>();
+                verbs_record = this._record.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> verbs_stop = new HashSet<string>();
+                verbs_stop = this._stop.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> verbs_rotate = new HashSet<string>();
+                verbs_rotate = this._rotate.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> verbs_speak = new HashSet<string>();
+                verbs_speak = this._speak.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> verbs_download = new HashSet<string>();
+                verbs_download = this._download.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> verbs_upload = new HashSet<string>();
+                verbs_upload = this._upload.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> verbs_vibtate = new HashSet<string>();
+                verbs_vibtate = this._vibration.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> verbs_capture = new HashSet<string>();
+                verbs_capture = this._capture.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> verbs_save = new HashSet<string>();
+                verbs_save = this._save.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> verbs_turn = new HashSet<string>();
+                verbs_turn = this._turn.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> verbs_share = new HashSet<string>();
+                verbs_share = this._share.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> verbs_terminate = new HashSet<string>();
+                verbs_terminate = this._terminate.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> verbs_turn_on = new HashSet<string>();
+                verbs_turn_on = this._turn_on.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> verbs_start = new HashSet<string>();
+                verbs_start = this._start.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> verbs_scan = new HashSet<string>();
+                verbs_scan = this._scan.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> verbs_send = new HashSet<string>();
+                verbs_send = _send.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> verbs_connect = new HashSet<string>();
+                verbs_connect = this._connect.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> verbs_clean_up = new HashSet<string>();
+                verbs_clean_up = this._clean_up.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> verbs_load = new HashSet<string>();
+                verbs_load = this._load.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                HashSet<string> nouns_gps = new HashSet<string>();
+                nouns_gps = this._gps.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> nouns_camera = new HashSet<string>();
+                nouns_camera = this._camera.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> nouns_battery = new HashSet<string>();
+                nouns_battery = this._battery.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> nouns_file = new HashSet<string>();
+                nouns_file = this._file.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> nouns_wav = new HashSet<string>();
+                nouns_wav = this._wav.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> nouns_mp3 = new HashSet<string>();
+                nouns_mp3 = this._mp3.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> nouns_vibration = new HashSet<string>();
+                nouns_vibration = this._vibration.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> nouns_bluetooth = new HashSet<string>();
+                nouns_bluetooth = this._bluetooth.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> nouns_text = new HashSet<string>();
+                nouns_text = this._text.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> nouns_phone = new HashSet<string>();
+                nouns_phone = this._phone.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> nouns_flash = new HashSet<string>();
+                nouns_flash = this._flash.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> nouns_audio = new HashSet<string>();
+                nouns_audio = this._audio.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> nouns_bot = new HashSet<string>();
+                nouns_bot = this._bot.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> nouns_bluetooth3 = new HashSet<string>();
+                nouns_bluetooth3 = this._bluetooth3.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> nouns_bluetooth4 = new HashSet<string>();
+                nouns_bluetooth4 = this._bluetooth4.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> nouns_raspberry = new HashSet<string>();
+                nouns_raspberry = this._raspberry.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> nouns_letter = new HashSet<string>();
+                nouns_letter = this._letter.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                HashSet<string> adjective_front = new HashSet<string>();
+                adjective_front = this._front.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> adjective_rear = new HashSet<string>();
+                adjective_rear = this._rear.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> adjective_on = new HashSet<string>();
+                adjective_on = this._on.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> adjective_off = new HashSet<string>();
+                adjective_off = this._off.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> adjective_auto = new HashSet<string>();
+                adjective_auto = this._auto.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                HashSet<string> preposition_to = new HashSet<string>();
+                preposition_to = this._to.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                HashSet<int> numeral_three = this._three;
+                HashSet<int> numeral_four = this._four;
+
+                string response = string.Empty;
+                //-----
+                if (Array.IndexOf(verbs_record.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_audio.ToArray(), noun) != -1)
+                    {
+                        response = await RecordAudio(language);
+                        return response;
+                    }
+                }
+                //-----
+                if (Array.IndexOf(verbs_record.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_mp3.ToArray(), noun) != -1)
+                    {
+                        response = await StartRecord(language, nouns_mp3.ToArray()[0]);
+                        return response;
+                    }
+                }
+                if (Array.IndexOf(verbs_record.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_wav.ToArray(), noun) != -1)
+                    {
+                        response = await StartRecord(language, nouns_wav.ToArray()[0]);
+                        return response;
+                    }
+                }
+                //-----
+                if (Array.IndexOf(verbs_clean_up.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_audio.ToArray(), noun) != -1)
+                    {
+                        response = await CleanRecord(language);
+                        return response;
+                    }
+                }
+                //-----
+                if (Array.IndexOf(verbs_stop.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_mp3.ToArray(), noun) != -1)
+                    {
+                        response = await StopRecord(language, nouns_mp3.ToArray()[0]);
+                        return response;
+                    }
+                }
+                if (Array.IndexOf(verbs_stop.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_wav.ToArray(), noun) != -1)
+                    {
+                        response = await StopRecord(language, nouns_wav.ToArray()[0]);
+                        return response;
+                    }
+                }
+                //-----
+                if (Array.IndexOf(verbs_play.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_wav.ToArray(), noun) != -1)
+                    {
+                        response = await PlayRecord(language, nouns_wav.ToArray()[0]);
+                        return response;
+                    }
+                }
+                if (Array.IndexOf(verbs_play.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_mp3.ToArray(), noun) != -1)
+                    {
+                        response = await PlayRecord(language, nouns_mp3.ToArray()[0]);
+                        return response;
+                    }
+                }
+                //-----
+                if (Array.IndexOf(verbs_terminate.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_bot.ToArray(), noun) != -1)
+                    {
+                        response = await EndBot(language);
+                        return response;
+                    }
+                }
+                //-----
+                if (Array.IndexOf(verbs_load_camera.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_camera.ToArray(), noun) != -1)
+                    {
+                        response = await CaputreCamera(language);
+                        return response;
+                    }
+                }
+                //-----
+                if (Array.IndexOf(verbs_rotate.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_camera.ToArray(), noun) != -1)
+                    {
+                        if (Array.IndexOf(adjective_front.ToArray(), adjective) != -1)
+                        {
+                            response = await RotateCamera(language, adjective_front.ToArray()[0]);
+                            return response;
+                        }
+                    }
+                }
+                if (Array.IndexOf(verbs_rotate.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_camera.ToArray(), noun) != -1)
+                    {
+                        if (Array.IndexOf(adjective_rear.ToArray(), adjective) != -1)
+                        {
+                            response = await RotateCamera(language, adjective_rear.ToArray()[0]);
+                            return response;
+                        }
+                    }
+                }
+                //-----
+                if (Array.IndexOf(verbs_turn_on.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_flash.ToArray(), noun) != -1)
+                    {
+                        response = await FlashCamera(language, adjective_on.ToArray()[0]);
+                        return response;
+                    }
+                }
+                if (Array.IndexOf(verbs_turn.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_flash.ToArray(), noun) != -1)
+                    {
+                        if (Array.IndexOf(adjective_off.ToArray(), adjective) != -1)
+                        {
+                            response = await FlashCamera(language, adjective_off.ToArray()[0]);
+                            return response;
+                        }
+                    }
+                }
+                if (Array.IndexOf(verbs_turn.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_flash.ToArray(), noun) != -1)
+                    {
+                        if (Array.IndexOf(adjective_auto.ToArray(), adjective) != -1)
+                        {
+                            response = await FlashCamera(language, adjective_auto.ToArray()[0]);
+                            return response;
+                        }
+                    }
+                }
+                //-----
+                if (Array.IndexOf(verbs_start.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_camera.ToArray(), noun) != -1)
+                    {
+                        response = await StartCamera(language);
+                        return response;
+                    }
+                }
+                if (Array.IndexOf(verbs_stop.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_camera.ToArray(), noun) != -1)
+                    {
+                        response = await StopCamera(language);
+                        return response;
+                    }
+                }
+                if (Array.IndexOf(verbs_capture.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_camera.ToArray(), noun) != -1)
+                    {
+                        response = await CaptureImage(language);
+                        return response;
+                    }
+                }
+                if (Array.IndexOf(verbs_save.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_camera.ToArray(), noun) != -1)
+                    {
+                        response = await SaveImage(language);
+                        return response;
+                    }
+                }
+                //-----
+                if (Array.IndexOf(verbs_share.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_file.ToArray(), noun) != -1)
+                    {
+                        response = await ShareFile(language);
+                        return response;
+                    }
+                }
+                //-----
+                if (Array.IndexOf(verbs_upload.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_raspberry.ToArray(), noun) != -1)
+                    {
+                        response = await UploadRaspberry(language);
+                        return response;
+                    }
+                }
+                if (Array.IndexOf(verbs_download.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_raspberry.ToArray(), noun) != -1)
+                    {
+                        response = await DownloadRaspberry(language);
+                        return response;
+                    }
+                }
+                //-----
+                if (Array.IndexOf(verbs_view.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_gps.ToArray(), noun) != -1)
+                    {
+                        response = await GPS(language);
+                        return response;
+                    }
+                }
+                //-----
+                if (Array.IndexOf(verbs_view.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_battery.ToArray(), noun) != -1)
+                    {
+                        response = await Battery(language);
+                        return response;
+                    }
+                }
+                //-----
+                if (Array.IndexOf(verbs_vibtate.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_phone.ToArray(), noun) != -1)
+                    {
+                        response = await Vibration(7, language);
+                        return response;
+                    }
+                }
+                //-----
+                if (Array.IndexOf(verbs_connect.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_bluetooth.ToArray(), noun) != -1)
+                    {
+                        if (Array.IndexOf(numeral_three.ToArray(), numeral) != -1)
+                        {
+                            response = await ConnectBluetooth3(language);
+                            return response;
+                        }
+                    }
+                }
+                //-----
+                if (Array.IndexOf(verbs_speak.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_text.ToArray(), noun) != -1)
+                    {
+                        response = await SpeakText(language, text);
+                        return response;
+                    }
+                }
+                if (Array.IndexOf(verbs_speak.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_file.ToArray(), noun) != -1)
+                    {
+                        if (Array.IndexOf(preposition_to.ToArray(), preposition) != -1)
+                        {
+                            response = await FileText(language, text);
+                            return response;
+                        }
+                    }
+                }
+                //-----
+                if (Array.IndexOf(verbs_load.ToArray(), verb) != -1)
+                {
+                    if (Array.IndexOf(nouns_letter.ToArray(), noun) != -1)
+                    {
+                        response = await LoadLetter(language);
+                        return response;
+                    }
+                }
+                return response;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        //----------------------------
         private string TacitMessage(Tacit tacit, string report, string language)
         {
             try
@@ -724,8 +1558,6 @@ namespace Letter.ViewModels
 
                 List<Message> notes = new List<Message>();
                 notes = await LoadBot(parameter, user, language);
-                if (notes.Count == 0) return;
-
                 List<Mechanism> mechanisms = new List<Mechanism>();
                 mechanisms = await ChooseBot(parameter, language, notes);
                 if ((mechanisms.Count > 0) && (notes.Count > 0))
@@ -747,21 +1579,40 @@ namespace Letter.ViewModels
             {
                 if (this._error_off) throw new InvalidOperationException("Operation load bot \"Bot\" view model failed!");
 
+                HashSet<string> cameras = this._catch_camera
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> records = this._catch_record
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> shares = this._catch_share
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> terminates = this._terminate
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
                 List<Message> reports = new List<Message>();
                 reports = this._messageService.Bots(language);
+
                 List<string> tasks = new List<string>();
                 List<Message> notes = new List<Message>();
-                if (this._kind_bot == Automaton.Camera) 
+                if (Array.IndexOf(terminates.ToArray(), parameter) != -1)
+                {
+                    tasks = await this._botService.Terminate(language, reports);
+                    notes = await LoopBot(tasks, user, language);
+                }
+                if (Array.IndexOf(cameras.ToArray(), parameter) != -1)
                 {
                     tasks = await this._botService.CaptureCamera(language, parameter, reports);
                     notes = await LoopBot(tasks, user, language);
                 }
-                if (this._kind_bot == Automaton.Record)
+                if (Array.IndexOf(records.ToArray(), parameter) != -1)
                 {
                     tasks = await this._botService.RecordAudio(language, parameter, reports);
                     notes = await LoopBot(tasks, user, language);
                 }
-                if (this._kind_bot == Automaton.Share)
+                if (Array.IndexOf(tasks.ToArray(), parameter) != -1)
                 {
                     tasks = await this._botService.ShareFile(language, parameter, reports);
                     notes = await LoopBot(tasks, user, language);
@@ -813,22 +1664,31 @@ namespace Letter.ViewModels
             {
                 if (this._error_off) throw new InvalidOperationException("Operation choose loop \"Bot\" view model failed!");
 
+                HashSet<string> cameras = this._catch_camera
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> records = this._catch_record
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> shares = this._catch_share
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
                 List<Mechanism> mechanisms = new List<Mechanism>();
                 if (reports.Count > 0)
                 {
                     List<string> result = new List<string>();
-                    if (this._kind_bot == Automaton.Camera) 
+                    if (Array.IndexOf(cameras.ToArray(), parameter) != -1)
                         result = await this._botService.CameraChoose(language, reports);
-                    if (this._kind_bot == Automaton.Record)
+                    if (Array.IndexOf(records.ToArray(), parameter) != -1)
                         result = await this._botService.RecordChoose(language, reports);
-                    if (this._kind_bot == Automaton.Share)
+                    if (Array.IndexOf(shares.ToArray(), parameter) != -1)
                         result = await this._botService.ShareChoose(language, reports);
                     foreach (string value in result)
                     {
                         Mechanism mechanism = new Mechanism();
                         mechanism.name = value;
                         mechanism.implied = value;
-                        mechanism.tacit = (int)Tacit.Implied;
                         mechanisms.Add(mechanism);
                     }
                 }
@@ -848,14 +1708,11 @@ namespace Letter.ViewModels
                 if (this._error_off) throw new InvalidOperationException("Operation mount mechanism \"Bot\" view model failed!");
 
                 List<Mechanism> mechanisms = new List<Mechanism>();
-                if (appliance != string.Empty)
-                {
-                    Mechanism mechanism = new Mechanism();
-                    mechanism.name = appliance;
-                    mechanism.implied = appliance;
-                    mechanism.tacit = (int)tacit;
-                    mechanisms.Add(mechanism);
-                }
+                Mechanism mechanism = new Mechanism();
+                mechanism.name = appliance;
+                mechanism.implied = appliance;
+                mechanism.tacit = (int)tacit;
+                mechanisms.Add(mechanism);
                 return mechanisms;
             }
             catch (Exception ex)
@@ -1051,7 +1908,7 @@ namespace Letter.ViewModels
                 if (predicatives.Count == 1)
                 {
                     predicative_talks = predicatives[0].Talk;
-                    predicative_adjective = predicative_talks.FindAll(index => index.Etiology.Contains(this._adjective));
+                    predicative_adjective = predication_talks.FindAll(index => index.Etiology.Contains(this._adjective));
                     if ((predicative_adjective.Count == 0) || (predicative_adjective.Count > 1))
                     {
                         string result = undestands.ToArray()[0];
@@ -1255,8 +2112,8 @@ namespace Letter.ViewModels
                 HashSet<string> verbs_speak = new HashSet<string>();
                 verbs_speak = this._speak.Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> verbs_preview = new HashSet<string>();
-                verbs_preview = this._preview.Where(index => index.Value.Contains(language))
+                HashSet<string> verbs_start = new HashSet<string>();
+                verbs_start = this._start.Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
                 HashSet<string> verbs_stop = new HashSet<string>();
                 verbs_stop = this._stop.Where(index => index.Value.Contains(language))
@@ -1432,7 +2289,7 @@ namespace Letter.ViewModels
                 {
                     List<Mechanism> result = new List<Mechanism>();
                     result = await LoadAudio(language);
-                    mechanisms = MountMechanism(result, Tacit.Implied);
+                    mechanisms = MountMechanism(result, Tacit.Copy);
                     return mechanisms;
                 }
 
@@ -1440,7 +2297,7 @@ namespace Letter.ViewModels
                 {
                     List<Mechanism> result = new List<Mechanism>();
                     result = await LoadCamera(language);
-                    mechanisms = MountMechanism(result, Tacit.Implied);
+                    mechanisms = MountMechanism(result, Tacit.Copy);
                     return mechanisms;
                 }
 
@@ -1582,7 +2439,7 @@ namespace Letter.ViewModels
                 {
                     List<Mechanism> result = new List<Mechanism>();
                     result = await LoadShare(language);
-                    mechanisms = MountMechanism(result, Tacit.Implied);
+                    mechanisms = MountMechanism(result, Tacit.Copy);
                     return mechanisms;
                 }
 
@@ -1606,10 +2463,10 @@ namespace Letter.ViewModels
                     return mechanisms;
                 }
 
-                if ((FindPredication(verbs, verbs_preview)) && (FindOwner(nouns, nouns_camera)))
+                if ((FindPredication(verbs, verbs_start)) && (FindOwner(nouns, nouns_camera)))
                 {
                     string result = string.Empty;
-                    result = await PreviewCamera(language);
+                    result = await StartCamera(language);
                     mechanisms = MountMechanism(result, Tacit.Copy);
                     return mechanisms;
                 }
@@ -1720,8 +2577,24 @@ namespace Letter.ViewModels
                 throw new InvalidOperationException(this.error_message);
             }
         }
-        
         //----------------------------
+
+        private async Task<string> RecordAudio(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation record audio \"Bot\" view model failed!");
+
+                if (!this._mode_bot) this._mode_bot = true;
+                string response = await this._botService.RecordAudio(language);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
 
         private async Task<List<Mechanism>> LoadAudio(string language)
         {
@@ -1730,7 +2603,6 @@ namespace Letter.ViewModels
                 if (this._error_off) throw new InvalidOperationException("Operation load audio \"Bot\" view model failed!");
 
                 if (!this._mode_bot) this._mode_bot = true;
-                if (this._kind_bot == Automaton.Unknown) this._kind_bot = Automaton.Record;
                 List<string> response = new List<string>();
                 response = await this._botService.LoadAudio(language);
                 List<Mechanism> mechanisms = new List<Mechanism>();
@@ -1960,10 +2832,26 @@ namespace Letter.ViewModels
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string response = string.Empty;
-                if (this._mode_bot) this._mode_bot = false;
-                this._kind_bot = Automaton.Unknown;
+                if (SettingService.Instance.ModeBot) SettingService.Instance.ModeBot = false;
                 this._messageService.Remove(language);
                 response = $"{bot.ToArray()[0]} {terminate.ToArray()[0]}.";
+                return response;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<string> CaputreCamera(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation capture camera \"Bot\" view model failed!");
+
+                if (!SettingService.Instance.ModeBot) SettingService.Instance.ModeBot = true;
+                string response = await this._botService.CaptureCamera(language);
                 return response;
             }
             catch (Exception ex)
@@ -1980,7 +2868,6 @@ namespace Letter.ViewModels
                 if (this._error_off) throw new InvalidOperationException("Operation load camera \"Bot\" view model failed!");
 
                 if (!this._mode_bot) this._mode_bot = true;
-                if (this._kind_bot == Automaton.Unknown) this._kind_bot = Automaton.Camera;
                 List<string> response = new List<string>();
                 response = await this._botService.LoadCamera(language);
                 List<Mechanism> mechanisms = new List<Mechanism>();
@@ -2021,15 +2908,9 @@ namespace Letter.ViewModels
 
                 string response = string.Empty;
                 if (kind == front.ToArray()[0])
-                {
-                    this.CameraPreview?.SetRotate = Rotate.Front;
-                    response = $"{camera.ToArray()[0]} {rotate.ToArray()[0]} {front.ToArray()[0]}.";
-                }
-                if (kind == rear.ToArray()[0])
-                {
-                    this.CameraPreview?.SetRotate = Rotate.Rear;
-                    response = $"{camera.ToArray()[0]} {rotate.ToArray()[0]} {rear.ToArray()[0]}.";
-                }
+                    response = $"{camera.ToArray()[0]} {front.ToArray()[0]} {rotate.ToArray()[0]}.";
+                else
+                    response = $"{camera.ToArray()[0]} {rear.ToArray()[0]} {rotate.ToArray()[0]}.";
                 return response;
             }
             catch (Exception ex)
@@ -2066,19 +2947,13 @@ namespace Letter.ViewModels
 
                 string response = string.Empty;
                 if (kind == on.ToArray()[0])
-                {
-                    this.CameraPreview?.SetFlash = Flash.On;
                     response = $"{flash.ToArray()[0]} {turn_on.ToArray()[0]}.";
-                }
-                if (kind == off.ToArray()[0])
+                else
                 {
-                    this.CameraPreview?.SetFlash = Flash.Off;
-                    response = $"{flash.ToArray()[0]} {turn.ToArray()[0]} {off.ToArray()[0]}.";
-                }
-                if (kind == auto.ToArray()[0])
-                {
-                    this.CameraPreview?.SetFlash = Flash.Auto;
-                    response = $"{flash.ToArray()[0]} {turn.ToArray()[0]} {auto.ToArray()[0]}.";
+                    if (kind == off.ToArray()[0])
+                        response = $"{flash.ToArray()[0]} {off.ToArray()[0]} {turn.ToArray()[0]}.";
+                    else
+                        response = $"{flash.ToArray()[0]} {auto.ToArray()[0]} {turn.ToArray()[0]}.";
                 }
                 return response;
             }
@@ -2089,30 +2964,21 @@ namespace Letter.ViewModels
             }
         }
 
-        private async Task<string> PreviewCamera(string language)
+        private async Task<string> StartCamera(string language)
         {
             try
             {
-                if (this._error_off) throw new InvalidOperationException("Operation preview camera \"Bot\" view model failed!");
+                if (this._error_off) throw new InvalidOperationException("Operation start camera \"Bot\" view model failed!");
 
-                HashSet<string> preview = this._preview
+                HashSet<string> start = this._start
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
                 HashSet<string> camera = this._camera
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> open = this._open
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string response = string.Empty;
-                if (this.CameraPreview != null)
-                    response = $"{camera.ToArray()[0]} {preview.ToArray()[0]} {open.ToArray()[0]}.";
-                else
-                {
-                    WeakReferenceMessenger.Default.Send(new NoticeService("preview"));
-                    response = $"{camera.ToArray()[0]} {preview.ToArray()[0]}.";
-                }
+                response = $"{camera.ToArray()[0]} {start.ToArray()[0]}.";
                 return response;
             }
             catch (Exception ex)
@@ -2136,12 +3002,7 @@ namespace Letter.ViewModels
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string response = string.Empty;
-                if (this.CameraPreview != null)
-                {
-                    WeakReferenceMessenger.Default.Send(new NoticeService("stop"));
-                    this.CameraPreview = null;
-                    response = $"{camera.ToArray()[0]} {stop.ToArray()[0]}.";
-                }
+                response = $"{camera.ToArray()[0]} {stop.ToArray()[0]}.";
                 return response;
             }
             catch (Exception ex)
@@ -2160,36 +3021,14 @@ namespace Letter.ViewModels
                 HashSet<string> camera = this._camera
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
                 HashSet<string> capture = this._capture
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
-                this.CameraPreview?.OnImageBytes += OnImageBytes;
-                this.CameraPreview?.IsCapture = true;
-                /*
-                MainThread.BeginInvokeOnMainThread(() => {
-                    if (this.CameraPreview?.IsCapture == false)
-                        this.Bytes = this.CameraPreview?.ImageBytes;
-                });
-                */
                 string response = string.Empty;
                 response = $"{camera.ToArray()[0]} {capture.ToArray()[0]}.";
                 return response;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        private void OnImageBytes(object? sender, EventArgs e)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation on image bytes \"Bot\" view model failed!");
-                
-                this.Bytes = this.CameraPreview?.ImageBytes;
             }
             catch (Exception ex)
             {
@@ -2272,6 +3111,23 @@ namespace Letter.ViewModels
             }
         }
 
+        private async Task<string> ShareFile(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation share file \"Bot\" view model failed!");
+
+                if (!SettingService.Instance.ModeBot) SettingService.Instance.ModeBot = true;
+                string response = await this._botService.ShareFile(language);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
         private async Task<List<Mechanism>> LoadShare(string language)
         {
             try
@@ -2279,7 +3135,6 @@ namespace Letter.ViewModels
                 if (this._error_off) throw new InvalidOperationException("Operation load share \"Bot\" view model failed!");
 
                 if (!this._mode_bot) this._mode_bot = true;
-                if (this._kind_bot == Automaton.Unknown) this._kind_bot = Automaton.Share;
                 List<string> response = new List<string>();
                 response = await this._botService.LoadShare(language);
                 List<Mechanism> mechanisms = new List<Mechanism>();

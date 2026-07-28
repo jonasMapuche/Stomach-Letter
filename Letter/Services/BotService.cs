@@ -28,7 +28,7 @@ namespace Letter.Services
         private Dictionary<string, string> _terminate;
         private Dictionary<string, string> _bot;
 
-        private ICaptureBot _captureBot;
+        private ICameraBot _cameraBot;
         private IRecordBot _recordBot;
         private IShareBot _shareBot;
         private IDecisionTreeBot _decisionTreeBot;
@@ -49,7 +49,7 @@ namespace Letter.Services
                 this._terminate = this._settingService.Terminate;
                 this._bot = this._settingService.Bot;
 
-                this._captureBot = new CaptureBot();
+                this._cameraBot = new CameraBot();
                 this._recordBot = new RecordBot();
                 this._shareBot = new ShareBot();
                 this._decisionTreeBot = new DecisionTreeBot();
@@ -69,22 +69,6 @@ namespace Letter.Services
         #endregion
 
         #region FUNCTION
-        public async Task<string> CaptureCamera(string language)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation capture camera \"Bot\" service failed!");
-
-                string response = await this._captureBot.Rotate(language);
-                return response;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
         public async Task<List<string>> LoadCamera(string language)
         {
             try
@@ -92,23 +76,7 @@ namespace Letter.Services
                 if (this._error_off) throw new InvalidOperationException("Operation load camera \"Bot\" service failed!");
 
                 List<string> response = new List<string>();
-                response = await this._captureBot.SelectRotate(language);
-                return response;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        public async Task<string> RecordAudio(string language)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation record audio \"Bot\" service failed!");
-
-                string response = await this._recordBot.Audio(language);
+                response = await this._cameraBot.SelectPreview(language);
                 return response;
             }
             catch (Exception ex)
@@ -135,22 +103,6 @@ namespace Letter.Services
             }
         }
 
-        public async Task<string> ShareFile(string language)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation share file \"Bot\" service failed!");
-
-                string response = await this._shareBot.Share(language);
-                return response;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
         public async Task<List<string>> LoadShare(string language)
         {
             try
@@ -168,22 +120,6 @@ namespace Letter.Services
             }
         }
 
-        public async Task<string> CaptureCamera(string language, List<Message> messages)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation capture camera \"Bot\" service failed!");
-
-                string response = await this._captureBot.Choose(language, messages);
-                return response;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
         public async Task<List<string>> CameraChoose(string language, List<Message> messages)
         {
             try
@@ -191,23 +127,7 @@ namespace Letter.Services
                 if (this._error_off) throw new InvalidOperationException("Operation camera choose \"Bot\" service failed!");
 
                 List<string> response = new List<string>();
-                response = await this._captureBot.Select(language, messages);
-                return response;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        public async Task<string> RecordAudio(string language, List<Message> messages)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation record audio \"Bot\" service failed!");
-
-                string response = await this._recordBot.Choose(language, messages);
+                response = await this._cameraBot.Select(language, messages);
                 return response;
             }
             catch (Exception ex)
@@ -225,22 +145,6 @@ namespace Letter.Services
 
                 List<string> response = new List<string>();
                 response = await this._recordBot.Select(language, messages);
-                return response;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        public async Task<string> ShareFile(string language, List<Message> messages)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation share file \"Bot\" service failed!");
-
-                string response = await this._shareBot.Choose(language, messages);
                 return response;
             }
             catch (Exception ex)
@@ -273,7 +177,7 @@ namespace Letter.Services
             {
                 if (this._error_off) throw new InvalidOperationException("Operation capture camera \"Bot\" service failed!");
                 List<string> response = new List<string>();
-                response = await this._captureBot.Load(language, parameter, messages);
+                response = await this._cameraBot.Load(language, parameter, messages);
                 return response;
             }
             catch (Exception ex)
@@ -306,66 +210,6 @@ namespace Letter.Services
                 if (this._error_off) throw new InvalidOperationException("Operation share file \"Bot\" service failed!");
                 List<string> response = new List<string>();
                 response = await this._shareBot.Load(language, parameter, messages);
-                return response;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        private async Task<string> Terminate(string language)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation terminate \"Record\" bot failed!");
-
-                HashSet<string> terminate = this._terminate
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
-                HashSet<string> bot = this._bot
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
-                string ask = $"{terminate.ToArray()[0]} {bot.ToArray()[0]}.";
-                return ask;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        public async Task<List<string>> Terminate(string language, List<Message> messages)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation terminate \"Bot\" service failed!");
-
-                HashSet<string> terminates = this._terminate
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
-                bool terminate = false;
-
-                List<Message> memos = new List<Message>();
-                memos = messages.FindAll(index => index.Sender == null);
-
-                foreach (Message memo in memos)
-                {
-                    if (Array.IndexOf(terminates.ToArray(), memo.Text) != -1) terminate = true;
-                }
-
-                List<string> response = new List<string>();
-                if (terminate)
-                {
-                    string result = string.Empty;
-                    result = await Terminate(language);
-                    response.Add(result);
-                }
                 return response;
             }
             catch (Exception ex)

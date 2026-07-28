@@ -7,6 +7,10 @@ using Microsoft.Extensions.Logging;
 using Letter.Bots;
 using Letter.Views.Templates;
 using Letter.Interfaces;
+using Letter.Controls;
+
+using Letter.Platforms.Android.Handlers;
+
 
 
 #if ANDROID
@@ -25,6 +29,12 @@ namespace Letter
                 .UseMauiApp<App>()
                 .UseMauiCommunityToolkit()
                 .UseMauiCommunityToolkitCamera()
+                .ConfigureMauiHandlers(handlers =>
+                {
+#if ANDROID
+                    handlers.AddHandler(typeof(CameraPreview), typeof(CameraHandler));
+#endif
+                })
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -40,6 +50,7 @@ namespace Letter
             builder.Services.AddTransient<IWiFiService, WiFiService>();
             builder.Services.AddTransient<IVPNClientService, VPNClientService>();
             builder.Services.AddTransient<IPhoneService, PhoneService>();
+            builder.Services.AddSingleton<ICameraService, CameraService>();
 #endif
 
             builder.Services.AddSingleton<AlgarismoContext>();
@@ -69,7 +80,7 @@ namespace Letter
             builder.Services.AddTransient<SettingViewModel>();
             builder.Services.AddTransient<SettingView>();
 
-            builder.Services.AddSingleton<CaptureBot>();
+            builder.Services.AddSingleton<CameraBot>();
             builder.Services.AddSingleton<RecordBot>();
             builder.Services.AddSingleton<ShareBot>();
             builder.Services.AddSingleton<BotService>();

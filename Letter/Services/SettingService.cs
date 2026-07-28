@@ -178,13 +178,16 @@ namespace Letter.Services
         private static readonly string wifi_english = "wifi";
         private static readonly string message_english = "message";
         private static readonly string token_english = "token";
-        private static readonly string message_copy_english = "Copy message!";
+
+        private static readonly string stop_preview_english = "stop preview";
+        private static readonly string stop_record_english = "stop record";
 
         private static readonly string on_english = "on";
         private static readonly string off_english = "off";
         private static readonly string auto_english = "auto";
         private static readonly string front_english = "front";
         private static readonly string rear_english = "rear";
+        private static readonly string open_english = "open";
 
         private static readonly string what_english = "what";
 
@@ -210,6 +213,12 @@ namespace Letter.Services
         private static readonly string dont_understand_italiano = "Non capisco.";
         private static readonly string dont_understand_francais = "Je ne comprends pas.";
         private static readonly string dont_understand_espanol = "No entiendo.";
+
+        private static readonly string message_copy_english = "Copy message!";
+        private static readonly string message_copy_deutsch = "Nachricht kopieren!";
+        private static readonly string message_copy_italiano = "Copiare messaggio!";
+        private static readonly string message_copy_francais = "Copier le message!";
+        private static readonly string message_copy_espanol = "Copiar mensaje!";
         #endregion
 
         #region CONSTRUCTOR
@@ -418,6 +427,7 @@ namespace Letter.Services
 
         #region BOT
         public bool ModeBot { get; set; } = false;
+        public Automaton KindBot { get; set; } = Automaton.Unknown;
 
         public Dictionary<string, string> Execute = new Dictionary<string, string>()
         {
@@ -501,8 +511,7 @@ namespace Letter.Services
 
         public Dictionary<string, string> Capture = new Dictionary<string, string>()
         {
-            { capture_english, _english },
-            { record_english, _english }
+            { capture_english, _english }
         };
 
         public Dictionary<string, string> Save = new Dictionary<string, string>()
@@ -676,7 +685,10 @@ namespace Letter.Services
             { front_english, _english },
             { rear_english, _english },
             { capture_english, _english },
-            { save_english, _english }
+            { save_english, _english },
+            { preview_english, _english },
+            { record_english, _english },
+            { stop_english, _english }
         };
 
         public Dictionary<string, string> Catch_Record = new Dictionary<string, string>()
@@ -699,9 +711,10 @@ namespace Letter.Services
             { rear_english, _english }
         };
 
-        public Dictionary<string, string> Catch_Capture = new Dictionary<string, string>()
+        public Dictionary<string, string> Catch_Activity = new Dictionary<string, string>()
         {
-            { capture_english, _english }
+            { capture_english, _english },
+            { record_english, _english }
         };
 
         public Dictionary<string, string> Shoot = new Dictionary<string, string>()
@@ -1117,7 +1130,31 @@ namespace Letter.Services
 
         public Dictionary<string, string> Message_Copy = new Dictionary<string, string>()
         {
-            { message_copy_english, _english }
+            { message_copy_english, _english },
+            { message_copy_deutsch, _deutsch },
+            { message_copy_italiano, _italiano },
+            { message_copy_francais, _francais },
+            { message_copy_espanol, _espanol }
+        };
+
+        public Dictionary<string, string> Preview = new Dictionary<string, string>()
+        {
+            { preview_english, _english }
+        };
+
+        public Dictionary<string, string> Stop_Preview = new Dictionary<string, string>()
+        {
+            { stop_preview_english, _english }
+        };
+
+        public Dictionary<string, string> Stop_Record = new Dictionary<string, string>()
+        {
+            { stop_record_english, _english }
+        };
+
+        public Dictionary<string, string> Open = new Dictionary<string, string>()
+        {
+            { open_english, _english }
         };
         #endregion
     }
