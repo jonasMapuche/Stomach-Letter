@@ -145,6 +145,28 @@ namespace Letter.Services
             }
         }
 
+        public async Task<string> SendRecording()
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation send recording \"Perception\" service failed!");
+
+                await ClearRecording();
+                string file_name = FilePath.MountFileName("mp4");
+                string file_path = FilePath.MountFilePath(file_name);
+                Audio audio = new Audio();
+                audio.name = Path.GetFileName(file_path);
+                audio.url = file_path;
+                this._audios.Add(audio);
+                return file_path;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
         public async Task ClearRecording()
         {
             try
@@ -345,7 +367,7 @@ namespace Letter.Services
                 if (this._error_off) throw new InvalidOperationException("Operation setup wifi \"Perception\" service failed!");
 
                 this._wiFiService.SetUp();
-                this._wiFiService.Scan();
+                //this._wiFiService.Scan();
             }
             catch (Exception ex)
             {
@@ -363,6 +385,23 @@ namespace Letter.Services
                 List<Mechanism> mechanisms = new List<Mechanism>();
                 mechanisms = this._wiFiService.Receiver;
                 this._wiFiService.Scan();
+                return mechanisms;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<List<Mechanism>> ScanPing(string address)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation scan ping \"Perception\" service failed!");
+
+                List<Mechanism> mechanisms = new List<Mechanism>();
+                mechanisms = await this._wiFiService.Ping(address);
                 return mechanisms;
             }
             catch (Exception ex)
@@ -390,7 +429,7 @@ namespace Letter.Services
             }
         }
 
-        public async Task<string> ConnectBluetooth3(string device)
+        public async Task ConnectBluetooth3(string device)
         {
             try
             {
@@ -399,7 +438,6 @@ namespace Letter.Services
                 Audio audio = this._audios.First();
                 string file_name = audio.name;
                 this._bluetoothService.Connect(device, file_name);
-                return string.Empty;
             }
             catch (Exception ex)
             {
@@ -414,7 +452,6 @@ namespace Letter.Services
             {
                 if (this._error_off) throw new InvalidOperationException("Operation speak text \"Perception\" service failed!");
 
-                this._textSpeakService.OnError += OnError;
                 this._textSpeakService.SpeakText(text);
             }
             catch (Exception ex)

@@ -1,4 +1,4 @@
-ï»¿using Letter.Enums;
+using Letter.Enums;
 using Letter.Models;
 
 namespace Letter.Services
@@ -12,16 +12,16 @@ namespace Letter.Services
         private static string _english = "english";
         private static string _deutsch = "deutsch";
         private static string _italiano = "italiano";
-        private static string _francais = "franÃ§ais";
-        private static string _espanol = "espaÃ±ol";
-        private static string _portugues = "portuguÃªs";
+        private static string _francais = "français";
+        private static string _espanol = "español";
+        private static string _portugues = "português";
 
         private static string _lesson_english = "lesson";
         private static string _lesson_deutsch = "lektion";
         private static string _lesson_italiano = "lezione";
-        private static string _lesson_francais = "leÃ§on";
-        private static string _lesson_espanol = "lecciÃ³n";
-        private static string _lesson_portugues = "liÃ§Ã£o";
+        private static string _lesson_francais = "leçon";
+        private static string _lesson_espanol = "lección";
+        private static string _lesson_portugues = "lição";
 
         private static string _image_speak_on = "speaker_notes_62dp_white.png";
         private static string _image_speak_off = "speaker_notes_off_62dp_white.png";
@@ -51,7 +51,7 @@ namespace Letter.Services
         private static readonly string conjunction_noun_portugues = "conjuncao substantivo";
 
         private static readonly string personal_portugues = "pessoal";
-        private static readonly string preposition_portugues = "preposiÃ§Ã£o";
+        private static readonly string preposition_portugues = "preposição";
         private static readonly string possessive_portugues = "possessivo";
         private static readonly string demonstrative_portugues = "demonstrativo";
         private static readonly string possessive_adjective_portugues = "possessivo adjetivo";
@@ -136,12 +136,11 @@ namespace Letter.Services
         private static readonly string disconnect_english = "disconnect";
         private static readonly string connected_english = "connected";
         private static readonly string clean_up_english = "clean up";
-        private static readonly string setup_english = "set up";
+        private static readonly string setup_english = "setup";
         private static readonly string select_english = "select";
         private static readonly string listen_english = "listen";
         private static readonly string call_english = "call";
         private static readonly string generate_english = "generate";
-        private static readonly string post_english = "post";
 
         private static readonly string gps_english = "gps";
         private static readonly string bluetooth_english = "bluetooth";
@@ -179,11 +178,6 @@ namespace Letter.Services
         private static readonly string wifi_english = "wifi";
         private static readonly string message_english = "message";
         private static readonly string token_english = "token";
-        private static readonly string speaker_english = "speaker";
-        private static readonly string microphone_english = "microphone";
-        private static readonly string ping_english = "ping";
-        private static readonly string address_english = "address";
-        private static readonly string speech_english = "speech";
 
         private static readonly string stop_preview_english = "stop preview";
         private static readonly string stop_record_english = "stop record";
@@ -214,7 +208,7 @@ namespace Letter.Services
         private static readonly string dont_language_deutsch = "Die sprache arbeiten nicht noch.";
         private static readonly string dont_language_italiano = "La lingua non funziona ancora.";
         private static readonly string dont_language_francais = "Le langage ne fonctionne pas encore.";
-        private static readonly string dont_language_espanol = "El idioma aÃºn no funciona.";
+        private static readonly string dont_language_espanol = "El idioma aún no funciona.";
 
         private static readonly string dont_understand_english = "I do not understand.";
         private static readonly string dont_understand_deutsch = "Ich verstehe das nicht.";
@@ -280,7 +274,7 @@ namespace Letter.Services
         public readonly Language Francais = new Language
         {
             Name = "francais",
-            Uppercase = "FranÃ§ais",
+            Uppercase = "Français",
             Lowercase = _francais,
             Code = "fr",
             Region = "FR",
@@ -290,7 +284,7 @@ namespace Letter.Services
         public readonly Language Espanol = new Language
         {
             Name = "espanol",
-            Uppercase = "EspaÃ±ol",
+            Uppercase = "Español",
             Lowercase = _espanol,
             Code = "es",
             Region = "ES",
@@ -300,7 +294,7 @@ namespace Letter.Services
         public readonly Language Portugues = new Language
         {
             Name = "portugues",
-            Uppercase = "PortuguÃªs",
+            Uppercase = "Português",
             Lowercase = _portugues,
             Code = "pt",
             Region = "PT",
@@ -437,6 +431,44 @@ namespace Letter.Services
         public bool ModeBot { get; set; } = false;
         public Automaton KindBot { get; set; } = Automaton.Unknown;
 
+        public Dictionary<string, string> Execute = new Dictionary<string, string>()
+        {
+            { load_english, _english},
+            { load_deutsch, _deutsch},
+            { load_italiano, _italiano },
+            { execute_english, _english},
+            { see_english, _english },
+            { click_english, _english },
+            { play_english, _english },
+            { record_english, _english },
+            { download_english, _english },
+            { upload_english, _english },
+            { rotate_english, _english },
+            { preview_english, _english },
+            { stop_english, _english },
+            { stop_deutsch, _deutsch },
+            { capture_english, _english },
+            { speak_english, _english },
+            { view_english, _english },
+            { terminate_english, _english },
+            { start_english, _english },
+            { save_english,_english },
+            { turn_english, _english },
+            { turn_on_english, _english },
+            { share_english, _english },
+            { scan_english, _english },
+            { connect_english, _english },
+            { send_english, _english },
+            { clean_up_english, _english }
+        };
+
+        public Dictionary<string, string> Load_Camera = new Dictionary<string, string>()
+        {
+            { load_english, _english },
+            { execute_english, _english },
+            { click_english, _english }
+        };
+
         public Dictionary<string, string> View = new Dictionary<string, string>()
         {
             { view_english, _english },
@@ -492,6 +524,28 @@ namespace Letter.Services
         public Dictionary<string, string> Write = new Dictionary<string, string>()
         {
             { write_english, _english }
+        };
+
+        public Dictionary<string, string> Activity = new Dictionary<string, string>()
+        {
+            { gps_english, _english },
+            { bluetooth_english, _english },
+            { battery_english, _english },
+            { camera_english, _english },
+            { camera_deutsch, _deutsch },
+            { wav_english, _english },
+            { mp3_english, _english },
+            { file_english, _english },
+            { vibration_english, _english },
+            { phone_english, _english },
+            { audio_english, _english },
+            { bot_english, _english },
+            { flash_english, _english },
+            { text_english, _english },
+            { raspberry_english, _english },
+            { letter_english, _english },
+            { letter_deutsch, _deutsch },
+            { letter_italiano, _italiano }
         };
 
         public Dictionary<string, string> Feature = new Dictionary<string, string>()
@@ -601,7 +655,65 @@ namespace Letter.Services
             { raspberry_english, _english }
         };
 
-        public Dictionary<string, string> Activity = new Dictionary<string, string>()
+        public Dictionary<string, string> Catch = new Dictionary<string, string>()
+        {
+            { on_english, _english },
+            { off_english, _english },
+            { auto_english, _english },
+            { front_english, _english },
+            { rear_english, _english },
+            { capture_english, _english },
+            { dont_capture_english, _english },
+            { mp3_english, _english },
+            { wav_english, _english },
+            { stop_english, _english },
+            { terminate_english, _english },
+            { upload_english, _english },
+            { bluetooth_english, _english },
+            { download_english, _english },
+            { raspberry_english, _english },
+            { bluetooth_3_english, _english },
+            { bluetooth_4_english, _english },
+            { save_english, _english },
+            { scan_english, _english },
+            { send_english, _english }
+        };
+
+        public Dictionary<string, string> Catch_Camera = new Dictionary<string, string>()
+        {
+            { on_english, _english },
+            { off_english, _english },
+            { auto_english, _english },
+            { front_english, _english },
+            { rear_english, _english },
+            { capture_english, _english },
+            { save_english, _english },
+            { preview_english, _english },
+            { record_english, _english },
+            { stop_english, _english }
+        };
+
+        public Dictionary<string, string> Catch_Record = new Dictionary<string, string>()
+        {
+            { mp3_english, _english },
+            { wav_english, _english },
+            { stop_english, _english }
+        };
+
+        public Dictionary<string, string> Catch_Flash = new Dictionary<string, string>()
+        {
+            { on_english, _english },
+            { off_english, _english },
+            { auto_english, _english }
+        };
+
+        public Dictionary<string, string> Catch_Rotate = new Dictionary<string, string>()
+        {
+            { front_english, _english },
+            { rear_english, _english }
+        };
+
+        public Dictionary<string, string> Catch_Activity = new Dictionary<string, string>()
         {
             { capture_english, _english },
             { record_english, _english }
@@ -635,6 +747,26 @@ namespace Letter.Services
         public Dictionary<string, string> Turn_On = new Dictionary<string, string>()
         {
             { turn_on_english, _english }
+        };
+
+        public Dictionary<string, string> Record_Audio = new Dictionary<string, string>()
+        {
+            { wav_english, _english },
+            { mp3_english, _english },
+            { start_english, _english },
+            { dont_start_english, _english }
+        };
+
+        public Dictionary<string, string> Catch_Audio = new Dictionary<string, string>()
+        {
+            { wav_english, _english },
+            { mp3_english, _english }
+        };
+
+        public Dictionary<string, string> Catch_Start = new Dictionary<string, string>()
+        {
+            { start_english, _english },
+            { dont_start_english, _english }
         };
 
         public Dictionary<string, string> Audio = new Dictionary<string, string>()
@@ -710,6 +842,26 @@ namespace Letter.Services
         public Dictionary<string, string> Share = new Dictionary<string, string>()
         {
             { share_english, _english },
+        };
+
+        public Dictionary<string, string> Catch_Share = new Dictionary<string, string>()
+        {
+            { upload_english, _english },
+            { bluetooth_english, _english },
+            { bluetooth_3_english, _english },
+            { bluetooth_4_english, _english },
+            { download_english, _english },
+            { raspberry_english, _english },
+            { scan_english, _english },
+            { connect_english, _english },
+            { send_english, _english },
+            { disconnect_english, _english }
+        };
+
+        public Dictionary<string, string> Catch_Scan = new Dictionary<string, string>()
+        {
+            { scan_english, _english },
+            { bluetooth_english, _english }
         };
 
         public Dictionary<string, string> End = new Dictionary<string, string>()
@@ -1015,68 +1167,6 @@ namespace Letter.Services
         public Dictionary<string, string> Notification = new Dictionary<string, string>()
         {
             { notification_english, _english }
-        };
-
-        public Dictionary<string, string> Speakers = new Dictionary<string, string>()
-        {
-            { phone_english, _english },
-            { speaker_english, _english },
-            { bluetooth_english, _english }
-        };
-
-        public Dictionary<string, string> Speaker = new Dictionary<string, string>()
-        {
-            { speaker_english, _english }
-        };
-
-        public Dictionary<string, string> Microphone = new Dictionary<string, string>()
-        {
-            { microphone_english, _english }
-        };
-
-        public Dictionary<string, string> Audios = new Dictionary<string, string>()
-        {
-            { wav_english, _english },
-            { mp3_english, _english }
-        };
-
-        public Dictionary<string, string> Flash_Mode = new Dictionary<string, string>()
-        {
-            { on_english, _english },
-            { off_english, _english },
-            { auto_english, _english }
-        };
-
-        public Dictionary<string, string> Lences = new Dictionary<string, string>()
-        {
-            { front_english, _english },
-            { rear_english, _english }
-        };
-
-        public Dictionary<string, string> Post = new Dictionary<string, string>()
-        {
-            { post_english, _english }
-        };
-
-        public Dictionary<string, string> Ping = new Dictionary<string, string>()
-        {
-            { ping_english, _english }
-        };
-
-        public Dictionary<string, string> Address = new Dictionary<string, string>()
-        {
-            { address_english, _english }
-        };
-
-        public Dictionary<string, string> Communicaton = new Dictionary<string, string>()
-        {
-            { send_english, _english },
-            { listen_english, _english }
-        };
-
-        public Dictionary<string, string> Speech = new Dictionary<string, string>()
-        {
-            { speech_english, _english }
         };
         #endregion
     }

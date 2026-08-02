@@ -4,6 +4,7 @@ using Android.Content.PM;
 using Android.OS;
 using Android.Runtime;
 using Letter.Platforms.Android.Broadcasts;
+using Plugin.Firebase.CloudMessaging;
 
 namespace Letter
 {
@@ -38,13 +39,15 @@ namespace Letter
         #endregion
 
         #region EVENT
-        protected override void OnCreate(Bundle savedInstanceState)
+        protected override void OnCreate(Bundle? savedInstanceState)
         {
             try
             {
                 if (this._error_off) throw new InvalidOperationException("Operation on create \"Main\" Activity failed!");
 
                 base.OnCreate(savedInstanceState);
+                HandleIntent(Intent);
+                CreateNotificationChannelIfNeeded();
             }
             catch (Exception ex)
             {
@@ -53,7 +56,7 @@ namespace Letter
             }
         }
 
-        protected override void OnActivityResult(int requestCode, [GeneratedEnum] Result resultCode, Intent data)
+        protected override void OnActivityResult(int requestCode, [GeneratedEnum] Result resultCode, Intent? data)
         {
             try
             {
@@ -75,9 +78,36 @@ namespace Letter
                 throw new InvalidOperationException(this.error_message);
             }
         }
+
+        protected override void OnNewIntent(Intent? intent)
+        {
+            base.OnNewIntent(intent);
+            HandleIntent(intent);
+        }
         #endregion
 
         #region FUNCTION
+        private static void HandleIntent(Intent? intent)
+        {
+            FirebaseCloudMessagingImplementation.OnNewIntent(intent);
+        }
+
+        private void CreateNotificationChannelIfNeeded()
+        {
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+            {
+                CreateNotificationChannel();
+            }
+        }
+
+        private void CreateNotificationChannel()
+        {
+            string channelId = $"{PackageName}.general";
+            NotificationManager? notificationManager = (NotificationManager)GetSystemService(NotificationService);
+            NotificationChannel channel = new NotificationChannel(channelId, "General", NotificationImportance.Default);
+            notificationManager.CreateNotificationChannel(channel);
+            FirebaseCloudMessagingImplementation.ChannelId = channelId;
+        }
         #endregion
     }
 }

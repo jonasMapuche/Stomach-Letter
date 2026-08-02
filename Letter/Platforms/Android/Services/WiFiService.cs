@@ -101,7 +101,7 @@ namespace Letter.Platforms.Android.Services
             }
         }
 
-        public async Task<List<string>> Ping(string subnet)
+        public async Task<List<Mechanism>> Ping(string subnet)
         {
             try
             {
@@ -117,7 +117,15 @@ namespace Letter.Platforms.Android.Services
                     tarefa_ping.Add(PingCheck(ip_address, server_active));
                 }
                 await Task.WhenAll(tarefa_ping);
-                return server_active;
+                List<Mechanism> mechanisms = new List<Mechanism>();
+                foreach (string ip in server_active)
+                {
+                    Mechanism mechanism = new Mechanism();
+                    mechanism.name = ip;
+                    mechanism.implied = ip;
+                    mechanisms.Add(mechanism);
+                }
+                return mechanisms;
             }
             catch (Exception ex)
             {

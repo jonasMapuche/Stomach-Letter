@@ -62,7 +62,7 @@ namespace Letter.Platforms.Android.Broadcasts
                 {
                     foreach (ScanResult result in results)
                     {
-                        string appliance = $"SSID: {result.Ssid} | BSSID: {result.Bssid} | RSSI: {result.Level} dBm";
+                        string appliance = $"SSID: {result.Ssid}, BSSID: {result.Bssid}, RSSI: {result.Level} dBm";
                         Mechanism mechanism = new Mechanism();
                         mechanism.name = appliance;
                         mechanism.implied = result.Bssid;

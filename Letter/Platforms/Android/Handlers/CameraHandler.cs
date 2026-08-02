@@ -12,7 +12,7 @@ namespace Letter.Platforms.Android.Handlers
         private bool _error_on = true;
         private bool _error_off = false;
         private string? _error_message;
-
+         
         public string? error_message
         {
             get => _error_message;
@@ -42,7 +42,8 @@ namespace Letter.Platforms.Android.Handlers
             [nameof(CameraPreview.IsRecord)] = MapIsRecord,
             [nameof(CameraPreview.IsStopRecord)] = MapIsStopRecord,
             [nameof(CameraPreview.SetRotate)] = MapSetRotate,
-            [nameof(CameraPreview.SetFlash)] = MapSetFlash
+            [nameof(CameraPreview.SetFlash)] = MapSetFlash,
+            [nameof(CameraPreview.SetPath)] = MapSetPath
         };
 
         protected override TextureView CreatePlatformView()
@@ -73,7 +74,6 @@ namespace Letter.Platforms.Android.Handlers
 
                 if (preview.IsCapture)
                 {
-                    //handler.CapturePhoto();
                     byte[] data = preview.ImageBytes;
                     if (data == null || data.Length == 0)
                     {
@@ -101,7 +101,7 @@ namespace Letter.Platforms.Android.Handlers
 
                 if (preview.IsStop)
                 {
-                    handler.StopControl();
+                    handler.StopRecord();
                     preview.IsStop = false;
                 }
             }
@@ -120,7 +120,8 @@ namespace Letter.Platforms.Android.Handlers
 
                 if (preview.IsRecord)
                 {
-                    handler.RecordCamera();
+                    if (handler._output != string.Empty) 
+                        handler.RecordCamera(handler._output);
                     preview.IsRecord = false;
                 }
             }
@@ -188,19 +189,18 @@ namespace Letter.Platforms.Android.Handlers
             }
         }
 
-        private static async void MapImageBytes(CameraHandler handler, CameraPreview preview)
+        private string _output = string.Empty;
+
+        private static void MapSetPath(CameraHandler handler, CameraPreview preview)
         {
             try
             {
-                if (handler._error_off) throw new InvalidOperationException("Operation map image bytes \"Camera\" handler failed!");
+                if (handler._error_off) throw new InvalidOperationException("Operation map set path \"Camera\" handler failed!");
 
-                byte[] data = preview.ImageBytes;
-                if (data == null || data.Length == 0)
+                if (preview.SetPath != string.Empty)
                 {
-                    data = await handler.CapturePhotoAsync();
-                    MainThread.BeginInvokeOnMainThread(() => {
-                        preview.ImageBytes = data;
-                    });
+                    handler._output = preview.SetPath;
+                    preview.SetPath = string.Empty;
                 }
             }
             catch (Exception ex)
@@ -255,44 +255,13 @@ namespace Letter.Platforms.Android.Handlers
             }
         }
 
-        private void CapturePhoto()
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation capture photo \"Camera\" handler failed!");
-
-                this._cameraService.CaptureCamera();
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        private void StopControl()
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation stop control \"Camera\" handler failed!");
-
-                this._cameraService.StopPreview();
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        private void RecordCamera()
+        private void RecordCamera(string file_path)
         {
             try
             {
                 if (this._error_off) throw new InvalidOperationException("Operation record camera \"Camera\" handler failed!");
 
-                string output = string.Empty;
-                this._cameraService.StartRecord(output);
+                this._cameraService?.StartRecord(file_path);
             }
             catch (Exception ex)
             {
@@ -307,8 +276,7 @@ namespace Letter.Platforms.Android.Handlers
             {
                 if (this._error_off) throw new InvalidOperationException("Operation stop record \"Camera\" handler failed!");
 
-                string output = string.Empty;
-                this._cameraService.StopRecord();
+                this._cameraService?.StopRecord();
             }
             catch (Exception ex)
             {

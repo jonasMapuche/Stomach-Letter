@@ -9,7 +9,7 @@ namespace Letter.Interfaces
         void RotateCamera(Rotate rotate);
         void FlashCamera(Flash flash);
         void StartRecord(string output);
-        string StopRecord();
+        void StopRecord();
         Task<byte[]> CaptureCamera();
     }
 }

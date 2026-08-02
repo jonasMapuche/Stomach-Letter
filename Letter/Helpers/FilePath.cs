@@ -37,6 +37,8 @@
                 if (_error_off) throw new InvalidOperationException("Operation file name \"File Path\" helper failed!!");
 
                 string file_name = string.Empty;
+                if (extension == "mp4")
+                    file_name = "/Record_" + DateTime.UtcNow.ToString("ddMMM_hhmmss") + ".mp4";
                 if (extension == "jpeg")
                     file_name = "/Image_" + DateTime.UtcNow.ToString("ddMMM_hhmmss") + ".jpeg";
                 if (extension == "mp3")

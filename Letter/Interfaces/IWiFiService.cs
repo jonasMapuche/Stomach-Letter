@@ -7,6 +7,6 @@ namespace Letter.Interfaces
         List<Mechanism> Receiver { get; set; }
         void SetUp();
         void Scan();
-        Task<List<string>> Ping(string subnet);
+        Task<List<Mechanism>> Ping(string subnet);
     }
 }

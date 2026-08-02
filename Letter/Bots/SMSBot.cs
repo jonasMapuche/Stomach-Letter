@@ -4,7 +4,7 @@ using Letter.Services;
 
 namespace Letter.Bots
 {
-    public class RecordBot : IRecordBot
+    public class SMSBot : ISMSBot
     {
         #region ERROR
         private bool _error_on = true;
@@ -24,57 +24,53 @@ namespace Letter.Bots
         #endregion
 
         #region VARIABLE
-        private Dictionary<string, string> _write;
-        private Dictionary<string, string> _stop;
         private Dictionary<string, string> _terminate;
         private Dictionary<string, string> _bot;
-        private Dictionary<string, string> _record;
         private Dictionary<string, string> _choose;
         private Dictionary<string, string> _options;
-        private Dictionary<string, string> _select;
-        private Dictionary<string, string> _mp3;
-        private Dictionary<string, string> _wav;
-        private Dictionary<string, string> _text;
-        private Dictionary<string, string> _speak;
-        private Dictionary<string, string> _file;
+        private Dictionary<string, string> _setup;
+        private Dictionary<string, string> _write;
         private Dictionary<string, string> _message;
         private Dictionary<string, string> _and;
+        private Dictionary<string, string> _select;
+        private Dictionary<string, string> _phone;
         private Dictionary<string, string> _send;
-        private Dictionary<string, string> _audios;
+        private Dictionary<string, string> _listen;
+        private Dictionary<string, string> _post;
+        private Dictionary<string, string> _communication;
         private Dictionary<string, string> _or;
+        private Dictionary<string, string> _generate;
 
         private SettingService _settingService;
         #endregion
 
         #region CONSTRUCTOR
-        public RecordBot()
+        public SMSBot()
         {
             try
             {
-                if (this._error_off) throw new InvalidOperationException("Operation constructor \"Record\" bot failed!");
+                if (this._error_off) throw new InvalidOperationException("Operation constructor \"SMS\" bot failed!");
                 else this.error_message = string.Empty;
 
                 if (SettingService.Instance == null) return;
                 this._settingService = SettingService.Instance;
 
-                this._write = this._settingService.Write;
-                this._stop = this._settingService.Stop;
                 this._terminate = this._settingService.Terminate;
                 this._bot = this._settingService.Bot;
-                this._record = this._settingService.Record;
                 this._choose = this._settingService.Choose;
                 this._options = this._settingService.Options;
-                this._select = this._settingService.Select;
-                this._mp3 = this._settingService.MP3;
-                this._wav = this._settingService.WAV;
-                this._text = this._settingService.Text;
-                this._speak = this._settingService.Speak;
-                this._file = this._settingService.File;
+                this._setup = this._settingService.Setup;
+                this._write = this._settingService.Write;
                 this._message = this._settingService.Message;
                 this._and = this._settingService.And;
+                this._select = this._settingService.Select;
+                this._phone = this._settingService.Phone;
                 this._send = this._settingService.Send;
-                this._audios = this._settingService.Audios;
+                this._listen = this._settingService.Listen;
+                this._post = this._settingService.Post;
+                this._communication = this._settingService.Communicaton;
                 this._or = this._settingService.Or;
+                this._generate = this._settingService.Generate;
             }
             catch (Exception ex)
             {
@@ -91,16 +87,16 @@ namespace Letter.Bots
         #endregion
 
         #region FUNCTION
-        public async Task<List<string>> SelectAudio(string language)
+        public async Task<List<string>> SelectKind(string language)
         {
             try
             {
-                if (this._error_off) throw new InvalidOperationException("Operation select audio \"Record\" bot failed!");
+                if (this._error_off) throw new InvalidOperationException("Operation select setup \"SMS\" bot failed!");
 
-                HashSet<string> mp3 = this._mp3
+                HashSet<string> send = this._send
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> wav = this._wav
+                HashSet<string> listen = this._listen
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
                 HashSet<string> terminate = this._terminate
@@ -112,20 +108,14 @@ namespace Letter.Bots
                 HashSet<string> options = this._options
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> text = this._text
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string term = string.Empty;
                 List<string> ask = new List<string>();
-
                 term = $"{choose.ToArray()[0]} {options.ToArray()[0]}: ";
                 ask.Add(term);
-                term = $"{mp3.ToArray()[0]}";
+                term = $"{send.ToArray()[0]}";
                 ask.Add(term);
-                term = $"{wav.ToArray()[0]}";
-                ask.Add(term);
-                term = $"{text.ToArray()[0]}";
+                term = $"{listen.ToArray()[0]}";
                 ask.Add(term);
                 term = $"{terminate.ToArray()[0]}";
                 ask.Add(term);
@@ -138,56 +128,19 @@ namespace Letter.Bots
             }
         }
 
-        private async Task<List<string>> SelectStop(string language)
+        private async Task<List<string>> SelectSetup(string language)
         {
             try
             {
-                if (this._error_off) throw new InvalidOperationException("Operation select stop \"Record\" bot failed!");
-
-                HashSet<string> stop = this._stop
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> select = this._select
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> record = this._record
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> terminate = this._terminate
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
-                string term = string.Empty;
-                List<string> ask = new List<string>();
-                term = $"{select.ToArray()[0]} \"{stop.ToArray()[0]}\" to {terminate.ToArray()[0]} the {record.ToArray()[0]}.";
-                ask.Add(term);
-                term = $"{stop.ToArray()[0]}";
-                ask.Add(term);
-                return ask;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        private async Task<List<string>> SelectText(string language)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation select text \"Share\" bot failed!");
+                if (this._error_off) throw new InvalidOperationException("Operation select setup \"SMS\" bot failed!");
 
                 HashSet<string> write = this._write
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> message = this._message
+                HashSet<string> phone = this._phone
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
                 HashSet<string> and = this._and
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> or = this._or
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
                 HashSet<string> choose = this._choose
@@ -202,10 +155,58 @@ namespace Letter.Bots
                 HashSet<string> send = this._send
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> or = this._or
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string term = string.Empty;
                 List<string> ask = new List<string>();
+                term = $"{write.ToArray()[0]} {phone.ToArray()[0]} {and.ToArray()[0]} {send.ToArray()[0]} {or.ToArray()[0]} {choose.ToArray()[0]} {options.ToArray()[0]}: ";
+                ask.Add(term);
+                term = $"{terminate.ToArray()[0]}";
+                ask.Add(term);
+                return ask;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
 
+        private async Task<List<string>> SelectSend(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation select send \"SMS\" bot failed!");
+
+                HashSet<string> write = this._write
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> message = this._message
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> and = this._and
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> choose = this._choose
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> options = this._options
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> terminate = this._terminate
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> send = this._send
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> or = this._or
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                string term = string.Empty;
+                List<string> ask = new List<string>();
                 term = $"{write.ToArray()[0]} {message.ToArray()[0]} {and.ToArray()[0]} {send.ToArray()[0]} {or.ToArray()[0]} {choose.ToArray()[0]} {options.ToArray()[0]}: ";
                 ask.Add(term);
                 term = $"{terminate.ToArray()[0]}";
@@ -219,77 +220,28 @@ namespace Letter.Bots
             }
         }
 
-        private async Task<string> Audio(string language, string parameter)
+        public async Task<List<string>> SelectTerminate(string language)
         {
             try
             {
-                if (this._error_off) throw new InvalidOperationException("Operation audio \"Record\" bot failed!");
+                if (this._error_off) throw new InvalidOperationException("Operation select terminate \"SMS\" bot failed!");
 
-                HashSet<string> mp3 = this._mp3
+                HashSet<string> terminate = this._terminate
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> wav = this._wav
+                HashSet<string> choose = this._choose
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> record = this._record
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
-                string ask = $"{record.ToArray()[0]} ";
-                if (Array.IndexOf(mp3.ToArray(), parameter) != -1) ask += $"{mp3.ToArray()[0]}.";
-                if (Array.IndexOf(wav.ToArray(), parameter) != -1) ask += $"{wav.ToArray()[0]}.";
-                return ask;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        private async Task<string> Stop(string language, string parameter)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation record \"Record\" bot failed!");
-
-                HashSet<string> stop = this._stop
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> mp3 = this._mp3
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> wav = this._wav
+                HashSet<string> options = this._options
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
-                string ask = $"{stop.ToArray()[0]} ";
-                if (Array.IndexOf(mp3.ToArray(), parameter) != -1) ask += $"{mp3.ToArray()[0]}.";
-                if (Array.IndexOf(wav.ToArray(), parameter) != -1) ask += $"{wav.ToArray()[0]}.";
-                return ask;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        private async Task<string> Text(string language, string parameter)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation text \"Record\" bot failed!");
-
-                HashSet<string> select = this._select
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> text = this._text
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
-                string ask = string.Empty;
-                if (Array.IndexOf(text.ToArray(), parameter) != -1) ask = $"{select.ToArray()[0]} {text.ToArray()[0]}.";
+                string term = string.Empty;
+                List<string> ask = new List<string>();
+                term = $"{choose.ToArray()[0]} {options.ToArray()[0]}: ";
+                ask.Add(term);
+                term = $"{terminate.ToArray()[0]}";
+                ask.Add(term);
                 return ask;
             }
             catch (Exception ex)
@@ -303,20 +255,95 @@ namespace Letter.Bots
         {
             try
             {
-                if (this._error_off) throw new InvalidOperationException("Operation send \"Record\" bot failed!");
+                if (this._error_off) throw new InvalidOperationException("Operation send \"SMS\" bot failed!");
 
-                HashSet<string> speak = this._speak
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> file = this._file
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
                 HashSet<string> send = this._send
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> message = this._message
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> select = this._select
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string ask = string.Empty;
-                if (Array.IndexOf(send.ToArray(), parameter) != -1) ask = $"{speak.ToArray()[0]} {file.ToArray()[0]}.";
+                if (Array.IndexOf(send.ToArray(), parameter) != -1) ask = $"{select.ToArray()[0]} {message.ToArray()[0]}.";
+                return ask;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<string> Generate(string language, string parameter)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation send \"SMS\" bot failed!");
+
+                HashSet<string> send = this._send
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> message = this._message
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> generate = this._generate
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                string ask = string.Empty;
+                if (Array.IndexOf(generate.ToArray(), parameter) != -1) ask = $"{send.ToArray()[0]} {message.ToArray()[0]}.";
+                return ask;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<string> Setup(string language, string parameter)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation setup \"SMS\" bot failed!");
+
+                HashSet<string> message = this._message
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> setup = this._setup
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                string ask = string.Empty;
+                if (Array.IndexOf(setup.ToArray(), parameter) != -1) ask = $"{setup.ToArray()[0]} {message.ToArray()[0]}.";
+                return ask;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<string> Listen(string language, string parameter)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation listen \"SMS\" bot failed!");
+
+                HashSet<string> listen = this._listen
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> message = this._message
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                string ask = string.Empty;
+                if (Array.IndexOf(listen.ToArray(), parameter) != -1) ask = $"{listen.ToArray()[0]} {message.ToArray()[0]}.";
                 return ask;
             }
             catch (Exception ex)
@@ -330,34 +357,33 @@ namespace Letter.Bots
         {
             try
             {
-                if (this._error_off) throw new InvalidOperationException("Operation choose \"Record\" bot failed!");
+                if (this._error_off) throw new InvalidOperationException("Operation select \"SMS\" bot failed!");
 
-                HashSet<string> mp3s = this._mp3
+                HashSet<string> setups = this._setup
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> wavs = this._wav
+                HashSet<string> sends = this._send
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> texts = this._text
+                HashSet<string> listens = this._listen
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
-                bool wav = false;
-                bool mp3 = false;
-                bool text = false;
-
+                bool send = false;
+                bool setup = false;
+                bool listen = false;
                 List<Message> memos = new List<Message>();
                 memos = messages.FindAll(index => index.Sender == null);
                 foreach (Message memo in memos)
                 {
-                    if (Array.IndexOf(wavs.ToArray(), memo.Text) != -1) wav = true;
-                    if (Array.IndexOf(mp3s.ToArray(), memo.Text) != -1) mp3 = true;
-                    if (Array.IndexOf(texts.ToArray(), memo.Text) != -1) text = true;
+                    if (Array.IndexOf(sends.ToArray(), memo.Text) != -1) send = true;
+                    if (Array.IndexOf(setups.ToArray(), memo.Text) != -1) setup = true;
+                    if (Array.IndexOf(listens.ToArray(), memo.Text) != -1) listen = true;
                 }
-
                 List<string> response = new List<string>();
-                if (wav || mp3) response = await SelectStop(language);
-                if (text) response = await SelectText(language);
+                if (send && !setup) response = await SelectSetup(language);
+                if (setup) response = await SelectSend(language);
+                if (listen) response = await SelectTerminate(language);
                 return response;
             }
             catch (Exception ex)
@@ -371,60 +397,55 @@ namespace Letter.Bots
         {
             try
             {
-                if (this._error_off) throw new InvalidOperationException("Operation load \"Record\" bot failed!");
+                if (this._error_off) throw new InvalidOperationException("Operation load \"SMS\" bot failed!");
 
-                HashSet<string> audios = this._audios
+                HashSet<string> terminate = this._terminate
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> stops = this._stop
+                HashSet<string> setup = this._setup
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> mp3s = this._mp3
+                HashSet<string> listen = this._listen
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> wavs = this._wav
+                HashSet<string> send = this._send
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> sends = this._send
+                HashSet<string> post = this._post
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> texts = this._text
+                HashSet<string> generate = this._generate
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 List<string> result = new List<string>();
                 string ask = string.Empty;
-                if (Array.IndexOf(texts.ToArray(), parameter) != -1)
+                if (Array.IndexOf(listen.ToArray(), parameter) != -1)
                 {
-                    ask = await Text(language, parameter);
+                    ask = await Listen(language, parameter);
                     result.Add(ask);
+                    return result;
                 }
-                if (Array.IndexOf(sends.ToArray(), parameter) != -1)
+                if (Array.IndexOf(send.ToArray(), parameter) != -1)
                 {
                     ask = await Send(language, parameter);
                     result.Add(ask);
+                }
+                if (Array.IndexOf(generate.ToArray(), parameter) != -1)
+                {
+                    ask = await Generate(language, parameter);
+                    result.Add(ask);
                     ask = await Terminate(language);
                     result.Add(ask);
-                    return result;
                 }
-                if (Array.IndexOf(audios.ToArray(), parameter) != -1)
+                if (Array.IndexOf(setup.ToArray(), parameter) != -1)
                 {
-                    ask = await Audio(language, parameter);
+                    ask = await Setup(language, parameter);
                     result.Add(ask);
                     return result;
                 }
-                if (Array.IndexOf(stops.ToArray(), parameter) != -1)
+                if (Array.IndexOf(terminate.ToArray(), parameter) != -1)
                 {
-                    List<Message> memos = new List<Message>();
-                    memos = messages.FindAll(index => index.Sender == null);
-                    string kind = string.Empty;
-                    foreach (Message memo in memos)
-                    {
-                        if (Array.IndexOf(wavs.ToArray(), memo.Text) != -1) kind = wavs.ToArray()[0];
-                        if (Array.IndexOf(mp3s.ToArray(), memo.Text) != -1) kind = mp3s.ToArray()[0];
-                    }
-                    ask = await Stop(language, kind);
-                    result.Add(ask);
                     ask = await Terminate(language);
                     result.Add(ask);
                     return result;
@@ -442,7 +463,7 @@ namespace Letter.Bots
         {
             try
             {
-                if (this._error_off) throw new InvalidOperationException("Operation terminate \"Record\" bot failed!");
+                if (this._error_off) throw new InvalidOperationException("Operation terminate \"SMS\" bot failed!");
 
                 HashSet<string> terminate = this._terminate
                     .Where(index => index.Value.Contains(language))

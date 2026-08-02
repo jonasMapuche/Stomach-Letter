@@ -40,8 +40,12 @@ namespace Letter.Platforms.Android.Services
         private readonly TextureView _textureView;
 
         private CameraDevice _cameraDevice;
+        private MediaRecorder _mediaRecorder;
         private string[] _list_camera;
         private string _camera_id;
+        private Flash _flash;
+
+        private const bool EMULATOR = true;
 
         public CameraCaptureSession CameraSession;
 
@@ -59,6 +63,7 @@ namespace Letter.Platforms.Android.Services
 
                 this._context = context;
                 this._textureView = textureView;
+                this._flash = Flash.Off;
             }
             catch (Exception ex)
             {
@@ -156,12 +161,13 @@ namespace Letter.Platforms.Android.Services
                 if (this._error_off) throw new InvalidOperationException("Operation listen camera \"Camera\" service failed!");
 
                 CameraManager? manager = (CameraManager)this._context.GetSystemService(Context.CameraService);
-                string camera_id = this._camera_id;
+                if (manager == null) return;
+                if ((this._flash != Flash.Auto) && (!EMULATOR))
+                    manager.SetTorchMode(this._camera_id, this._flash == Flash.Off ? false : true);
                 HandlerThread thread = new HandlerThread("CameraBackground");
                 thread.Start();
                 Handler handler = new Handler(thread.Looper);
-
-                manager.OpenCamera(camera_id, new CaptureState(this), handler);
+                manager.OpenCamera(this._camera_id, new CaptureState(this), handler);
             }
             catch (Exception ex)
             {
@@ -177,18 +183,30 @@ namespace Letter.Platforms.Android.Services
                 if (this._error_off) throw new InvalidOperationException("Operation capture session \"Camera\" service failed!");
 
                 //ImageReader imageReader = ImageReader.NewInstance(1920, 1080, ImageFormatType.Jpeg, 1);
+                if (this._size == null) return;
                 ImageReader imageReader = ImageReader.NewInstance(this._size.Width, this._size.Height, ImageFormatType.Jpeg, 1);
                 imageReader.SetOnImageAvailableListener(new ImageState(this._photo), null);
-                Surface? surface_image = imageReader.Surface;
-
-                SurfaceTexture? texture = this._textureView.SurfaceTexture;
-                texture.SetDefaultBufferSize(this._size.Width, this._size.Height);
+                Surface surface_image = imageReader.Surface;
+                if (surface_image == null) return;
+                SurfaceTexture texture = this._textureView.SurfaceTexture;
+                texture?.SetDefaultBufferSize(this._size.Width, this._size.Height);
                 Surface surface_texture = new Surface(texture);
-
                 CaptureRequest.Builder builder = cameraDevice.CreateCaptureRequest(CameraTemplate.StillCapture);
                 builder.AddTarget(surface_image);
+                if (CaptureRequest.JpegOrientation == null) return;
                 builder.Set(CaptureRequest.JpegOrientation, 90);
-
+                if (this._flash == Flash.Auto) 
+                {
+                    if (CaptureRequest.ControlAeMode == null) return;
+                    builder.Set(CaptureRequest.ControlAeMode, (int)ControlAEMode.OnAutoFlash);
+                }
+                if (this._flash != Flash.Auto)
+                {
+                    if (CaptureRequest.FlashMode == null) return;
+                    if (CaptureRequest.ControlAeMode == null) return;
+                    builder.Set(CaptureRequest.FlashMode, this._flash == Flash.Off ? (int)FlashMode.Off : (int)FlashMode.Single);
+                    builder.Set(CaptureRequest.ControlAeMode, this._flash == Flash.Off ? (int)ControlAEMode.Off : (int)ControlAEMode.On);
+                }
                 List<Surface> surfaces = new System.Collections.Generic.List<Surface> { surface_texture, surface_image };
                 cameraDevice.CreateCaptureSession(surfaces, new CaptureSession(cameraDevice, builder), null);
             }
@@ -239,19 +257,6 @@ namespace Letter.Platforms.Android.Services
             }
         }
 
-        // Nota: O CameraManager genérico só liga/desliga a lanterna (Torch):
-        // cameraManager.SetTorchMode(cameraId, true); 
-
-        // Para o modo AUTO, é necessário abrir o dispositivo da câmera (OpenCamera)
-        // e configurar o Builder do CaptureRequest:
-        // builder.Set(CaptureRequest.ControlAeMode, (int)ControlAeMode.OnAutoFlash);
-        // builder.Set(CaptureRequest.ControlAeMode, (int)ControlAEMode.OnAutoFlash);
-        // builder.Set(CaptureRequest.FlashMode, (int) FlashMode.Single);
-        // Desliga o modo de flash automático/ativo no builder
-        // builder.Set(CaptureRequest.FlashMode, (int) FlashMode.Off);
-        // Opcional, mas recomendado para garantir que o controle automático de exposição (AE) não force o flash
-        // builder.Set(CaptureRequest.ControlAeMode, (int) ControlAEMode.On);
-
         private void ListenPreview()
         {
             try
@@ -260,6 +265,8 @@ namespace Letter.Platforms.Android.Services
 
                 CameraManager? manager = (CameraManager)this._context.GetSystemService(Context.CameraService);
                 if (manager == null) return;
+                if ((this._flash != Flash.Auto) && (!EMULATOR))
+                    manager.SetTorchMode(this._camera_id, this._flash == Flash.Off ? false : true);
                 CameraCharacteristics characteristics = manager.GetCameraCharacteristics(this._camera_id);
                 StreamConfigurationMap? map = (StreamConfigurationMap)characteristics.Get(CameraCharacteristics.ScalerStreamConfigurationMap);
                 global::Android.Util.Size[]? sizes = map?.GetOutputSizes(Class.FromType(typeof(SurfaceTexture)));
@@ -306,6 +313,7 @@ namespace Letter.Platforms.Android.Services
                 if (this._error_off) throw new InvalidOperationException("Operation start record \"Camera\" service failed!");
 
                 this._output = output;
+                StopPreview();
                 ListenRecord();
             }
             catch (Exception ex)
@@ -323,6 +331,8 @@ namespace Letter.Platforms.Android.Services
 
                 CameraManager manager = (CameraManager)this._context.GetSystemService(Context.CameraService);
                 if (manager == null) return;
+                if ((this._flash != Flash.Auto) && (!EMULATOR))
+                    manager.SetTorchMode(this._camera_id, this._flash == Flash.Off ? false : true);
                 HandlerThread thread = new HandlerThread("RecordBackground");
                 thread.Start();
                 Handler handler = new Handler(thread.Looper);
@@ -342,10 +352,12 @@ namespace Letter.Platforms.Android.Services
                 if (this._error_off) throw new InvalidOperationException("Operation record session \"Camera\" service failed!");
 
                 MediaRecorder mediaRecorder = SetupRecord(this._output);
-                Surface? surface = mediaRecorder.Surface;
+                Surface surface = mediaRecorder.Surface;
+                if (surface == null) return;
                 CaptureRequest.Builder builder = cameraDevice.CreateCaptureRequest(CameraTemplate.Record);
                 builder.AddTarget(surface);
                 this._cameraDevice = cameraDevice;
+                this._mediaRecorder = mediaRecorder;
                 List<Surface> surfaces = new System.Collections.Generic.List<Surface> { surface };
                 cameraDevice.CreateCaptureSession(surfaces, new RecordSession(cameraDevice, builder, mediaRecorder), null);
             }
@@ -384,11 +396,16 @@ namespace Letter.Platforms.Android.Services
             }
         }
 
-        public string StopRecord()
+        public void StopRecord()
         {
             try
             {
-                return string.Empty;
+                if (this._error_off) throw new InvalidOperationException("Operation stop record \"Camera\" service failed!");
+
+                this._mediaRecorder?.Stop();
+                this._mediaRecorder?.Release();
+                StopPreview();
+                ListenPreview();
             }
             catch (Exception ex)
             {
@@ -445,6 +462,16 @@ namespace Letter.Platforms.Android.Services
         {
             try
             {
+                int quantity = 0;
+                quantity = ListCamera();
+                if (quantity > 0)
+                {
+                    if (this._camera_id != this._list_camera[0]) return;
+                    if (flash == this._flash) return;
+                    StopPreview();
+                    this._flash = flash;
+                    ListenPreview();
+                }
             }
             catch (Exception ex)
             {

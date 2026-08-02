@@ -36,23 +36,20 @@ namespace Letter.Bots
         private Dictionary<string, string> _capture;
         private Dictionary<string, string> _record;
         private Dictionary<string, string> _preview;
+        private Dictionary<string, string> _flash_mode;
+        private Dictionary<string, string> _stop;
+        private Dictionary<string, string> _stop_preview;
+        private Dictionary<string, string> _stop_record;
+        private Dictionary<string, string> _save;
+        private Dictionary<string, string> _lences;
 
         private Dictionary<string, string> _front;
         private Dictionary<string, string> _rear;
-
         private Dictionary<string, string> _on;
         private Dictionary<string, string> _off;
         private Dictionary<string, string> _auto;
 
-        private Dictionary<string, string> _stop;
-        private Dictionary<string, string> _stop_preview;
-        private Dictionary<string, string> _stop_record;
-
-        private Dictionary<string, string> _save;
-
-        private Dictionary<string, string> _catch_flash;
-        private Dictionary<string, string> _catch_rotate;
-        private Dictionary<string, string> _catch_activity;
+        private Dictionary<string, string> _activity;
 
         private SettingService _settingService;
         #endregion
@@ -65,6 +62,7 @@ namespace Letter.Bots
                 if (this._error_off) throw new InvalidOperationException("Operation constructor \"Camera\" bot failed!");
                 else this.error_message = string.Empty;
 
+                if (SettingService.Instance == null) return;
                 this._settingService = SettingService.Instance;
 
                 this._turn = this._settingService.Turn;
@@ -79,23 +77,18 @@ namespace Letter.Bots
                 this._capture = this._settingService.Capture;
                 this._record = this._settingService.Record;
                 this._preview = this._settingService.Preview;
-
                 this._front = this._settingService.Front;
                 this._rear = this._settingService.Rear;
-
                 this._on = this._settingService.On;
                 this._off = this._settingService.Off;
                 this._auto = this._settingService.Auto;
-
                 this._stop = this._settingService.Stop;
                 this._save = this._settingService.Save;
-
                 this._stop_preview = this._settingService.Stop_Preview;
                 this._stop_record = this._settingService.Stop_Record;
-
-                this._catch_flash = this._settingService.Catch_Flash;
-                this._catch_rotate = this._settingService.Catch_Rotate;
-                this._catch_activity = this._settingService.Catch_Activity;
+                this._flash_mode = this._settingService.Flash_Mode;
+                this._lences = this._settingService.Lences;
+                this._activity = this._settingService.Activity;
             }
             catch (Exception ex)
             {
@@ -581,13 +574,13 @@ namespace Letter.Bots
             {
                 if (this._error_off) throw new InvalidOperationException("Operation select \"Camera\" bot failed!");
 
-                HashSet<string> flashs = this._catch_flash
+                HashSet<string> flashs = this._flash_mode
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> rotates = this._catch_rotate
+                HashSet<string> rotates = this._lences
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> activities = this._catch_activity
+                HashSet<string> activities = this._activity
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
                 HashSet<string> captures = this._capture
@@ -612,6 +605,7 @@ namespace Letter.Bots
                 bool record = false;
                 bool preview = false;
                 bool stop_record = false;
+                bool capture = false;
 
                 List<Message> memos = new List<Message>();
                 memos = messages.FindAll(index => index.Sender == null);
@@ -624,6 +618,7 @@ namespace Letter.Bots
                     if (Array.IndexOf(records.ToArray(), memo.Text) != -1) record = true;
                     if (Array.IndexOf(previews.ToArray(), memo.Text) != -1) preview = true;
                     if (Array.IndexOf(stop_records.ToArray(), memo.Text) != -1) stop_record = true;
+                    if (Array.IndexOf(captures.ToArray(), memo.Text) != -1) capture = true;
                 }
 
                 List<string> response = new List<string>();
@@ -631,6 +626,7 @@ namespace Letter.Bots
                 if (preview && !rotate) response = await SelectRotate(language);
                 if (preview && rotate && !flash) response = await SelectFlash(language);
                 if (preview && rotate && flash && !activity) response = await SelectActivity(language);
+                if (preview && rotate && flash && capture) response = await SelectSave(language);
                 if (preview && rotate && flash && record && !stop_record) response = await SelectRecord(language);
                 if (preview && rotate && flash && record && stop_record) response = await SelectSave(language);
 
@@ -649,13 +645,13 @@ namespace Letter.Bots
             {
                 if (this._error_off) throw new InvalidOperationException("Operation load \"Camera\" bot failed!");
 
-                HashSet<string> flashs = this._catch_flash
+                HashSet<string> flashs = this._flash_mode
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> rotates = this._catch_rotate
+                HashSet<string> rotates = this._lences
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> activities = this._catch_activity
+                HashSet<string> activities = this._activity
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
                 HashSet<string> saves = this._save

@@ -10,6 +10,11 @@ using Letter.Interfaces;
 using Letter.Controls;
 
 using Letter.Platforms.Android.Handlers;
+using Plugin.Firebase.Bundled.Shared;
+using Plugin.Firebase.Auth;
+
+using Microsoft.Maui.LifecycleEvents;
+using Plugin.Firebase.Bundled.Platforms.Android;
 
 
 
@@ -29,6 +34,7 @@ namespace Letter
                 .UseMauiApp<App>()
                 .UseMauiCommunityToolkit()
                 .UseMauiCommunityToolkitCamera()
+                .RegisterFirebaseServices()
                 .ConfigureMauiHandlers(handlers =>
                 {
 #if ANDROID
@@ -102,6 +108,26 @@ namespace Letter
 #endif
 
             return builder.Build();
+        }
+
+        private static MauiAppBuilder RegisterFirebaseServices(this MauiAppBuilder builder)
+        {
+            builder.ConfigureLifecycleEvents(events => {
+#if ANDROID
+                events.AddAndroid(android => android.OnCreate((activity, bundle) =>
+                    CrossFirebase.Initialize(activity, () => Platform.CurrentActivity, CreateCrossFirebaseSettings())));
+#endif
+            });
+
+            builder.Services.AddSingleton(_ => CrossFirebaseAuth.Current);
+            return builder;
+        }
+
+        private static CrossFirebaseSettings CreateCrossFirebaseSettings()
+        {
+            return new CrossFirebaseSettings(
+                isAuthEnabled: true,
+                isCloudMessagingEnabled: true);
         }
     }
 }

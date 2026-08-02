@@ -1,5 +1,4 @@
 ﻿using Letter.Enums;
-using Letter.Platforms.Android.Services;
 
 namespace Letter.Controls
 {
@@ -24,7 +23,10 @@ namespace Letter.Controls
             BindableProperty.Create(nameof(SetFlash), typeof(Flash), typeof(CameraPreview), Flash.Unknown);
 
         public static readonly BindableProperty ImageBytesProperty =
-            BindableProperty.Create(nameof(ImageBytes), typeof(byte[]), typeof(CameraPreview), null, propertyChanged: OnImageBytesChanged);
+            BindableProperty.Create(nameof(ImageBytes), typeof(byte[]), typeof(CameraPreview), null);
+
+        public static readonly BindableProperty SetPathProperty =
+            BindableProperty.Create(nameof(SetPath), typeof(string), typeof(CameraPreview), string.Empty);
 
         public bool IsStop
         {
@@ -75,35 +77,10 @@ namespace Letter.Controls
             OnImageBytes?.Invoke(this, EventArgs.Empty);
         }
 
-        public ImageSource? DisplayImage { get; private set; }
-
-        private static void OnImageBytesChanged(BindableObject bindable, object oldValue, object newValue)
+        public string SetPath
         {
-            var control = (CameraPreview)bindable;
-            if (newValue is byte[] bytes && bytes.Length > 0)
-            {
-                control.DisplayImage = ImageSource.FromStream(() => new MemoryStream(bytes));
-            }
+            get => (string)GetValue(SetPathProperty);
+            set => SetValue(SetPathProperty, value);
         }
-
-        /*
-        private static void OnImageDataChanged(BindableObject bindable, object oldValue, object newValue)
-        {
-            if (bindable is CameraPreview control && newValue is byte[] data)
-            {
-                _ = control.ProcessDataAsync(data);
-            }
-        }
-
-        private async Task ProcessDataAsync(byte[] data)
-        {
-            //await CaptureCamera();
-
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                this.Handler?.UpdateValue(nameof(ImageBytes));
-            });
-        }
-        */
     }
 }

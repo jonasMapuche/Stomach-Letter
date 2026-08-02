@@ -60,11 +60,8 @@ namespace Letter.ViewModels
         private Language _language_francais;
         private Language _language_espanol;
 
-        private Dictionary<string, string> _load_camera;
-        private Dictionary<string, string> _execute;
         private Dictionary<string, string> _view;
         private Dictionary<string, string> _play;
-        private Dictionary<string, string> _activity;
         private Dictionary<string, string> _record;
         private Dictionary<string, string> _stop;
         private Dictionary<string, string> _rotate;
@@ -93,8 +90,9 @@ namespace Letter.ViewModels
         private Dictionary<string, string> _select;
         private Dictionary<string, string> _listen;
         private Dictionary<string, string> _call;
-        private Dictionary<string, string> _push;
         private Dictionary<string, string> _preview;
+        private Dictionary<string, string> _push;
+        private Dictionary<string, string> _generate;
 
         private Dictionary<string, string> _gps;
         private Dictionary<string, string> _bluetooth;
@@ -129,6 +127,9 @@ namespace Letter.ViewModels
         private Dictionary<string, string> _message;
         private Dictionary<string, string> _token;
         private Dictionary<string, string> _message_copy;
+        private Dictionary<string, string> _ping;
+        private Dictionary<string, string> _speaker;
+        private Dictionary<string, string> _speech;
 
         private Dictionary<string, string> _with;
         private Dictionary<string, string> _in;
@@ -139,6 +140,7 @@ namespace Letter.ViewModels
         private Dictionary<string, string> _to;
         private Dictionary<string, string> _front;
         private Dictionary<string, string> _rear;
+        private Dictionary<string, string> _notification;
 
         private Dictionary<string, string> _and;
 
@@ -170,9 +172,10 @@ namespace Letter.ViewModels
                 if (this._error_off) throw new InvalidOperationException("Operation constructor \"Bot\" view model failed!");
                 else this.error_message = string.Empty;
 
+                if (SettingService.Instance == null) return;
+                this._settingService = SettingService.Instance;
                 this._perceptionService = perceptionService;
                 this._httpService = httpService;
-                this._settingService = SettingService.Instance;
                 this._messageService = messageService;
                 this._grammarService = grammarService;
 
@@ -206,11 +209,8 @@ namespace Letter.ViewModels
                 this._language_francais = this._settingService.Francais;
                 this._language_espanol = this._settingService.Espanol;
 
-                this._load_camera = this._settingService.Load_Camera;
-                this._execute = this._settingService.Execute;
                 this._view = this._settingService.View;
                 this._play = this._settingService.Play;
-                this._activity = this._settingService.Activity;
                 this._record = this._settingService.Record;
                 this._stop = this._settingService.Stop;
                 this._rotate = this._settingService.Rotate;
@@ -239,8 +239,9 @@ namespace Letter.ViewModels
                 this._select = this._settingService.Select;
                 this._listen = this._settingService.Listen;
                 this._call = this._settingService.Call;
-                this._push = this._settingService.Push;
                 this._preview = this._settingService.Preview;
+                this._generate = this._settingService.Generate;
+                this._push = this._settingService.Push;
 
                 this._gps = this._settingService.GPS;
                 this._bluetooth = this._settingService.Bluetooth;
@@ -267,6 +268,9 @@ namespace Letter.ViewModels
                 this._message = this._settingService.Message;
                 this._token = this._settingService.Token;
                 this._message_copy = this._settingService.Message_Copy;
+                this._ping = this._settingService.Ping;
+                this._speaker = this._settingService.Speaker;
+                this._speech = this._settingService.Speech;
 
                 this._interrogative = this._settingService.Inquisitive;
                 this._informative = this._settingService.Informative;
@@ -284,6 +288,7 @@ namespace Letter.ViewModels
                 this._on = this._settingService.On;
                 this._to = this._settingService.To;
                 this._open = this._settingService.Open;
+                this._notification = this._settingService.Notification;
 
                 this._and = this._settingService.And;
 
@@ -391,10 +396,13 @@ namespace Letter.ViewModels
 
                 if (this._mode_bot)
                 {
-                    this._messageService.Bots(null, report, language);
-                    string response = string.Empty;
+                    string result = string.Empty;
+                    List<Message> memos = new List<Message>();
+                    memos = this._messageService.Bots(language); 
+                    result = BotMessage(report, language, memos);
+                    this._messageService.Bots(null, result, language);
                     List<Mechanism> mechanisms = new List<Mechanism>();
-                    await SyntaxBot(report, user, language);
+                    await SyntaxBot(result, user, language);
                 }
                 else
                 {
@@ -443,10 +451,11 @@ namespace Letter.ViewModels
 
                 if (this._mode_bot)
                 {
-                    this._messageService.Bots(null, report, language);
-                    string response = string.Empty;
+                    string result = string.Empty;
+                    result = TacitMessage(tatic, report, language);
+                    this._messageService.Bots(null, result, language);
                     List<Mechanism> mechanisms = new List<Mechanism>();
-                    await SyntaxBot(report, user, language);
+                    await SyntaxBot(result, user, language);
                 }
                 else
                 {
@@ -625,6 +634,60 @@ namespace Letter.ViewModels
             }
         }
 
+        private string BotMessage(string report, string language, List<Message> memos)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation tacit message \"Bot\" view model failed!");
+
+                HashSet<string> send = this._send
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> setup = this._setup
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> generate = this._generate
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                string result = string.Empty;
+                if (this._kind_bot == Automaton.Speak)
+                {
+                    result = $"{send.ToArray()[0]}";
+                    this._flam = new List<string>();
+                    this._flam.Add(report);
+                }
+                if (this._kind_bot == Automaton.Record)
+                {
+                    result = $"{send.ToArray()[0]}";
+                    this._flam = new List<string>();
+                    this._flam.Add(report);
+                }
+                if (this._kind_bot == Automaton.WiFi)
+                {
+                    result = $"{send.ToArray()[0]}";
+                    this._flam = new List<string>();
+                    this._flam.Add(report);
+                }
+                if (this._kind_bot == Automaton.SMS)
+                {
+                    foreach (Message memo in memos)
+                    {
+                        if (Array.IndexOf(setup.ToArray(), memo.Text) != -1) result = $"{generate.ToArray()[0]}";
+                    }
+                    if (result == string.Empty) result = $"{setup.ToArray()[0]}";
+                    this._flam = new List<string>();
+                    this._flam.Add(report);
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
         private string TacitMessage(Tacit tacit, string report, string language)
         {
             try
@@ -637,11 +700,36 @@ namespace Letter.ViewModels
                 HashSet<string> bluetooth3 = this._bluetooth3
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> ping = this._ping
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> scan = this._scan
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string result = string.Empty;
-                if (tacit == Tacit.Bluetooth)
+                result = report;
+                if ((tacit == Tacit.Bluetooth) && (!this._mode_bot))
                 {
                     result = $"{bluetooth3.ToArray()[0]} {connect.ToArray()[0]}.";
+                    this._flam = new List<string>();
+                    this._flam.Add(report);
+                }
+                if ((tacit == Tacit.Bluetooth) && (this._mode_bot))
+                {
+                    result = $"{connect.ToArray()[0]}.";
+                    this._flam = new List<string>();
+                    this._flam.Add(report);
+                }
+                if ((tacit == Tacit.WiFi) && (!this._mode_bot))
+                {
+                    result = $"{ping.ToArray()[0]} {scan.ToArray()[0]}.";
+                    this._flam = new List<string>();
+                    this._flam.Add(report);
+                }
+                if ((tacit == Tacit.WiFi) && (this._mode_bot))
+                {
+                    result = $"{ping.ToArray()[0]}.";
                     this._flam = new List<string>();
                     this._flam.Add(report);
                 }
@@ -741,40 +829,6 @@ namespace Letter.ViewModels
             }
         }
 
-        private async Task<List<Message>> LoadBot(string parameter, User user, string language)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation load bot \"Bot\" view model failed!");
-
-                List<Message> reports = new List<Message>();
-                reports = this._messageService.Bots(language);
-                List<string> tasks = new List<string>();
-                List<Message> notes = new List<Message>();
-                if (this._kind_bot == Automaton.Camera) 
-                {
-                    tasks = await this._botService.CaptureCamera(language, parameter, reports);
-                    notes = await LoopBot(tasks, user, language);
-                }
-                if (this._kind_bot == Automaton.Record)
-                {
-                    tasks = await this._botService.RecordAudio(language, parameter, reports);
-                    notes = await LoopBot(tasks, user, language);
-                }
-                if (this._kind_bot == Automaton.Share)
-                {
-                    tasks = await this._botService.ShareFile(language, parameter, reports);
-                    notes = await LoopBot(tasks, user, language);
-                }
-                return notes;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
         private async Task<List<Message>> LoopBot(List<string> tasks, User user, string language)
         {
             try
@@ -807,6 +861,55 @@ namespace Letter.ViewModels
             }
         }
 
+        private async Task<List<Message>> LoadBot(string parameter, User user, string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation load bot \"Bot\" view model failed!");
+
+                List<Message> reports = new List<Message>();
+                reports = this._messageService.Bots(language);
+                List<string> tasks = new List<string>();
+                List<Message> notes = new List<Message>();
+                if (this._kind_bot == Automaton.Camera)
+                {
+                    tasks = await this._botService.CaptureCamera(language, parameter, reports);
+                    notes = await LoopBot(tasks, user, language);
+                }
+                if (this._kind_bot == Automaton.Record)
+                {
+                    tasks = await this._botService.RecordAudio(language, parameter, reports);
+                    notes = await LoopBot(tasks, user, language);
+                }
+                if (this._kind_bot == Automaton.Share)
+                {
+                    tasks = await this._botService.ShareFile(language, parameter, reports);
+                    notes = await LoopBot(tasks, user, language);
+                }
+                if (this._kind_bot == Automaton.SMS)
+                {
+                    tasks = await this._botService.SMS(language, parameter, reports);
+                    notes = await LoopBot(tasks, user, language);
+                }
+                if (this._kind_bot == Automaton.Speak)
+                {
+                    tasks = await this._botService.SpeakText(language, parameter, reports);
+                    notes = await LoopBot(tasks, user, language);
+                }
+                if (this._kind_bot == Automaton.WiFi)
+                {
+                    tasks = await this._botService.WiFi(language, parameter, reports);
+                    notes = await LoopBot(tasks, user, language);
+                }
+                return notes;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
         private async Task<List<Mechanism>> ChooseBot(string parameter, string language, List<Message> reports)
         {
             try
@@ -823,6 +926,12 @@ namespace Letter.ViewModels
                         result = await this._botService.RecordChoose(language, reports);
                     if (this._kind_bot == Automaton.Share)
                         result = await this._botService.ShareChoose(language, reports);
+                    if (this._kind_bot == Automaton.SMS)
+                        result = await this._botService.SMSChoose(language, reports);
+                    if (this._kind_bot == Automaton.Speak)
+                        result = await this._botService.SpeakerChoose(language, reports);
+                    if (this._kind_bot == Automaton.WiFi)
+                        result = await this._botService.WiFiChoose(language, reports);
                     foreach (string value in result)
                     {
                         Mechanism mechanism = new Mechanism();
@@ -1282,8 +1391,8 @@ namespace Letter.ViewModels
                 HashSet<string> verbs_view = new HashSet<string>();
                 verbs_view = this._view.Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> verbs_push = new HashSet<string>();
-                verbs_push = this._push.Where(index => index.Value.Contains(language))
+                HashSet<string> verbs_generate = new HashSet<string>();
+                verbs_generate = this._generate.Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 HashSet<string> nouns_audio = new HashSet<string>();
@@ -1343,6 +1452,12 @@ namespace Letter.ViewModels
                 HashSet<string> nouns_token = new HashSet<string>();
                 nouns_token = this._token.Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> nouns_ping = new HashSet<string>();
+                nouns_ping = this._ping.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> nouns_speech = new HashSet<string>();
+                nouns_speech = this._speech.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 HashSet<string> adjective_auto = new HashSet<string>();
                 adjective_auto = this._auto.Where(index => index.Value.Contains(language))
@@ -1358,6 +1473,9 @@ namespace Letter.ViewModels
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
                 HashSet<string> adjective_rear = new HashSet<string>();
                 adjective_rear = this._rear.Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> adjective_notification = new HashSet<string>();
+                adjective_notification = this._notification.Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 List<Mechanism> mechanisms = new List<Mechanism>();
@@ -1452,6 +1570,30 @@ namespace Letter.ViewModels
                     return mechanisms;
                 }
 
+                if ((FindPredication(verbs, verbs_load)) && (FindOwner(nouns, nouns_message)))
+                {
+                    List<Mechanism> result = new List<Mechanism>();
+                    result = await LoadMessage(language);
+                    mechanisms = MountMechanism(result, Tacit.Implied);
+                    return mechanisms;
+                }
+
+                if ((FindPredication(verbs, verbs_load)) && (FindOwner(nouns, nouns_speech)))
+                {
+                    List<Mechanism> result = new List<Mechanism>();
+                    result = await LoadSpeaker(language);
+                    mechanisms = MountMechanism(result, Tacit.Implied);
+                    return mechanisms;
+                }
+
+                if ((FindPredication(verbs, verbs_load)) && (FindOwner(nouns, nouns_wifi)))
+                {
+                    List<Mechanism> result = new List<Mechanism>();
+                    result = await LoadWiFi(language);
+                    mechanisms = MountMechanism(result, Tacit.Implied);
+                    return mechanisms;
+                }
+
                 if ((FindPredication(verbs, verbs_play)) && (FindOwner(nouns, nouns_mp3)))
                 {
                     string result = string.Empty;
@@ -1468,7 +1610,8 @@ namespace Letter.ViewModels
                     return mechanisms;
                 }
 
-                if ((FindPredication(verbs, verbs_push)) && (FindOwner(nouns, nouns_token)))
+                if (FindPredication(verbs, verbs_generate) && FindOwner(nouns, nouns_token) &&
+                    FindPredicative(adjectives, adjective_notification))
                 {
                     List<Mechanism> result = new List<Mechanism>();
                     result = await PushToken(language);
@@ -1526,21 +1669,22 @@ namespace Letter.ViewModels
                     return mechanisms;
                 }
 
-                if ((FindPredication(verbs, verbs_select)) && (FindOwner(nouns, nouns_phone)))
-                {
-                    string text = string.Empty;
-                    text = ReciteText(explanatories);
-                    string result = string.Empty;
-                    result = await SetupSMS(language, text);
-                    mechanisms = MountMechanism(result, Tacit.Copy);
-                    return mechanisms;
-                }
-
                 if ((FindPredication(verbs, verbs_scan)) && (FindOwner(nouns, nouns_bluetooth3)))
                 {
                     List<Mechanism> result = new List<Mechanism>();
                     result = await ScanBluetooth3(language);
                     mechanisms = MountMechanism(result, Tacit.Bluetooth);
+                    return mechanisms;
+                }
+
+                if ((FindPredication(verbs, verbs_scan)) && (FindOwner(nouns, nouns_ping)))
+                {
+                    string text = string.Empty;
+                    if (this._mode_bot) text = this._flam.First();
+                    else text = ReciteText(explanatories);
+                    List<Mechanism> result = new List<Mechanism>();
+                    result = await ScanPing(language, text);
+                    mechanisms = MountMechanism(result, Tacit.Copy);
                     return mechanisms;
                 }
 
@@ -1555,7 +1699,8 @@ namespace Letter.ViewModels
                 if ((FindPredication(verbs, verbs_send)) && (FindOwner(nouns, nouns_message)))
                 {
                     string text = string.Empty;
-                    text = ReciteText(explanatories);
+                    if (this._mode_bot) text = this._flam.First();
+                    else text = ReciteText(explanatories);
                     string result = string.Empty;
                     result = await SendSMS(language, text);
                     mechanisms = MountMechanism(result, Tacit.Copy);
@@ -1578,6 +1723,17 @@ namespace Letter.ViewModels
                     return mechanisms;
                 }
 
+                if ((FindPredication(verbs, verbs_setup)) && (FindOwner(nouns, nouns_message)))
+                {
+                    string text = string.Empty;
+                    if (this._mode_bot) text = this._flam.First();
+                    else text = ReciteText(explanatories);
+                    string result = string.Empty;
+                    result = await SetupSMS(language, text);
+                    mechanisms = MountMechanism(result, Tacit.Copy);
+                    return mechanisms;
+                }
+
                 if ((FindPredication(verbs, verbs_share)) && (FindOwner(nouns, nouns_file)))
                 {
                     List<Mechanism> result = new List<Mechanism>();
@@ -1589,7 +1745,8 @@ namespace Letter.ViewModels
                 if ((FindPredication(verbs, verbs_speak)) && (FindOwner(nouns, nouns_text)))
                 {
                     string text = string.Empty;
-                    text = ReciteText(explanatories);
+                    if (this._mode_bot) text = this._flam.First();
+                    else text = ReciteText(explanatories);
                     string result = string.Empty;
                     result = await SpeakText(language, text);
                     mechanisms = MountMechanism(result, Tacit.Copy);
@@ -1599,7 +1756,8 @@ namespace Letter.ViewModels
                 if ((FindPredication(verbs, verbs_speak)) && (FindOwner(nouns, nouns_file)))
                 {
                     string text = string.Empty;
-                    text = ReciteText(explanatories);
+                    if (this._mode_bot) text = this._flam.First();
+                    else text = ReciteText(explanatories);
                     string result = string.Empty;
                     result = await FileText(language, text);
                     mechanisms = MountMechanism(result, Tacit.Copy);
@@ -1770,6 +1928,7 @@ namespace Letter.ViewModels
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string response = string.Empty;
+                if (this._perceptionService == null) return response;
                 if (kind == mp3.ToArray()[0])
                 {
                     this._perceptionService.StartRecordMP3();
@@ -1803,6 +1962,7 @@ namespace Letter.ViewModels
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string response = string.Empty;
+                if (this._perceptionService == null) return response;
                 await this._perceptionService.ClearRecording();
                 response = $"{audio.ToArray()[0]} {cleanup.ToArray()[0]}.";
                 return response;
@@ -1891,6 +2051,7 @@ namespace Letter.ViewModels
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string response = string.Empty;
+                if (this._perceptionService == null) return response;
                 if (kind == mp3.ToArray()[0])
                 {
                     string file_path = this._perceptionService.StopRecordMP3();
@@ -1928,14 +2089,13 @@ namespace Letter.ViewModels
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
+                string response = string.Empty;
+                if (this._perceptionService == null) return response; 
                 this._perceptionService.StopAudio();
                 string file_path = this._perceptionService.ReceiveRecording();
                 this._perceptionService.PlayAudio(file_path);
-
-                string response = string.Empty;
                 if (kind == mp3.ToArray()[0]) response = $"{mp3.ToArray()[0]} {play.ToArray()[0]}.";
-                else
-                    response = $"{wav.ToArray()[0]} {play.ToArray()[0]}.";
+                else response = $"{wav.ToArray()[0]} {play.ToArray()[0]}.";
                 return response;
             }
             catch (Exception ex)
@@ -2166,12 +2326,6 @@ namespace Letter.ViewModels
 
                 this.CameraPreview?.OnImageBytes += OnImageBytes;
                 this.CameraPreview?.IsCapture = true;
-                /*
-                MainThread.BeginInvokeOnMainThread(() => {
-                    if (this.CameraPreview?.IsCapture == false)
-                        this.Bytes = this.CameraPreview?.ImageBytes;
-                });
-                */
                 string response = string.Empty;
                 response = $"{camera.ToArray()[0]} {capture.ToArray()[0]}.";
                 return response;
@@ -2237,6 +2391,9 @@ namespace Letter.ViewModels
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
+                string file_path = await this._perceptionService.SendRecording();
+                this.CameraPreview?.SetPath = file_path;
+                this.CameraPreview?.IsRecord = true;
                 string response = string.Empty;
                 response = $"{camera.ToArray()[0]} {record.ToArray()[0]}.";
                 return response;
@@ -2261,6 +2418,7 @@ namespace Letter.ViewModels
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
+                this.CameraPreview?.IsStop = true;
                 string response = string.Empty;
                 response = $"{record.ToArray()[0]} {stop.ToArray()[0]}.";
                 return response;
@@ -2299,6 +2457,87 @@ namespace Letter.ViewModels
             }
         }
 
+        private async Task<List<Mechanism>> LoadMessage(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation load message \"Bot\" view model failed!");
+
+                if (!this._mode_bot) this._mode_bot = true;
+                if (this._kind_bot == Automaton.Unknown) this._kind_bot = Automaton.SMS;
+                List<string> response = new List<string>();
+                response = await this._botService.LoadSMS(language);
+                List<Mechanism> mechanisms = new List<Mechanism>();
+                foreach (string value in response)
+                {
+                    Mechanism mechanism = new Mechanism();
+                    mechanism.name = value;
+                    mechanism.implied = value;
+                    mechanisms.Add(mechanism);
+                }
+                return mechanisms;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<List<Mechanism>> LoadWiFi(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation load wifi \"Bot\" view model failed!");
+
+                if (!this._mode_bot) this._mode_bot = true;
+                if (this._kind_bot == Automaton.Unknown) this._kind_bot = Automaton.WiFi;
+                List<string> response = new List<string>();
+                response = await this._botService.LoadWiFi(language);
+                List<Mechanism> mechanisms = new List<Mechanism>();
+                foreach (string value in response)
+                {
+                    Mechanism mechanism = new Mechanism();
+                    mechanism.name = value;
+                    mechanism.implied = value;
+                    mechanisms.Add(mechanism);
+                }
+                return mechanisms;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<List<Mechanism>> LoadSpeaker(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation load speaker \"Bot\" view model failed!");
+
+                if (!this._mode_bot) this._mode_bot = true;
+                if (this._kind_bot == Automaton.Unknown) this._kind_bot = Automaton.Speak;
+                List<string> response = new List<string>();
+                response = await this._botService.LoadSpeaker(language);
+                List<Mechanism> mechanisms = new List<Mechanism>();
+                foreach (string value in response)
+                {
+                    Mechanism mechanism = new Mechanism();
+                    mechanism.name = value;
+                    mechanism.implied = value;
+                    mechanisms.Add(mechanism);
+                }
+                return mechanisms;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
         private async Task<string> UploadRaspberry(string language)
         {
             try
@@ -2313,6 +2552,7 @@ namespace Letter.ViewModels
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string response = string.Empty;
+                if (this._perceptionService == null) return response;
                 await this._perceptionService.UploadRaspberry();
                 response = $"{rapsberry.ToArray()[0]} {upload.ToArray()[0]}.";
                 return response;
@@ -2489,6 +2729,7 @@ namespace Letter.ViewModels
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string response = string.Empty;
+                if (this._perceptionService == null) return response;
                 await this._perceptionService.SetupBluetooth3();
                 response = $"{bluetooth3.ToArray()[0]} {setup.ToArray()[0]}.";
                 return response;
@@ -2515,8 +2756,10 @@ namespace Letter.ViewModels
 
                 string response = string.Empty;
                 response = $"{bluetooth3.ToArray()[0]} {scan.ToArray()[0]}.";
-                List<Mechanism> mechanisms = await this._perceptionService.ScanBluetooth3();
                 List<Mechanism> apparatus = new List<Mechanism>();
+                List<Mechanism> mechanisms = new List<Mechanism>();
+                if (this._perceptionService == null) return apparatus;
+                mechanisms = await this._perceptionService.ScanBluetooth3();
                 apparatus = MountMechanism(response, mechanisms);
                 return apparatus;
             }
@@ -2531,7 +2774,7 @@ namespace Letter.ViewModels
         {
             try
             {
-                if (this._error_off) throw new InvalidOperationException("Operation connect bluetooth 4 \"Bot\" view model failed!");
+                if (this._error_off) throw new InvalidOperationException("Operation connect bluetooth 3 \"Bot\" view model failed!");
 
                 HashSet<string> bluetooth3 = this._bluetooth3
                     .Where(index => index.Value.Contains(language))
@@ -2543,11 +2786,13 @@ namespace Letter.ViewModels
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
-                string result = string.Empty;
-                if (this._flam.Count > 1)
-                    result = await this._perceptionService.ConnectBluetooth3(this._flam.First());
                 string response = string.Empty;
-                response = $"{connected.ToArray()[0]} {in_proposition.ToArray()[0]} {bluetooth3.ToArray()[0]}.";
+                if (this._perceptionService == null) return response;
+                if (this._flam.Count > 1)
+                {
+                    await this._perceptionService.ConnectBluetooth3(this._flam.First());
+                    response = $"{connected.ToArray()[0]} {in_proposition.ToArray()[0]} {bluetooth3.ToArray()[0]}.";
+                }
                 return response;
             }
             catch (Exception ex)
@@ -2571,6 +2816,7 @@ namespace Letter.ViewModels
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string response = string.Empty;
+                if (this._perceptionService == null) return response;
                 this._perceptionService.SpeakText(locution);
                 response = $"{text.ToArray()[0]} {speak.ToArray()[0]}.";
                 return response;
@@ -2596,6 +2842,7 @@ namespace Letter.ViewModels
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string response = string.Empty;
+                if (this._perceptionService == null) return response;
                 string file_path = this._perceptionService.FileText(locution);
                 await this._perceptionService.SendRecording(file_path);
                 response = $"{file.ToArray()[0]} {save.ToArray()[0]}.";
@@ -2622,7 +2869,8 @@ namespace Letter.ViewModels
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string response = string.Empty;
-                List<string> grammars = this._grammarService.LoadSyntax(language, 1); 
+                List<string> grammars = this._grammarService.LoadSyntax(language, 1);
+                if (this._perceptionService == null) return response;
                 string file_path = await this._perceptionService.SaveLetter(grammars);
                 await this._perceptionService.SendRecording(file_path);
                 response = $"{letter.ToArray()[0]} {load.ToArray()[0]}.";
@@ -2641,7 +2889,7 @@ namespace Letter.ViewModels
             {
                 if (this._error_off) throw new InvalidOperationException("Operation setup SMS \"Bot\" view model failed!");
 
-                HashSet<string> phone = this._phone
+                HashSet<string> message = this._message
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
                 HashSet<string> setup = this._setup
@@ -2649,8 +2897,9 @@ namespace Letter.ViewModels
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string response = string.Empty;
+                if (this._perceptionService == null) return response;
                 await this._perceptionService.SetupSMS(text);
-                response = $"{phone.ToArray()[0]} {setup.ToArray()[0]}: {text}.";
+                response = $"{message.ToArray()[0]} {setup.ToArray()[0]}.";
                 return response;
             }
             catch (Exception ex)
@@ -2674,6 +2923,7 @@ namespace Letter.ViewModels
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string response = string.Empty;
+                if (this._perceptionService == null) return response;
                 this._perceptionService.SendSMS(text);
                 response = $"{message.ToArray()[0]} {send.ToArray()[0]}.";
                 return response;
@@ -2698,11 +2948,12 @@ namespace Letter.ViewModels
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
-                string response = string.Empty;
-                response = $"{message.ToArray()[0]} {listen.ToArray()[0]}.";
                 List<Mechanism> mechanisms = new List<Mechanism>();
                 List<Mechanism> apparatus = new List<Mechanism>();
+                if (this._perceptionService == null) return apparatus;
                 mechanisms = await this._perceptionService.ScanSMS();
+                string response = string.Empty;
+                response = $"{message.ToArray()[0]} {listen.ToArray()[0]}.";
                 apparatus = MountMechanism(response, mechanisms);
                 return apparatus;
             }
@@ -2727,6 +2978,7 @@ namespace Letter.ViewModels
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string response = string.Empty;
+                if (this._perceptionService == null) return response;
                 await this._perceptionService.SetupWiFi();
                 response = $"{wifi.ToArray()[0]} {setup.ToArray()[0]}.";
                 return response;
@@ -2751,10 +3003,41 @@ namespace Letter.ViewModels
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
+                List<Mechanism> mechanisms = new List<Mechanism>();
+                List<Mechanism> apparatus = new List<Mechanism>();
+                if (this._perceptionService == null) return apparatus;
+                mechanisms = await this._perceptionService.ScanWiFi();
                 string response = string.Empty;
                 response = $"{wifi.ToArray()[0]} {scan.ToArray()[0]}.";
-                List<Mechanism> mechanisms = await this._perceptionService.ScanWiFi();
+                apparatus = MountMechanism(response, mechanisms);
+                return apparatus;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<List<Mechanism>> ScanPing(string language, string text)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation scan ping \"Bot\" view model failed!");
+
+                HashSet<string> ping = this._ping
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> scan = this._scan
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                List<Mechanism> mechanisms = new List<Mechanism>();
                 List<Mechanism> apparatus = new List<Mechanism>();
+                if (this._perceptionService == null) return apparatus;
+                mechanisms = await this._perceptionService.ScanPing(text);
+                string response = string.Empty;
+                response = $"{ping.ToArray()[0]} {scan.ToArray()[0]}.";
                 apparatus = MountMechanism(response, mechanisms);
                 return apparatus;
             }
@@ -2779,6 +3062,7 @@ namespace Letter.ViewModels
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string response = string.Empty;
+                if (this._perceptionService == null) return response;
                 this._perceptionService.CallPhone(number);
                 response = $"{phone.ToArray()[0]} {call.ToArray()[0]}: {number}.";
                 return response;
@@ -2827,17 +3111,21 @@ namespace Letter.ViewModels
                 HashSet<string> token = this._token
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-                HashSet<string> push = this._push
+                HashSet<string> generate = this._generate
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> notification = this._notification
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
-                string response = string.Empty;
-                response = $"{token.ToArray()[0]} {push.ToArray()[0]}.";
                 List<Mechanism> mechanisms = new List<Mechanism>();
+                List<Mechanism> apparatus = new List<Mechanism>();
+                if (this._perceptionService == null) return apparatus;
                 Mechanism mechanism = new Mechanism();
                 mechanism = await this._perceptionService.TokenPush();
                 mechanisms.Add(mechanism);
-                List<Mechanism> apparatus = new List<Mechanism>();
+                string response = string.Empty;
+                response = $"{token.ToArray()[0]} {generate.ToArray()[0]} {notification.ToArray()[0]}.";
                 apparatus = MountMechanism(response, mechanisms);
                 return apparatus;
             }

@@ -84,7 +84,7 @@ namespace Letter.Platforms.Android.Services
 
                 this._text = text;
                 OperationResult result = OperationResult.Error;
-                string file_name = FilePath.MountFileName("mp3");
+                string file_name = FilePath.MountFileName("wav");
                 string file_path = FilePath.MountFilePath(file_name);
                 if (this._textToSpeech != null && this._textToSpeech.IsSpeaking == false)
                 {

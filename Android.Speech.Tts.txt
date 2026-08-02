@@ -1,0 +1,89 @@
+<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+<uses-permission android:name="android.permission.BLUETOOTH" />
+<uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
+
+using Android.Content;
+using Android.Media;
+using Android.Speech.Tts;
+using Java.Lang;
+
+public class AndroidTtsController : Java.Lang.Object, TextToSpeech.IOnInitListener
+{
+    private TextToSpeech _tts;
+    private AudioManager _audioManager;
+    private Context _context;
+    private string _pendingText;
+
+    public AndroidTtsController()
+    {
+        _context = Android.App.Application.Context;
+        _audioManager = (AudioManager)_context.GetSystemService(Context.AudioService);
+        _tts = new TextToSpeech(_context, this);
+    }
+
+    public void OnInit(OperationResult status)
+    {
+        if (status == OperationResult.Success && !string.IsNullOrEmpty(_pendingText))
+        {
+            SpeakNow(_pendingText);
+        }
+    }
+
+    public void Speak(string text, string outputType)
+    {
+        _pendingText = text;
+        ConfigureAudioOutput(outputType);
+
+        if (_tts != null)
+        {
+            SpeakNow(text);
+        }
+    }
+
+    private void ConfigureAudioOutput(string type)
+    {
+        // Necessário para comandos de áudio em tempo de execução
+        _audioManager.Mode = StreamMode.InCommunication;
+
+        switch (type.ToLower())
+        {
+            case "bluetooth":
+                _audioManager.SetBluetoothScoOn(true);
+                _audioManager.StartBluetoothSco();
+                _audioManager.SpeakerphoneOn = false;
+                break;
+
+            case "speaker":
+                _audioManager.StopBluetoothSco();
+                _audioManager.SetBluetoothScoOn(false);
+                _audioManager.SpeakerphoneOn = true; // Viva-voz
+                break;
+
+            case "phone":
+            default:
+                _audioManager.StopBluetoothSco();
+                _audioManager.SetBluetoothScoOn(false);
+                _audioManager.SpeakerphoneOn = false; // Auricular padrão
+                break;
+        }
+    }
+
+    private void SpeakNow(string text)
+    {
+        var paramsMap = new System.Collections.Generic.Dictionary<string, string>
+        {
+            { TextToSpeech.Engine.KeyParamStream, ((int)Stream.VoiceCall).ToString() }
+        };
+        
+        _tts.Speak(text, QueueMode.Flush, paramsMap, "TtsUtteranceId");
+    }
+
+    public void DisposeTts()
+    {
+        _tts?.Stop();
+        _tts?.Shutdown();
+        _audioManager.StopBluetoothSco();
+        _audioManager.Mode = StreamMode.Normal;
+    }
+}

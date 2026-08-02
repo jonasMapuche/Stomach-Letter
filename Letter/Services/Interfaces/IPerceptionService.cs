@@ -9,6 +9,7 @@ namespace Letter.Services.Interfaces
         Task<string> DownloadRaspberry();
         Task<string> DownloadFile();
         Task SendRecording(string file_path);
+        Task<string> SendRecording();
         Task UploadRaspberry();
         Task<Location> GetCurrentLocation();
         double GetCharge();
@@ -18,7 +19,7 @@ namespace Letter.Services.Interfaces
         void SetVibration(int time);
         Task SetupBluetooth3();
         Task<List<Mechanism>> ScanBluetooth3();
-        Task<string> ConnectBluetooth3(string device);
+        Task ConnectBluetooth3(string device);
         void SpeakText(string text);
         string FileText(string text);
         void StartRecordMP3();
@@ -31,6 +32,7 @@ namespace Letter.Services.Interfaces
         Task ClearRecording();
         Task SetupWiFi();
         Task<List<Mechanism>> ScanWiFi();
+        Task<List<Mechanism>> ScanPing(string address);
         Task SetupSMS(string phone);
         void SendSMS(string text);
         Task<List<Mechanism>> ScanSMS();
