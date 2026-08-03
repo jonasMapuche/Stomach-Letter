@@ -79,7 +79,7 @@ namespace Letter.Platforms.Android.Services
             }
         }
 
-        public void Call(string numero, string caminhoAudio)
+        public void Call(string numero, string input)
         {
             try
             {
@@ -95,7 +95,7 @@ namespace Letter.Platforms.Android.Services
                 extras.PutParcelable(TelecomManager.ExtraPhoneAccountHandle, callHandle);
                 telecomManager.PlaceCall(uri, extras);
 
-                InjectAudio(caminhoAudio);
+                InjectAudio(input);
             }
             catch (Exception ex)
             {
@@ -131,22 +131,18 @@ namespace Letter.Platforms.Android.Services
                 int sampleRate = 44100;
                 ChannelIn channelIn = ChannelIn.Mono;
                 Encoding encoding = Encoding.Pcm16bit;
-
                 int bufferSize = AudioRecord.GetMinBufferSize(sampleRate, channelIn, encoding);
-                var audioTrack = new AudioTrack(
+                AudioTrack audioTrack = new AudioTrack(
                     Stream.VoiceCall,
                     sampleRate,
                     ChannelOut.Mono,
                     encoding,
                     bufferSize,
                     AudioTrackMode.Stream);
-
                 audioTrack.Play();
-
                 FileInputStream fis = new FileInputStream(file_path);
                 byte[] buffer = new byte[bufferSize];
                 int bytesRead;
-
                 try
                 {
                     while ((bytesRead = fis.Read(buffer)) != -1)

@@ -20,8 +20,6 @@ namespace Letter.Platforms.Android.Broadcasts
                 this._error_message = value;
             }
         }
-
-        public event EventHandler<string>? OnError;
         #endregion
 
         #region VARIABLE
@@ -56,10 +54,12 @@ namespace Letter.Platforms.Android.Broadcasts
             {
                 if (this._error_off) throw new InvalidOperationException("Operation on receiver \"Bluetooth\" broadcast failed!");
 
-                string action = intent.Action;
+                if (intent == null) return;
+                string? action = intent.Action;
                 if (BluetoothDevice.ActionFound.Equals(action))
                 {
-                    BluetoothDevice device = (BluetoothDevice)intent.GetParcelableExtra(BluetoothDevice.ExtraDevice);
+                    BluetoothDevice? device = (BluetoothDevice)intent.GetParcelableExtra(BluetoothDevice.ExtraDevice);
+                    if (device == null) return;
                     string appliance = $"{device.Name} - {device.Address}";
                     Mechanism mechanism = new Mechanism();
                     mechanism.name = appliance;

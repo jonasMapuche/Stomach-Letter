@@ -649,24 +649,36 @@ namespace Letter.ViewModels
                 HashSet<string> generate = this._generate
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> load = this._load
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> message = this._message
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
                 string result = string.Empty;
                 if (this._kind_bot == Automaton.Speak)
                 {
                     result = $"{send.ToArray()[0]}";
-                    this._flam = new List<string>();
                     this._flam.Add(report);
                 }
                 if (this._kind_bot == Automaton.Record)
                 {
                     result = $"{send.ToArray()[0]}";
-                    this._flam = new List<string>();
                     this._flam.Add(report);
                 }
                 if (this._kind_bot == Automaton.WiFi)
                 {
                     result = $"{send.ToArray()[0]}";
-                    this._flam = new List<string>();
+                    this._flam.Add(report);
+                }
+                if (this._kind_bot == Automaton.Phone)
+                {
+                    foreach (Message memo in memos)
+                    {
+                        if (Array.IndexOf(message.ToArray(), memo.Text) != -1) result = $"{load.ToArray()[0]}";
+                    }
+                    if (result == string.Empty) result = $"{send.ToArray()[0]}";
                     this._flam.Add(report);
                 }
                 if (this._kind_bot == Automaton.SMS)
@@ -676,7 +688,6 @@ namespace Letter.ViewModels
                         if (Array.IndexOf(setup.ToArray(), memo.Text) != -1) result = $"{generate.ToArray()[0]}";
                     }
                     if (result == string.Empty) result = $"{setup.ToArray()[0]}";
-                    this._flam = new List<string>();
                     this._flam.Add(report);
                 }
                 return result;
@@ -712,25 +723,21 @@ namespace Letter.ViewModels
                 if ((tacit == Tacit.Bluetooth) && (!this._mode_bot))
                 {
                     result = $"{bluetooth3.ToArray()[0]} {connect.ToArray()[0]}.";
-                    this._flam = new List<string>();
                     this._flam.Add(report);
                 }
                 if ((tacit == Tacit.Bluetooth) && (this._mode_bot))
                 {
                     result = $"{connect.ToArray()[0]}.";
-                    this._flam = new List<string>();
                     this._flam.Add(report);
                 }
                 if ((tacit == Tacit.WiFi) && (!this._mode_bot))
                 {
                     result = $"{ping.ToArray()[0]} {scan.ToArray()[0]}.";
-                    this._flam = new List<string>();
                     this._flam.Add(report);
                 }
                 if ((tacit == Tacit.WiFi) && (this._mode_bot))
                 {
                     result = $"{ping.ToArray()[0]}.";
-                    this._flam = new List<string>();
                     this._flam.Add(report);
                 }
                 return result;
@@ -901,6 +908,16 @@ namespace Letter.ViewModels
                     tasks = await this._botService.WiFi(language, parameter, reports);
                     notes = await LoopBot(tasks, user, language);
                 }
+                if (this._kind_bot == Automaton.Phone)
+                {
+                    tasks = await this._botService.CallPhone(language, parameter, reports);
+                    notes = await LoopBot(tasks, user, language);
+                }
+                if (this._kind_bot == Automaton.Bluetooth)
+                {
+                    tasks = await this._botService.Bluetooth(language, parameter, reports);
+                    notes = await LoopBot(tasks, user, language);
+                }
                 return notes;
             }
             catch (Exception ex)
@@ -932,6 +949,10 @@ namespace Letter.ViewModels
                         result = await this._botService.SpeakerChoose(language, reports);
                     if (this._kind_bot == Automaton.WiFi)
                         result = await this._botService.WiFiChoose(language, reports);
+                    if (this._kind_bot == Automaton.Phone)
+                        result = await this._botService.PhoneChoose(language, reports);
+                    if (this._kind_bot == Automaton.Bluetooth)
+                        result = await this._botService.BluetoothChoose(language, reports);
                     foreach (string value in result)
                     {
                         Mechanism mechanism = new Mechanism();
@@ -1480,10 +1501,22 @@ namespace Letter.ViewModels
 
                 List<Mechanism> mechanisms = new List<Mechanism>();
 
+                if ((FindPredication(verbs, verbs_call)) && (FindOwner(nouns, nouns_message)))
+                {
+                    string text = string.Empty;
+                    if (this._mode_bot) text = this._flam.First();
+                    else text = ReciteText(explanatories);
+                    string result = string.Empty;
+                    result = await CallMessage(language, text);
+                    mechanisms = MountMechanism(result, Tacit.Copy);
+                    return mechanisms;
+                }
+
                 if ((FindPredication(verbs, verbs_call)) && (FindOwner(nouns, nouns_phone)))
                 {
                     string text = string.Empty;
-                    text = ReciteText(explanatories);
+                    if (this._mode_bot) text = this._flam.First();
+                    else text = ReciteText(explanatories);
                     string result = string.Empty;
                     result = await CallPhone(language, text);
                     mechanisms = MountMechanism(result, Tacit.Copy);
@@ -1554,6 +1587,14 @@ namespace Letter.ViewModels
                     return mechanisms;
                 }
 
+                if ((FindPredication(verbs, verbs_load)) && (FindOwner(nouns, nouns_bluetooth3)))
+                {
+                    List<Mechanism> result = new List<Mechanism>();
+                    result = await LoadBluetooth(language);
+                    mechanisms = MountMechanism(result, Tacit.Implied);
+                    return mechanisms;
+                }
+
                 if ((FindPredication(verbs, verbs_load)) && (FindOwner(nouns, nouns_camera)))
                 {
                     List<Mechanism> result = new List<Mechanism>();
@@ -1574,6 +1615,14 @@ namespace Letter.ViewModels
                 {
                     List<Mechanism> result = new List<Mechanism>();
                     result = await LoadMessage(language);
+                    mechanisms = MountMechanism(result, Tacit.Implied);
+                    return mechanisms;
+                }
+
+                if ((FindPredication(verbs, verbs_load)) && (FindOwner(nouns, nouns_phone)))
+                {
+                    List<Mechanism> result = new List<Mechanism>();
+                    result = await LoadPhone(language);
                     mechanisms = MountMechanism(result, Tacit.Implied);
                     return mechanisms;
                 }
@@ -1881,33 +1930,6 @@ namespace Letter.ViewModels
         
         //----------------------------
 
-        private async Task<List<Mechanism>> LoadAudio(string language)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation load audio \"Bot\" view model failed!");
-
-                if (!this._mode_bot) this._mode_bot = true;
-                if (this._kind_bot == Automaton.Unknown) this._kind_bot = Automaton.Record;
-                List<string> response = new List<string>();
-                response = await this._botService.LoadAudio(language);
-                List<Mechanism> mechanisms = new List<Mechanism>();
-                foreach (string value in response)
-                {
-                    Mechanism mechanism = new Mechanism();
-                    mechanism.name = value;
-                    mechanism.implied = value;
-                    mechanisms.Add(mechanism);
-                }
-                return mechanisms;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
         private async Task<string> StartRecord(string language, string kind)
         {
             try
@@ -2097,61 +2119,6 @@ namespace Letter.ViewModels
                 if (kind == mp3.ToArray()[0]) response = $"{mp3.ToArray()[0]} {play.ToArray()[0]}.";
                 else response = $"{wav.ToArray()[0]} {play.ToArray()[0]}.";
                 return response;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        private async Task<string> EndBot(string language)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation end bot \"Bot\" view model failed!");
-
-                HashSet<string> terminate = this._terminate
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
-                HashSet<string> bot = this._bot
-                    .Where(index => index.Value.Contains(language))
-                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
-
-                string response = string.Empty;
-                if (this._mode_bot) this._mode_bot = false;
-                this._kind_bot = Automaton.Unknown;
-                this._messageService.Remove(language);
-                response = $"{bot.ToArray()[0]} {terminate.ToArray()[0]}.";
-                return response;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        private async Task<List<Mechanism>> LoadCamera(string language)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation load camera \"Bot\" view model failed!");
-
-                if (!this._mode_bot) this._mode_bot = true;
-                if (this._kind_bot == Automaton.Unknown) this._kind_bot = Automaton.Camera;
-                List<string> response = new List<string>();
-                response = await this._botService.LoadCamera(language);
-                List<Mechanism> mechanisms = new List<Mechanism>();
-                foreach(string value in response)
-                {
-                    Mechanism mechanism = new Mechanism();
-                    mechanism.name = value;
-                    mechanism.implied = value;
-                    mechanisms.Add(mechanism);
-                }
-                return mechanisms;
             }
             catch (Exception ex)
             {
@@ -2422,114 +2389,6 @@ namespace Letter.ViewModels
                 string response = string.Empty;
                 response = $"{record.ToArray()[0]} {stop.ToArray()[0]}.";
                 return response;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        private async Task<List<Mechanism>> LoadShare(string language)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation load share \"Bot\" view model failed!");
-
-                if (!this._mode_bot) this._mode_bot = true;
-                if (this._kind_bot == Automaton.Unknown) this._kind_bot = Automaton.Share;
-                List<string> response = new List<string>();
-                response = await this._botService.LoadShare(language);
-                List<Mechanism> mechanisms = new List<Mechanism>();
-                foreach (string value in response)
-                {
-                    Mechanism mechanism = new Mechanism();
-                    mechanism.name = value;
-                    mechanism.implied = value;
-                    mechanisms.Add(mechanism);
-                }
-                return mechanisms;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        private async Task<List<Mechanism>> LoadMessage(string language)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation load message \"Bot\" view model failed!");
-
-                if (!this._mode_bot) this._mode_bot = true;
-                if (this._kind_bot == Automaton.Unknown) this._kind_bot = Automaton.SMS;
-                List<string> response = new List<string>();
-                response = await this._botService.LoadSMS(language);
-                List<Mechanism> mechanisms = new List<Mechanism>();
-                foreach (string value in response)
-                {
-                    Mechanism mechanism = new Mechanism();
-                    mechanism.name = value;
-                    mechanism.implied = value;
-                    mechanisms.Add(mechanism);
-                }
-                return mechanisms;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        private async Task<List<Mechanism>> LoadWiFi(string language)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation load wifi \"Bot\" view model failed!");
-
-                if (!this._mode_bot) this._mode_bot = true;
-                if (this._kind_bot == Automaton.Unknown) this._kind_bot = Automaton.WiFi;
-                List<string> response = new List<string>();
-                response = await this._botService.LoadWiFi(language);
-                List<Mechanism> mechanisms = new List<Mechanism>();
-                foreach (string value in response)
-                {
-                    Mechanism mechanism = new Mechanism();
-                    mechanism.name = value;
-                    mechanism.implied = value;
-                    mechanisms.Add(mechanism);
-                }
-                return mechanisms;
-            }
-            catch (Exception ex)
-            {
-                this.error_message = ex.Message;
-                throw new InvalidOperationException(this.error_message);
-            }
-        }
-
-        private async Task<List<Mechanism>> LoadSpeaker(string language)
-        {
-            try
-            {
-                if (this._error_off) throw new InvalidOperationException("Operation load speaker \"Bot\" view model failed!");
-
-                if (!this._mode_bot) this._mode_bot = true;
-                if (this._kind_bot == Automaton.Unknown) this._kind_bot = Automaton.Speak;
-                List<string> response = new List<string>();
-                response = await this._botService.LoadSpeaker(language);
-                List<Mechanism> mechanisms = new List<Mechanism>();
-                foreach (string value in response)
-                {
-                    Mechanism mechanism = new Mechanism();
-                    mechanism.name = value;
-                    mechanism.implied = value;
-                    mechanisms.Add(mechanism);
-                }
-                return mechanisms;
             }
             catch (Exception ex)
             {
@@ -2883,6 +2742,258 @@ namespace Letter.ViewModels
             }
         }
 
+        private async Task<string> EndBot(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation end bot \"Bot\" view model failed!");
+
+                HashSet<string> terminate = this._terminate
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> bot = this._bot
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                string response = string.Empty;
+                if (this._mode_bot) this._mode_bot = false;
+                this._flam = new List<string>();
+                this._kind_bot = Automaton.Unknown;
+                this._messageService.Remove(language);
+                response = $"{bot.ToArray()[0]} {terminate.ToArray()[0]}.";
+                return response;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<List<Mechanism>> LoadAudio(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation load audio \"Bot\" view model failed!");
+
+                if (!this._mode_bot) this._mode_bot = true;
+                if (this._kind_bot == Automaton.Unknown) this._kind_bot = Automaton.Record;
+                this._flam = new List<string>();
+                List<string> response = new List<string>();
+                response = await this._botService.LoadAudio(language);
+                List<Mechanism> mechanisms = new List<Mechanism>();
+                foreach (string value in response)
+                {
+                    Mechanism mechanism = new Mechanism();
+                    mechanism.name = value;
+                    mechanism.implied = value;
+                    mechanisms.Add(mechanism);
+                }
+                return mechanisms;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<List<Mechanism>> LoadBluetooth(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation load bluetooth \"Bot\" view model failed!");
+
+                if (!this._mode_bot) this._mode_bot = true;
+                if (this._kind_bot == Automaton.Unknown) this._kind_bot = Automaton.Bluetooth;
+                this._flam = new List<string>();
+                List<string> response = new List<string>();
+                response = await this._botService.LoadBluetooth(language);
+                List<Mechanism> mechanisms = new List<Mechanism>();
+                foreach (string value in response)
+                {
+                    Mechanism mechanism = new Mechanism();
+                    mechanism.name = value;
+                    mechanism.implied = value;
+                    mechanisms.Add(mechanism);
+                }
+                return mechanisms;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<List<Mechanism>> LoadCamera(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation load camera \"Bot\" view model failed!");
+
+                if (!this._mode_bot) this._mode_bot = true;
+                if (this._kind_bot == Automaton.Unknown) this._kind_bot = Automaton.Camera;
+                this._flam = new List<string>();
+                List<string> response = new List<string>();
+                response = await this._botService.LoadCamera(language);
+                List<Mechanism> mechanisms = new List<Mechanism>();
+                foreach (string value in response)
+                {
+                    Mechanism mechanism = new Mechanism();
+                    mechanism.name = value;
+                    mechanism.implied = value;
+                    mechanisms.Add(mechanism);
+                }
+                return mechanisms;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<List<Mechanism>> LoadShare(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation load share \"Bot\" view model failed!");
+
+                if (!this._mode_bot) this._mode_bot = true;
+                if (this._kind_bot == Automaton.Unknown) this._kind_bot = Automaton.Share;
+                this._flam = new List<string>();
+                List<string> response = new List<string>();
+                response = await this._botService.LoadShare(language);
+                List<Mechanism> mechanisms = new List<Mechanism>();
+                foreach (string value in response)
+                {
+                    Mechanism mechanism = new Mechanism();
+                    mechanism.name = value;
+                    mechanism.implied = value;
+                    mechanisms.Add(mechanism);
+                }
+                return mechanisms;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<List<Mechanism>> LoadMessage(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation load message \"Bot\" view model failed!");
+
+                if (!this._mode_bot) this._mode_bot = true;
+                if (this._kind_bot == Automaton.Unknown) this._kind_bot = Automaton.SMS;
+                this._flam = new List<string>();
+                List<string> response = new List<string>();
+                response = await this._botService.LoadSMS(language);
+                List<Mechanism> mechanisms = new List<Mechanism>();
+                foreach (string value in response)
+                {
+                    Mechanism mechanism = new Mechanism();
+                    mechanism.name = value;
+                    mechanism.implied = value;
+                    mechanisms.Add(mechanism);
+                }
+                return mechanisms;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<List<Mechanism>> LoadWiFi(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation load wifi \"Bot\" view model failed!");
+
+                if (!this._mode_bot) this._mode_bot = true;
+                if (this._kind_bot == Automaton.Unknown) this._kind_bot = Automaton.WiFi;
+                this._flam = new List<string>();
+                List<string> response = new List<string>();
+                response = await this._botService.LoadWiFi(language);
+                List<Mechanism> mechanisms = new List<Mechanism>();
+                foreach (string value in response)
+                {
+                    Mechanism mechanism = new Mechanism();
+                    mechanism.name = value;
+                    mechanism.implied = value;
+                    mechanisms.Add(mechanism);
+                }
+                return mechanisms;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<List<Mechanism>> LoadSpeaker(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation load speaker \"Bot\" view model failed!");
+
+                if (!this._mode_bot) this._mode_bot = true;
+                if (this._kind_bot == Automaton.Unknown) this._kind_bot = Automaton.Speak;
+                this._flam = new List<string>();
+                List<string> response = new List<string>();
+                response = await this._botService.LoadSpeaker(language);
+                List<Mechanism> mechanisms = new List<Mechanism>();
+                foreach (string value in response)
+                {
+                    Mechanism mechanism = new Mechanism();
+                    mechanism.name = value;
+                    mechanism.implied = value;
+                    mechanisms.Add(mechanism);
+                }
+                return mechanisms;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<List<Mechanism>> LoadPhone(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation load phone \"Bot\" view model failed!");
+
+                if (!this._mode_bot) this._mode_bot = true;
+                if (this._kind_bot == Automaton.Unknown) this._kind_bot = Automaton.Phone;
+                this._flam = new List<string>();
+                List<string> response = new List<string>();
+                response = await this._botService.LoadPhone(language);
+                List<Mechanism> mechanisms = new List<Mechanism>();
+                foreach (string value in response)
+                {
+                    Mechanism mechanism = new Mechanism();
+                    mechanism.name = value;
+                    mechanism.implied = value;
+                    mechanisms.Add(mechanism);
+                }
+                return mechanisms;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
         private async Task<string> SetupSMS(string language, string text)
         {
             try
@@ -3087,13 +3198,40 @@ namespace Letter.ViewModels
                     .Where(index => index.Value.Contains(language))
                     .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
 
-                string response = string.Empty;
-                response = $"{phone.ToArray()[0]} {listen.ToArray()[0]}.";
                 List<Mechanism> mechanisms = new List<Mechanism>();
                 List<Mechanism> apparatus = new List<Mechanism>();
+                if (this._perceptionService == null) return apparatus;
                 mechanisms = await this._perceptionService.ScanPhone();
+                string response = string.Empty;
+                response = $"{phone.ToArray()[0]} {listen.ToArray()[0]}.";
                 apparatus = MountMechanism(response, mechanisms);
                 return apparatus;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        private async Task<string> CallMessage(string language, string number)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation call message \"Bot\" view model failed!");
+
+                HashSet<string> phone = this._phone
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+                HashSet<string> call = this._call
+                    .Where(index => index.Value.Contains(language))
+                    .ToDictionary(index => index.Key, index => index.Value).Keys.ToHashSet();
+
+                string response = string.Empty;
+                if (this._perceptionService == null) return response;
+                this._perceptionService.AudioPhone(number);
+                response = $"{phone.ToArray()[0]} {call.ToArray()[0]}: {number}.";
+                return response;
             }
             catch (Exception ex)
             {

@@ -8,6 +8,8 @@
         Record = 2,
         SMS = 3,
         WiFi = 4,
-        Speak = 5
+        Speak = 5,
+        Phone = 6,
+        Bluetooth = 7
     }
 }

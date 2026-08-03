@@ -32,6 +32,8 @@ namespace Letter.Services
         private ISMSBot _sMSBot;
         private ISpeakBot _speakBot;
         private IWiFiBot _wiFiBot;
+        private IPhoneBot _phoneBot;
+        private IBluetoothBot _bluetoothBot;
         #endregion
 
         #region CONSTRUCTOR
@@ -48,6 +50,8 @@ namespace Letter.Services
                 this._sMSBot = new SMSBot();
                 this._speakBot = new SpeakBot();
                 this._wiFiBot = new WiFiBot();
+                this._phoneBot = new PhoneBot();
+                this._bluetoothBot = new BluetoothBot();
                 this._decisionTreeBot = new DecisionTreeBot();
             }
             catch (Exception ex)
@@ -167,6 +171,40 @@ namespace Letter.Services
             }
         }
 
+        public async Task<List<string>> LoadPhone(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation load phone \"Bot\" service failed!");
+
+                List<string> response = new List<string>();
+                response = await this._phoneBot.SelectSetup(language);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<List<string>> LoadBluetooth(string language)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation load bluetooth \"Bot\" service failed!");
+
+                List<string> response = new List<string>();
+                response = await this._bluetoothBot.SelectSetup(language);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
         public async Task<List<string>> SMSChoose(string language, List<Message> messages)
         {
             try
@@ -269,6 +307,40 @@ namespace Letter.Services
             }
         }
 
+        public async Task<List<string>> PhoneChoose(string language, List<Message> messages)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation phone choose \"Bot\" service failed!");
+
+                List<string> response = new List<string>();
+                response = await this._phoneBot.Select(language, messages);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<List<string>> BluetoothChoose(string language, List<Message> messages)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation bluetooth choose \"Bot\" service failed!");
+
+                List<string> response = new List<string>();
+                response = await this._bluetoothBot.Select(language, messages);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
         public async Task<List<string>> CaptureCamera(string language, string parameter, List<Message> messages)
         {
             try
@@ -362,6 +434,40 @@ namespace Letter.Services
 
                 List<string> response = new List<string>();
                 response = await this._wiFiBot.Load(language, parameter, messages);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<List<string>> CallPhone(string language, string parameter, List<Message> messages)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation call phone \"Bot\" service failed!");
+
+                List<string> response = new List<string>();
+                response = await this._phoneBot.Load(language, parameter, messages);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public async Task<List<string>> Bluetooth(string language, string parameter, List<Message> messages)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation bluetooth \"Bot\" service failed!");
+
+                List<string> response = new List<string>();
+                response = await this._bluetoothBot.Load(language, parameter, messages);
                 return response;
             }
             catch (Exception ex)

@@ -26,6 +26,11 @@ namespace Letter.Services.Interfaces
         Task<List<string>> LoadWiFi(string language);
         Task<List<string>> WiFiChoose(string language, List<Message> messages);
         Task<List<string>> WiFi(string language, string parameter, List<Message> messages);
-
+        Task<List<string>> LoadPhone(string language);
+        Task<List<string>> PhoneChoose(string language, List<Message> messages);
+        Task<List<string>> CallPhone(string language, string parameter, List<Message> messages);
+        Task<List<string>> LoadBluetooth(string language);
+        Task<List<string>> BluetoothChoose(string language, List<Message> messages);
+        Task<List<string>> Bluetooth(string language, string parameter, List<Message> messages);
     }
 }

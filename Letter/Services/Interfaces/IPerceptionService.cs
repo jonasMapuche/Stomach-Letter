@@ -37,6 +37,7 @@ namespace Letter.Services.Interfaces
         void SendSMS(string text);
         Task<List<Mechanism>> ScanSMS();
         void CallPhone(string phone);
+        void AudioPhone(string phone);
         Task<List<Mechanism>> ScanPhone();
         Task<Mechanism> TokenPush();
     }

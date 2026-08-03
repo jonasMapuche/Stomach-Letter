@@ -40,6 +40,7 @@ namespace Letter.Services
                 if (this._error_off) throw new InvalidOperationException("Operation constructor \"Text to Speak\" service failed!");
                 else this.error_message = string.Empty;
 
+                if (SettingService.Instance == null) return;
                 this._settingService = SettingService.Instance;
 
                 this._language_english = this._settingService.English;

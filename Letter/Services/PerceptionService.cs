@@ -351,7 +351,6 @@ namespace Letter.Services
                 if (this._error_off) throw new InvalidOperationException("Operation setup bluetooth 3 \"Perception\" service failed!");
 
                 this._bluetoothService.SetUp();
-                this._bluetoothService.Scan();
             }
             catch (Exception ex)
             {
@@ -367,7 +366,6 @@ namespace Letter.Services
                 if (this._error_off) throw new InvalidOperationException("Operation setup wifi \"Perception\" service failed!");
 
                 this._wiFiService.SetUp();
-                //this._wiFiService.Scan();
             }
             catch (Exception ex)
             {
@@ -655,6 +653,25 @@ namespace Letter.Services
                 if (this._error_off) throw new InvalidOperationException("Operation call phone \"Perception\" service failed!");
 
                 this._phoneService.Call(phone);
+            }
+            catch (Exception ex)
+            {
+                this.error_message = ex.Message;
+                throw new InvalidOperationException(this.error_message);
+            }
+        }
+
+        public void AudioPhone(string phone)
+        {
+            try
+            {
+                if (this._error_off) throw new InvalidOperationException("Operation call phone \"Perception\" service failed!");
+
+                if (this._audios == null) return;
+                if (this._audios.Count == 0) return;
+                Audio audio = this._audios.First();
+                string file_path = audio.url;
+                this._phoneService.Call(phone, file_path);
             }
             catch (Exception ex)
             {
